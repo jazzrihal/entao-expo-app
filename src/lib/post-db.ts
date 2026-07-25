@@ -33,7 +33,7 @@ export type UploadOutboxEntry = {
   created_at: number;
 };
 
-const DB_NAME = 'fotuu-posts.db';
+const DB_NAME = 'entao-posts.db';
 
 let _db: SQLite.SQLiteDatabase | null = null;
 

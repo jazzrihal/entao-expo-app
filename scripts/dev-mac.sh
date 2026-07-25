@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Start Fotuu local development on macOS: Docker, Supabase, and a tmux workspace.
+# Start Então local development on macOS: Docker, Supabase, and a tmux workspace.
 set -euo pipefail
 
-SESSION="fotuu-dev"
+SESSION="entao-dev"
 DOCKER_WAIT_SECONDS=120
 SUPABASE_START_ATTEMPTS=10
 SUPABASE_START_RETRY_SECONDS=5

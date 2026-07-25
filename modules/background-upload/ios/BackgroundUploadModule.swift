@@ -83,7 +83,7 @@ public class BackgroundUploadModule: Module {
         return
       }
 
-      let config = URLSessionConfiguration.background(withIdentifier: "com.jazzrihal.Fotuu.upload.\(uploadId)")
+      let config = URLSessionConfiguration.background(withIdentifier: "com.jazzrihal.entao.upload.\(uploadId)")
       config.isDiscretionary = false
       config.sessionSendsLaunchEvents = true
 

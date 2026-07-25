@@ -49,7 +49,7 @@ Human/local dev (Mac) still uses `.env`, Supabase, Metro, and dev clients — se
 
 ## Product overview
 
-**Fotuu** is an Expo SDK 56 app (Expo Router, React Native 0.85) with email/password auth via Supabase. In `__DEV__` and E2E release builds (`EXPO_PUBLIC_SUPABASE_ENV=local`), `src/lib/supabase.ts` uses `EXPO_PUBLIC_SUPABASE_LOCAL_*` from `.env` (see `.env.example`).
+**Então** is an Expo SDK 56 app (Expo Router, React Native 0.85) with email/password auth via Supabase. In `__DEV__` and E2E release builds (`EXPO_PUBLIC_SUPABASE_ENV=local`), `src/lib/supabase.ts` uses `EXPO_PUBLIC_SUPABASE_LOCAL_*` from `.env` (see `.env.example`).
 
 ## GitHub Actions (iOS E2E)
 
@@ -76,6 +76,7 @@ Workflows under `.github/workflows/`:
 | **Supabase** | Backend repo `fotuu-supabase-backend`; `npm run gen:types` uses `--workdir ../fotuu-supabase-backend` |
 | **Metro** | `npm start` / dev client (`expo-dev-client`, not Expo Go) |
 | **E2E locally** | `npm run build:e2e:ios` + `npm run test:e2e` on macOS with simulator |
+| **Native dirs** | `ios/` and `android/` are gitignored. After identity or native-config changes in `app.json`, regenerate with `rm -rf ios android && npx expo prebuild` (or `npx expo run:ios` / `run:android`). |
 
 ### Web platform caveat
 

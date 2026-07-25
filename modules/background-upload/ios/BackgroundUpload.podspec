@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name           = 'BackgroundUpload'
   s.version        = '1.0.0'
-  s.summary        = 'NSURLSession background upload module for Fotuu'
+  s.summary        = 'NSURLSession background upload module for Entao'
   s.description    = 'Uploads files via NSURLSession background configuration so uploads continue when the app is backgrounded.'
   s.author         = ''
   s.homepage       = 'https://docs.expo.dev/modules/'

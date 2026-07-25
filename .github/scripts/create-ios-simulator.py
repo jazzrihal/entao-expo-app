@@ -56,7 +56,7 @@ def main() -> None:
                     "xcrun",
                     "simctl",
                     "create",
-                    "Fotuu E2E iPhone",
+                    "Então E2E iPhone",
                     device["identifier"],
                     runtime["identifier"],
                 ],
