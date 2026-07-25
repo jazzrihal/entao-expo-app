@@ -1,20 +1,22 @@
 {
   "expo": {
-    "name": "Fotuu",
-    "slug": "Fotuu",
+    "name": "Entao",
+    "slug": "entao",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "fotuu",
+    "scheme": "entao",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "bundleIdentifier": "com.jazzrihal.Fotuu",
+      "bundleIdentifier": "com.jazzrihal.entao",
       "infoPlist": {
+        "CFBundleDisplayName": "Então",
         "UIBackgroundModes": ["processing", "fetch"]
       }
     },
     "android": {
+      "package": "com.jazzrihal.entao",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -43,7 +45,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow Fotuu to access your camera to capture photos for posts.",
+          "cameraPermission": "Allow Então to access your camera to capture photos for posts.",
           "microphonePermission": false,
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": false
@@ -52,7 +54,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Fotuu to attach your location to posts."
+          "locationWhenInUsePermission": "Allow Então to attach your location to posts."
         }
       ],
       "expo-sqlite",
@@ -62,7 +64,8 @@
         {
           "requestLocationPermission": true
         }
-      ]
+      ],
+      "./plugins/withEntaoAndroidDisplayName.js"
     ],
     "experiments": {
       "typedRoutes": true,

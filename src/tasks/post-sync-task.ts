@@ -2,7 +2,7 @@ import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 import { runSync } from '@/lib/sync-manager';
 
-export const POST_SYNC_TASK = 'fotuu-post-sync';
+export const POST_SYNC_TASK = 'entao-post-sync';
 
 TaskManager.defineTask(POST_SYNC_TASK, async () => {
   try {

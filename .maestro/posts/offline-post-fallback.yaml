@@ -1,4 +1,4 @@
-appId: com.jazzrihal.Fotuu
+appId: com.jazzrihal.entao
 # Airplane-mode toggling only works reliably on Android.
 # This flow is conditional on the Android platform.
 env:

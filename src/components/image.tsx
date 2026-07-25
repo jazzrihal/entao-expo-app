@@ -6,7 +6,7 @@ import { Pressable, StyleSheet } from "react-native";
 
 const SIMULATOR_BACKGROUND = "grey";
 
-type FotuuImageProps = Omit<ImageProps, "onPress"> & {
+type EntaoImageProps = Omit<ImageProps, "onPress"> & {
   resizeOnTap?: boolean;
   onPress?: () => void;
 };
@@ -26,7 +26,7 @@ function ImageComponent({
   onPress,
   testID,
   ...props
-}: FotuuImageProps) {
+}: EntaoImageProps) {
   const [activeContentFit, setActiveContentFit] = useState<ImageContentFit>(contentFit);
   const resolvedContentFit = resizeOnTap ? activeContentFit : contentFit;
 
@@ -71,7 +71,7 @@ function ImageComponent({
   );
 }
 
-export const Image = Object.assign(ImageComponent, ExpoImage) as ComponentType<FotuuImageProps> &
+export const Image = Object.assign(ImageComponent, ExpoImage) as ComponentType<EntaoImageProps> &
   typeof ExpoImage;
 
 export type {
