@@ -235,7 +235,7 @@ export async function listFriendsPostsGrouped(params?: {
   recentWithin?: string;
 }): Promise<{ data: FriendsPostsGroup[] | null; error: string | null }> {
   const { data, error } = await supabase.rpc("list_friends_posts_grouped", {
-    p_recent_within: params?.recentWithin ?? "14 days",
+    p_recent_within: params?.recentWithin ?? "365 days",
   });
 
   if (error) {
