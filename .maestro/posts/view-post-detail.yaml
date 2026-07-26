@@ -27,6 +27,12 @@ env:
 - assertVisible:
     id: "home-post-detail-author"
 - assertVisible:
+    id: "home-post-detail-share"
+- tapOn:
+    id: "home-post-detail-share"
+- assertVisible: "Cancel"
+- tapOn: "Cancel"
+- assertVisible:
     id: "home-post-detail-caption"
 - tapOn: "Like"
 - tapOn: "Unlike"

@@ -10,6 +10,7 @@
     "ios": {
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.jazzrihal.entao",
+      "associatedDomains": ["applinks:xn--ento-ioa.com"],
       "infoPlist": {
         "CFBundleDisplayName": "Então",
         "UIBackgroundModes": ["processing", "fetch"]
