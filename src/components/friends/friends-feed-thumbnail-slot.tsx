@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
-import { RNHostView } from '@expo/ui';
+import { StyleSheet, View } from "react-native";
+import { RNHostView } from "@expo/ui";
 import {
   FRIENDS_FEED_ROW_GAP,
   FRIENDS_FEED_SECTION_ROW_INSET,
   FriendsFeedThumbnailRow,
-} from '@/components/friends/friends-feed-thumbnail-row';
-import type { FriendsPostWithImage } from '@/queries/posts';
+} from "@/components/friends/friends-feed-thumbnail-row";
+import type { FriendsPostWithImage } from "@/queries/posts";
 
 export type FriendsFeedThumbnailSlotProps = {
   posts: FriendsPostWithImage[];
@@ -54,6 +54,6 @@ export function FriendsFeedThumbnailSlot({
 
 const styles = StyleSheet.create({
   slot: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

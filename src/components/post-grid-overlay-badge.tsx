@@ -1,10 +1,10 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
-import { SymbolView } from "expo-symbols";
+import { SymbolView, type SFSymbol } from "expo-symbols";
 
 const SYMBOL_SIZE = 18;
 
 type PostGridOverlayBadgeProps = {
-  symbolName: string;
+  symbolName: SFSymbol;
   accessibilityLabel: string;
   testID?: string;
   style?: StyleProp<ViewStyle>;

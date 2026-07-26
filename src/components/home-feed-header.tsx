@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import DateTimePicker from "@expo/ui/community/datetime-picker";
+import CommunityDateTimePicker from "@expo/ui/community/datetime-picker";
 import { Host, Button } from "@expo/ui";
 
 type HomeFeedHeaderProps = {
@@ -26,7 +26,7 @@ export function HomeFeedHeader({
         />
       </Host>
       <View style={styles.spacer} />
-      <DateTimePicker
+      <CommunityDateTimePicker
         value={selectedDate}
         mode="datetime"
         display="compact"

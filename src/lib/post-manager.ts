@@ -1,6 +1,6 @@
-import * as FileSystem from 'expo-file-system/legacy';
-import { randomUUID } from 'expo-crypto';
-import type { SQLiteDatabase } from 'expo-sqlite';
+import * as FileSystem from "expo-file-system/legacy";
+import { randomUUID } from "expo-crypto";
+import type { SQLiteDatabase } from "expo-sqlite";
 import {
   deleteLocalPostRow,
   deleteOutboxByLocalPostId,
@@ -11,7 +11,7 @@ import {
   insertOutboxEntry,
   updateLocalPostStatus,
   type LocalPost,
-} from '@/lib/post-db';
+} from "@/lib/post-db";
 
 const LOCAL_POSTS_DIR = `${FileSystem.documentDirectory}local-posts/`;
 
@@ -30,7 +30,9 @@ function notifyPostChangeListeners() {
 async function ensureLocalPostsDir(): Promise<void> {
   const info = await FileSystem.getInfoAsync(LOCAL_POSTS_DIR);
   if (!info.exists) {
-    await FileSystem.makeDirectoryAsync(LOCAL_POSTS_DIR, { intermediates: true });
+    await FileSystem.makeDirectoryAsync(LOCAL_POSTS_DIR, {
+      intermediates: true,
+    });
   }
 }
 
@@ -41,7 +43,10 @@ async function copyImageToDocuments(sourceUri: string): Promise<string> {
   return destPath;
 }
 
-async function deleteLocalImage(db: SQLiteDatabase, localPostId: string): Promise<void> {
+async function deleteLocalImage(
+  db: SQLiteDatabase,
+  localPostId: string,
+): Promise<void> {
   const uri = await getLocalImageUri(db, localPostId);
   if (uri) {
     const info = await FileSystem.getInfoAsync(uri);
@@ -65,20 +70,24 @@ export type SaveLocalPostInput = {
   region?: string | null;
 };
 
-export type SaveLocalPostResult = {
-  localPost: LocalPost;
-  error: null;
-} | {
-  localPost: null;
-  error: string;
-};
+export type SaveLocalPostResult =
+  | {
+      localPost: LocalPost;
+      error: null;
+    }
+  | {
+      localPost: null;
+      error: string;
+    };
 
-export async function saveLocalPost(input: SaveLocalPostInput): Promise<SaveLocalPostResult> {
+export async function saveLocalPost(
+  input: SaveLocalPostInput,
+): Promise<SaveLocalPostResult> {
   try {
     const db = await getDb();
     const persistedUri = await copyImageToDocuments(input.localImageUri);
     const id = randomUUID();
-    const post: Omit<LocalPost, 'created_at' | 'updated_at'> = {
+    const post: Omit<LocalPost, "created_at" | "updated_at"> = {
       id,
       user_id: input.userId,
       local_image_uri: persistedUri,
@@ -91,18 +100,24 @@ export async function saveLocalPost(input: SaveLocalPostInput): Promise<SaveLoca
       address: input.address ?? null,
       city: input.city ?? null,
       region: input.region ?? null,
-      status: 'local',
+      status: "local",
       remote_post_id: null,
       storage_object_path: null,
       error_message: null,
     };
     const now = Date.now();
     await insertLocalPost(db, post, now);
-    const saved = { localPost: { ...post, created_at: now, updated_at: now }, error: null };
+    const saved = {
+      localPost: { ...post, created_at: now, updated_at: now },
+      error: null,
+    };
     notifyPostChangeListeners();
     return saved;
   } catch (err) {
-    return { localPost: null, error: err instanceof Error ? err.message : 'Failed to save post' };
+    return {
+      localPost: null,
+      error: err instanceof Error ? err.message : "Failed to save post",
+    };
   }
 }
 
@@ -121,10 +136,12 @@ export async function queuePostForUpload(
       next_attempt_at: Date.now(),
       last_error: null,
     });
-    await updateLocalPostStatus(resolvedDb, localPostId, 'queued');
+    await updateLocalPostStatus(resolvedDb, localPostId, "queued");
     return { error: null };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to queue post' };
+    return {
+      error: err instanceof Error ? err.message : "Failed to queue post",
+    };
   }
 }
 
@@ -140,7 +157,7 @@ export async function markSynced(
 ): Promise<{ error: string | null }> {
   try {
     const db = await getDb();
-    await updateLocalPostStatus(db, localPostId, 'synced', {
+    await updateLocalPostStatus(db, localPostId, "synced", {
       remote_post_id: remotePostId,
       storage_object_path: storageObjectPath,
     });
@@ -148,11 +165,15 @@ export async function markSynced(
     await deleteLocalImage(db, localPostId);
     return { error: null };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to mark post synced' };
+    return {
+      error: err instanceof Error ? err.message : "Failed to mark post synced",
+    };
   }
 }
 
-export async function deleteLocalPost(localPostId: string): Promise<{ error: string | null }> {
+export async function deleteLocalPost(
+  localPostId: string,
+): Promise<{ error: string | null }> {
   try {
     const db = await getDb();
     await deleteLocalImage(db, localPostId);
@@ -160,7 +181,9 @@ export async function deleteLocalPost(localPostId: string): Promise<{ error: str
     notifyPostChangeListeners();
     return { error: null };
   } catch (err) {
-    return { error: err instanceof Error ? err.message : 'Failed to delete post' };
+    return {
+      error: err instanceof Error ? err.message : "Failed to delete post",
+    };
   }
 }
 

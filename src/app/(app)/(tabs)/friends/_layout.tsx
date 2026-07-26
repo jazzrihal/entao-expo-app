@@ -1,11 +1,11 @@
-import { Stack } from 'expo-router/stack';
+import { Stack } from "expo-router/stack";
 
 export default function FriendsLayout() {
   return (
     <Stack
       screenOptions={{
         headerLargeTitle: false,
-        headerBackButtonDisplayMode: 'minimal',
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
       <Stack.Screen name="index" />

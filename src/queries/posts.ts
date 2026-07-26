@@ -3,7 +3,7 @@ import {
   useQuery,
   useQueryClient,
   type UseQueryOptions,
-} from '@tanstack/react-query';
+} from "@tanstack/react-query";
 import {
   createPost,
   enrichGroupedPost,
@@ -25,19 +25,20 @@ import {
   type FriendsPostsGroup,
   type PostDetail,
   type ProfileFeedPost,
-} from '@/lib/posts';
-import type { PostFeedSource } from '@/lib/navigation';
-import { assertOk } from '@/lib/result';
-import { queryKeys } from '@/queries/keys';
+} from "@/lib/posts";
+import type { PostFeedSource } from "@/lib/navigation";
+import { assertOk } from "@/lib/result";
+import { queryKeys } from "@/queries/keys";
 
 export type FeedPostWithImage = FeedPost & { imageUrl?: string };
 export type ProfileFeedPostWithImage = ProfileFeedPost & { imageUrl?: string };
 export type FriendsPostWithImage = FriendsPost & { imageUrl?: string };
 export type FriendsPostsGroupedWithImages = {
-  groups: Array<FriendsPostsGroup & { posts: FriendsPostWithImage[] }>;
+  groups: (FriendsPostsGroup & { posts: FriendsPostWithImage[] })[];
 };
-export type PostDetailWithImage =
-  (FeedPost | PostDetail | ProfileFeedPost | FriendsPost) & { imageUrl?: string };
+export type PostDetailWithImage = (
+  FeedPost | PostDetail | ProfileFeedPost | FriendsPost
+) & { imageUrl?: string };
 
 type FeedParams = {
   at: string;
@@ -54,9 +55,13 @@ function hasLocation(params: FeedParams): boolean {
   );
 }
 
-async function fetchFeedWithImages(params: FeedParams): Promise<FeedPostWithImage[]> {
+async function fetchFeedWithImages(
+  params: FeedParams,
+): Promise<FeedPostWithImage[]> {
   const posts = assertOk(await listFeedPosts(params));
-  const urls = assertOk(await getPostImageUrls(posts.map((p) => p.storage_object_path)));
+  const urls = assertOk(
+    await getPostImageUrls(posts.map((p) => p.storage_object_path)),
+  );
   return posts.map((post) => ({
     ...post,
     imageUrl: urls[post.storage_object_path],
@@ -66,9 +71,7 @@ async function fetchFeedWithImages(params: FeedParams): Promise<FeedPostWithImag
 async function fetchProfileFeedWithImages(
   userId: string,
 ): Promise<ProfileFeedPostWithImage[]> {
-  const posts = assertOk(
-    await listProfileFeedPosts({ profileUserId: userId }),
-  );
+  const posts = assertOk(await listProfileFeedPosts({ profileUserId: userId }));
   const urls = assertOk(
     await getPostImageUrls(posts.map((p) => p.storage_object_path)),
   );
@@ -94,7 +97,9 @@ async function fetchFriendsPostsGroupedWithImages(): Promise<FriendsPostsGrouped
   };
 }
 
-async function fetchPostWithImage(postId: string): Promise<PostDetailWithImage> {
+async function fetchPostWithImage(
+  postId: string,
+): Promise<PostDetailWithImage> {
   const post = assertOk(await getPost(postId));
   const urls = assertOk(await getPostImageUrls([post.storage_object_path]));
   return {
@@ -121,7 +126,7 @@ export function useProfileFeedQuery(
   options?: { enabled?: boolean },
 ) {
   return useQuery({
-    queryKey: queryKeys.profileFeed(userId ?? ''),
+    queryKey: queryKeys.profileFeed(userId ?? ""),
     queryFn: () => fetchProfileFeedWithImages(userId!),
     enabled: (options?.enabled ?? true) && !!userId,
   });
@@ -136,10 +141,13 @@ export function useFriendsPostsQuery() {
 
 export function usePostQuery(
   postId: string | null,
-  options?: Pick<UseQueryOptions<PostDetailWithImage>, 'placeholderData' | 'enabled'>,
+  options?: Pick<
+    UseQueryOptions<PostDetailWithImage>,
+    "placeholderData" | "enabled"
+  >,
 ) {
   return useQuery({
-    queryKey: queryKeys.post(postId ?? ''),
+    queryKey: queryKeys.post(postId ?? ""),
     queryFn: () => fetchPostWithImage(postId!),
     enabled: (options?.enabled ?? true) && !!postId,
     placeholderData: options?.placeholderData,
@@ -147,20 +155,20 @@ export function usePostQuery(
 }
 
 export function usePostFeedPosts(feedSource: PostFeedSource | null) {
-  const homeEnabled = feedSource?.type === 'home';
-  const friendsEnabled = feedSource?.type === 'friends';
+  const homeEnabled = feedSource?.type === "home";
+  const friendsEnabled = feedSource?.type === "friends";
   const profileEnabled =
-    feedSource?.type === 'profile' || feedSource?.type === 'user';
+    feedSource?.type === "profile" || feedSource?.type === "user";
   const profileUserId =
-    feedSource?.type === 'profile' || feedSource?.type === 'user'
+    feedSource?.type === "profile" || feedSource?.type === "user"
       ? feedSource.userId
       : undefined;
 
   const homeQuery = useFeedQuery(
     {
-      at: feedSource?.type === 'home' ? feedSource.at : '',
-      latitude: feedSource?.type === 'home' ? feedSource.latitude : NaN,
-      longitude: feedSource?.type === 'home' ? feedSource.longitude : NaN,
+      at: feedSource?.type === "home" ? feedSource.at : "",
+      latitude: feedSource?.type === "home" ? feedSource.latitude : NaN,
+      longitude: feedSource?.type === "home" ? feedSource.longitude : NaN,
     },
     { enabled: homeEnabled },
   );
@@ -208,8 +216,8 @@ function patchPostListCaches(
   queryClient: ReturnType<typeof useQueryClient>,
   postId: string,
   patch: Partial<
-    Pick<FeedPost, 'user_reaction' | 'is_pinned_by_current_user'> &
-      Pick<ProfileFeedPost, 'is_pinned_to_current_profile'>
+    Pick<FeedPost, "user_reaction" | "is_pinned_by_current_user"> &
+      Pick<ProfileFeedPost, "is_pinned_to_current_profile">
   >,
 ) {
   const flatUpdater = (old: { id: string }[] | undefined) =>
@@ -227,9 +235,12 @@ function patchPostListCaches(
     };
   };
 
-  queryClient.setQueriesData({ queryKey: ['feed'] }, flatUpdater);
-  queryClient.setQueriesData({ queryKey: ['profile-feed'] }, flatUpdater);
-  queryClient.setQueriesData({ queryKey: queryKeys.friendsPosts() }, groupedUpdater);
+  queryClient.setQueriesData({ queryKey: ["feed"] }, flatUpdater);
+  queryClient.setQueriesData({ queryKey: ["profile-feed"] }, flatUpdater);
+  queryClient.setQueriesData(
+    { queryKey: queryKeys.friendsPosts() },
+    groupedUpdater,
+  );
 }
 
 function findPostInListCaches(
@@ -237,20 +248,25 @@ function findPostInListCaches(
   postId: string,
 ): PostDetailWithImage | undefined {
   for (const [, posts] of queryClient.getQueriesData<FeedPostWithImage[]>({
-    queryKey: ['feed'],
+    queryKey: ["feed"],
   })) {
     const match = posts?.find((post) => post.id === postId);
     if (match) return match;
   }
 
-  for (const [, posts] of queryClient.getQueriesData<ProfileFeedPostWithImage[]>({
-    queryKey: ['profile-feed'],
+  for (const [, posts] of queryClient.getQueriesData<
+    ProfileFeedPostWithImage[]
+  >({
+    queryKey: ["profile-feed"],
   })) {
     const match = posts?.find((post) => post.id === postId);
     if (match) return match;
   }
 
-  for (const [, grouped] of queryClient.getQueriesData<FriendsPostsGroupedWithImages>({
+  for (const [
+    ,
+    grouped,
+  ] of queryClient.getQueriesData<FriendsPostsGroupedWithImages>({
     queryKey: queryKeys.friendsPosts(),
   })) {
     for (const group of grouped?.groups ?? []) {
@@ -267,19 +283,24 @@ function patchPostDetailCache(
   postId: string,
   patch: Partial<PostDetailWithImage>,
 ) {
-  queryClient.setQueryData<PostDetailWithImage>(queryKeys.post(postId), (old) => {
-    const current = old ?? findPostInListCaches(queryClient, postId);
-    if (!current) return old;
-    return { ...current, ...patch };
-  });
+  queryClient.setQueryData<PostDetailWithImage>(
+    queryKeys.post(postId),
+    (old) => {
+      const current = old ?? findPostInListCaches(queryClient, postId);
+      if (!current) return old;
+      return { ...current, ...patch };
+    },
+  );
 }
 
 function isPostInProfileFeedCaches(
   queryClient: ReturnType<typeof useQueryClient>,
   postId: string,
 ): boolean {
-  for (const [, posts] of queryClient.getQueriesData<ProfileFeedPostWithImage[]>({
-    queryKey: ['profile-feed'],
+  for (const [, posts] of queryClient.getQueriesData<
+    ProfileFeedPostWithImage[]
+  >({
+    queryKey: ["profile-feed"],
   })) {
     if (posts?.some((post) => post.id === postId)) {
       return true;
@@ -293,8 +314,10 @@ export function useToggleLikeMutation(postId: string | null) {
 
   return useMutation({
     mutationFn: async (nextLiked: boolean) => {
-      if (!postId) throw new Error('Missing post');
-      const result = nextLiked ? await likePost(postId) : await unlikePost(postId);
+      if (!postId) throw new Error("Missing post");
+      const result = nextLiked
+        ? await likePost(postId)
+        : await unlikePost(postId);
       if (result.error) throw new Error(result.error);
     },
     onMutate: async (nextLiked) => {
@@ -306,11 +329,15 @@ export function useToggleLikeMutation(postId: string | null) {
       );
 
       patchPostDetailCache(queryClient, postId, {
-        user_reaction: (nextLiked ? 'like' : null) as unknown as PostDetail['user_reaction'],
+        user_reaction: (nextLiked
+          ? "like"
+          : null) as unknown as PostDetail["user_reaction"],
       });
 
       patchPostListCaches(queryClient, postId, {
-        user_reaction: (nextLiked ? 'like' : null) as unknown as FeedPost['user_reaction'],
+        user_reaction: (nextLiked
+          ? "like"
+          : null) as unknown as FeedPost["user_reaction"],
       });
 
       return { previousPost };
@@ -318,8 +345,8 @@ export function useToggleLikeMutation(postId: string | null) {
     onError: (_error, _nextLiked, context) => {
       if (!postId || !context?.previousPost) return;
       queryClient.setQueryData(queryKeys.post(postId), context.previousPost);
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-      queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
     },
     onSettled: () => {
@@ -334,8 +361,10 @@ export function useTogglePinMutation(postId: string | null) {
 
   return useMutation({
     mutationFn: async (nextPinned: boolean) => {
-      if (!postId) throw new Error('Missing post');
-      const result = nextPinned ? await pinPost(postId) : await unpinPost(postId);
+      if (!postId) throw new Error("Missing post");
+      const result = nextPinned
+        ? await pinPost(postId)
+        : await unpinPost(postId);
       if (result.error) throw new Error(result.error);
     },
     onMutate: async (nextPinned) => {
@@ -357,7 +386,7 @@ export function useTogglePinMutation(postId: string | null) {
       });
 
       if (!isPostInProfileFeedCaches(queryClient, postId)) {
-        queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
+        queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       }
 
       return { previousPost };
@@ -365,19 +394,19 @@ export function useTogglePinMutation(postId: string | null) {
     onError: (_error, _nextPinned, context) => {
       if (!postId || !context?.previousPost) return;
       queryClient.setQueryData(queryKeys.post(postId), context.previousPost);
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-      queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
     },
     onSettled: () => {
       if (!postId) return;
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
-      queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
     },
   });
 }
 
-export type CreatePostMutationInput = Omit<CreatePostInput, 'storagePath'> & {
+export type CreatePostMutationInput = Omit<CreatePostInput, "storagePath"> & {
   localImageUri: string;
   userId: string;
 };
@@ -388,16 +417,20 @@ export function useCreatePostMutation() {
   return useMutation({
     mutationFn: async (input: CreatePostMutationInput) => {
       const { localImageUri, userId, ...createInput } = input;
-      const { path, error: uploadError } = await uploadPostImage(localImageUri, userId);
-      if (uploadError || !path) throw new Error(uploadError ?? 'Failed to upload image');
+      const { path, error: uploadError } = await uploadPostImage(
+        localImageUri,
+        userId,
+      );
+      if (uploadError || !path)
+        throw new Error(uploadError ?? "Failed to upload image");
 
       const result = await createPost({ ...createInput, storagePath: path });
       if (result.error) throw new Error(result.error);
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['feed'] });
-      queryClient.invalidateQueries({ queryKey: ['profile-feed'] });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
     },
   });

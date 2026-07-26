@@ -1,15 +1,15 @@
-import type { UserProfile } from '@/lib/profile';
+import type { UserProfile } from "@/lib/profile";
 
 function emailPrefix(email: string | undefined): string {
   if (!email) {
-    return '';
+    return "";
   }
 
-  return email.split('@')[0] ?? '';
+  return email.split("@")[0] ?? "";
 }
 
 export function profileDisplayName(
-  profile: Pick<UserProfile, 'display_name'> | null | undefined,
+  profile: Pick<UserProfile, "display_name"> | null | undefined,
   email: string | undefined,
 ): string {
   if (profile?.display_name) {
@@ -18,4 +18,3 @@ export function profileDisplayName(
 
   return emailPrefix(email);
 }
-

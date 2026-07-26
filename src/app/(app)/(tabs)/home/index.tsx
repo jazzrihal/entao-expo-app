@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Button, Host, Row, Text } from "@expo/ui";
 import { Empty } from "@/components/empty";
 import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
@@ -18,9 +14,7 @@ import {
   formatLocationButtonLabel,
   resolvePostLocationParts,
 } from "@/lib/location-label";
-import {
-  momentPicker$,
-} from "@/lib/moment-picker-store";
+import { momentPicker$ } from "@/lib/moment-picker-store";
 import type { PostLocationParts } from "@/lib/post-display";
 import { openPostDetail } from "@/lib/navigation";
 import { useFeedQuery, type FeedPostWithImage } from "@/queries/posts";
@@ -203,11 +197,14 @@ export default function Home() {
   const showLocationEmpty =
     !initializingLocation && !showFeedLoading && !selectedLocation;
 
-  useEffect(() => {
+  const [prevShowLocationEmpty, setPrevShowLocationEmpty] =
+    useState(showLocationEmpty);
+  if (showLocationEmpty !== prevShowLocationEmpty) {
+    setPrevShowLocationEmpty(showLocationEmpty);
     if (showLocationEmpty) {
       setLocationSheetOpen(true);
     }
-  }, [showLocationEmpty]);
+  }
 
   const handleOpenPostDetail = useCallback(
     (post: FeedPostWithImage) => {

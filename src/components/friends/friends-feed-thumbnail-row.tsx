@@ -4,10 +4,10 @@ import {
   useColorScheme,
   useWindowDimensions,
   View,
-} from 'react-native';
-import { Image } from '@/components/image';
-import { PinnedPostBadge } from '@/components/pinned-post-badge';
-import type { FriendsPostWithImage } from '@/queries/posts';
+} from "react-native";
+import { Image } from "@/components/image";
+import { PinnedPostBadge } from "@/components/pinned-post-badge";
+import type { FriendsPostWithImage } from "@/queries/posts";
 
 /** Horizontal inset applied by FieldGroup.Section rows on web. */
 export const FRIENDS_FEED_SECTION_ROW_INSET = 16;
@@ -64,7 +64,8 @@ export function getFriendsFeedThumbnailRowHeight(
   screenWidth: number,
 ): number {
   void _postCount;
-  return getFriendsFeedThumbnailLayout(FRIENDS_FEED_COLUMNS, screenWidth).tileSize;
+  return getFriendsFeedThumbnailLayout(FRIENDS_FEED_COLUMNS, screenWidth)
+    .tileSize;
 }
 
 type FriendsFeedThumbnailRowProps = {
@@ -83,7 +84,7 @@ export function FriendsFeedThumbnailRow({
   screenWidth: screenWidthProp,
 }: FriendsFeedThumbnailRowProps) {
   const colorScheme = useColorScheme();
-  const gridSeparatorColor = colorScheme === 'dark' ? '#000' : '#fff';
+  const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
   const { width: windowWidth } = useWindowDimensions();
   const screenWidth = screenWidthProp ?? windowWidth;
   const { tileSize, lastTileWidth } = getFriendsFeedThumbnailLayout(
@@ -144,7 +145,7 @@ export function FriendsFeedThumbnailRow({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   pinnedBadge: FRIENDS_FEED_PIN_BADGE_INSET,
 });

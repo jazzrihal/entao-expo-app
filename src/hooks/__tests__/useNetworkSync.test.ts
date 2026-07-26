@@ -5,19 +5,19 @@
  * Note: @testing-library/react-native v14 renderHook is async and must be awaited.
  */
 
-jest.mock('@/lib/sync-manager', () => ({
+import { renderHook, act, cleanup } from "@testing-library/react-native";
+import NetInfo from "@react-native-community/netinfo";
+import { runSync } from "@/lib/sync-manager";
+import { useNetworkSync } from "../useNetworkSync";
+
+jest.mock("@/lib/sync-manager", () => ({
   runSync: jest.fn(),
 }));
 
-jest.mock('@react-native-community/netinfo', () => ({
+jest.mock("@react-native-community/netinfo", () => ({
   addEventListener: jest.fn(),
   fetch: jest.fn(() => Promise.resolve({ isConnected: true })),
 }));
-
-import { renderHook, act, cleanup } from '@testing-library/react-native';
-import NetInfo from '@react-native-community/netinfo';
-import { runSync } from '@/lib/sync-manager';
-import { useNetworkSync } from '../useNetworkSync';
 
 const mockRunSync = runSync as jest.Mock;
 const mockAddEventListener = NetInfo.addEventListener as jest.Mock;
@@ -46,8 +46,8 @@ afterEach(async () => {
   mockAddEventListener.mockReset();
 });
 
-describe('useNetworkSync', () => {
-  it('subscribes to NetInfo on mount and unsubscribes on unmount', async () => {
+describe("useNetworkSync", () => {
+  it("subscribes to NetInfo on mount and unsubscribes on unmount", async () => {
     const { unsubscribeMock, unmount } = await mountHook();
 
     expect(mockAddEventListener).toHaveBeenCalledTimes(1);
@@ -56,22 +56,25 @@ describe('useNetworkSync', () => {
     expect(unsubscribeMock).toHaveBeenCalledTimes(1);
   });
 
-  it('calls runSync when network becomes connected', async () => {
+  it("calls runSync when network becomes connected", async () => {
     const { cb } = await mountHook();
 
-    act(() => { cb?.({ isConnected: true }); });
+    act(() => {
+      cb?.({ isConnected: true });
+    });
 
     expect(mockRunSync).toHaveBeenCalledTimes(1);
   });
 
-  it('does not call runSync when network is disconnected', async () => {
+  it("does not call runSync when network is disconnected", async () => {
     const { cb } = await mountHook();
 
-    act(() => { cb?.({ isConnected: false }); });
+    act(() => {
+      cb?.({ isConnected: false });
+    });
 
     expect(mockRunSync).not.toHaveBeenCalled();
   });
-
 });
 
 export {};

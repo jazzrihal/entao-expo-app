@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react';
-import { ListItem } from '@expo/ui';
+import type { ReactNode } from "react";
+import { ListItem } from "@expo/ui";
 import {
   formatMomentOccurredAt,
   momentListSubtitle,
-} from '@/lib/moment-display';
-import type { MomentListItem } from '@/lib/moments';
+} from "@/lib/moment-display";
+import type { MomentListItem } from "@/lib/moments";
 
 type MomentListItemProps = {
   moment: MomentListItem;

@@ -1,13 +1,19 @@
-import React, { createContext, useEffect, useState } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { queryClient } from '@/lib/query-client';
-import { supabase } from '@/lib/supabase';
+import React, { createContext, useEffect, useState } from "react";
+import { Session } from "@supabase/supabase-js";
+import { queryClient } from "@/lib/query-client";
+import { supabase } from "@/lib/supabase";
 
 type AuthContextValue = {
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null; needsConfirmation: boolean }>;
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
 };
 
@@ -23,7 +29,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         queryClient.clear();
       }
@@ -34,7 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     return { error: error?.message ?? null };
   }
 
@@ -42,7 +53,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) return { error: error.message, needsConfirmation: false };
     // When email confirmation is required, identities array is empty
-    const needsConfirmation = data.user?.identities?.length === 0 || !data.session;
+    const needsConfirmation =
+      data.user?.identities?.length === 0 || !data.session;
     return { error: null, needsConfirmation };
   }
 
@@ -59,6 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = React.use(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }

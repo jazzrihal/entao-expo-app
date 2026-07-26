@@ -1,6 +1,7 @@
-import * as SQLite from 'expo-sqlite';
+import * as SQLite from "expo-sqlite";
 
-export type LocalPostStatus = 'local' | 'queued' | 'uploading' | 'synced' | 'failed';
+export type LocalPostStatus =
+  "local" | "queued" | "uploading" | "synced" | "failed";
 
 export type LocalPost = {
   id: string;
@@ -33,14 +34,14 @@ export type UploadOutboxEntry = {
   created_at: number;
 };
 
-const DB_NAME = 'entao-posts.db';
+const DB_NAME = "entao-posts.db";
 
 let _db: SQLite.SQLiteDatabase | null = null;
 
 export async function getDb(): Promise<SQLite.SQLiteDatabase> {
   if (_db) return _db;
   _db = await SQLite.openDatabaseAsync(DB_NAME);
-  await _db.execAsync('PRAGMA journal_mode = WAL;');
+  await _db.execAsync("PRAGMA journal_mode = WAL;");
   await migrateDb(_db);
   return _db;
 }
@@ -83,10 +84,10 @@ export async function migrateDb(db: SQLite.SQLiteDatabase): Promise<void> {
 
   // Add new location/profile columns to existing installs (idempotent).
   for (const ddl of [
-    'ALTER TABLE local_posts ADD COLUMN display_name TEXT',
-    'ALTER TABLE local_posts ADD COLUMN address TEXT',
-    'ALTER TABLE local_posts ADD COLUMN city TEXT',
-    'ALTER TABLE local_posts ADD COLUMN region TEXT',
+    "ALTER TABLE local_posts ADD COLUMN display_name TEXT",
+    "ALTER TABLE local_posts ADD COLUMN address TEXT",
+    "ALTER TABLE local_posts ADD COLUMN city TEXT",
+    "ALTER TABLE local_posts ADD COLUMN region TEXT",
   ]) {
     try {
       await db.execAsync(ddl);
@@ -98,7 +99,7 @@ export async function migrateDb(db: SQLite.SQLiteDatabase): Promise<void> {
 
 export async function insertLocalPost(
   db: SQLite.SQLiteDatabase,
-  post: Omit<LocalPost, 'created_at' | 'updated_at'>,
+  post: Omit<LocalPost, "created_at" | "updated_at">,
   now = Date.now(),
 ): Promise<void> {
   await db.runAsync(
@@ -171,7 +172,7 @@ export async function getLocalPostById(
   id: string,
 ): Promise<LocalPost | null> {
   return db.getFirstAsync<LocalPost>(
-    'SELECT * FROM local_posts WHERE id = ?',
+    "SELECT * FROM local_posts WHERE id = ?",
     id,
   );
 }
@@ -180,13 +181,13 @@ export async function deleteLocalPostRow(
   db: SQLite.SQLiteDatabase,
   id: string,
 ): Promise<void> {
-  await db.runAsync('DELETE FROM upload_outbox WHERE local_post_id = ?', id);
-  await db.runAsync('DELETE FROM local_posts WHERE id = ?', id);
+  await db.runAsync("DELETE FROM upload_outbox WHERE local_post_id = ?", id);
+  await db.runAsync("DELETE FROM local_posts WHERE id = ?", id);
 }
 
 export async function insertOutboxEntry(
   db: SQLite.SQLiteDatabase,
-  entry: Omit<UploadOutboxEntry, 'created_at'>,
+  entry: Omit<UploadOutboxEntry, "created_at">,
 ): Promise<void> {
   const now = Date.now();
   await db.runAsync(
@@ -218,7 +219,11 @@ export async function getDueOutboxEntries(
 export async function updateOutboxEntry(
   db: SQLite.SQLiteDatabase,
   id: string,
-  patch: { attempt_count: number; next_attempt_at: number; last_error: string | null },
+  patch: {
+    attempt_count: number;
+    next_attempt_at: number;
+    last_error: string | null;
+  },
 ): Promise<void> {
   await db.runAsync(
     `UPDATE upload_outbox
@@ -235,14 +240,17 @@ export async function deleteOutboxEntry(
   db: SQLite.SQLiteDatabase,
   id: string,
 ): Promise<void> {
-  await db.runAsync('DELETE FROM upload_outbox WHERE id = ?', id);
+  await db.runAsync("DELETE FROM upload_outbox WHERE id = ?", id);
 }
 
 export async function deleteOutboxByLocalPostId(
   db: SQLite.SQLiteDatabase,
   localPostId: string,
 ): Promise<void> {
-  await db.runAsync('DELETE FROM upload_outbox WHERE local_post_id = ?', localPostId);
+  await db.runAsync(
+    "DELETE FROM upload_outbox WHERE local_post_id = ?",
+    localPostId,
+  );
 }
 
 export async function getLocalImageUri(
@@ -250,7 +258,7 @@ export async function getLocalImageUri(
   localPostId: string,
 ): Promise<string | null> {
   const row = await db.getFirstAsync<{ local_image_uri: string }>(
-    'SELECT local_image_uri FROM local_posts WHERE id = ?',
+    "SELECT local_image_uri FROM local_posts WHERE id = ?",
     localPostId,
   );
   return row?.local_image_uri ?? null;

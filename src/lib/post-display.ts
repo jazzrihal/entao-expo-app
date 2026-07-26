@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from "date-fns";
 
 export type PostLocationParts = {
   address?: string | null;
@@ -18,5 +18,5 @@ export function formatCapturedAtAgo(value: string | Date): string {
 export function buildLocationLine(parts: PostLocationParts): string {
   return [parts.address, parts.city, parts.region, parts.country]
     .filter(Boolean)
-    .join(', ');
+    .join(", ");
 }

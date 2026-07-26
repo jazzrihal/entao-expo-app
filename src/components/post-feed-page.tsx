@@ -4,10 +4,7 @@ import { useRouter } from "expo-router";
 import { PostDetailContent } from "@/components/post-detail-content";
 import { useAuth } from "@/context/auth";
 import { getLocalSyncStatus } from "@/lib/local-post-adapter";
-import {
-  openUserProfile,
-  type PostDetailTestIDPrefix,
-} from "@/lib/navigation";
+import { openUserProfile, type PostDetailTestIDPrefix } from "@/lib/navigation";
 import { momentPicker$ } from "@/lib/moment-picker-store";
 import {
   getPostViewerEngagement,
@@ -16,10 +13,7 @@ import {
   useTogglePinMutation,
   type PostDetailWithImage,
 } from "@/queries/posts";
-import {
-  buildPostLink,
-  buildPostShareMessage,
-} from "@/lib/post-sharing";
+import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 
 type PostFeedPageProps = {
   post: PostDetailWithImage;
@@ -55,9 +49,7 @@ export const PostFeedPage = memo(function PostFeedPage({
 
   const actionPending = likeMutation.isPending || pinMutation.isPending;
   const actionError =
-    likeMutation.error?.message ??
-    pinMutation.error?.message ??
-    shareError;
+    likeMutation.error?.message ?? pinMutation.error?.message ?? shareError;
   const actionsDisabled = actionPending || !session?.user.id;
 
   const handleToggleLike = useCallback(() => {
@@ -86,7 +78,9 @@ export const PostFeedPage = memo(function PostFeedPage({
         url: buildPostLink(post.id),
       });
     } catch (error) {
-      setShareError(error instanceof Error ? error.message : "Unable to share post.");
+      setShareError(
+        error instanceof Error ? error.message : "Unable to share post.",
+      );
     }
   }, [isLocalOnly, post.display_name, post.id]);
 
@@ -97,7 +91,14 @@ export const PostFeedPage = memo(function PostFeedPage({
       displayName: post.display_name,
       username: post.username,
     });
-  }, [isLocalOnly, post.author_id, post.display_name, post.username, router, session?.user.id]);
+  }, [
+    isLocalOnly,
+    post.author_id,
+    post.display_name,
+    post.username,
+    router,
+    session?.user.id,
+  ]);
 
   const localSyncStatus = isLocalOnly ? getLocalSyncStatus(post) : undefined;
 

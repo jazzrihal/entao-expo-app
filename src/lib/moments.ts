@@ -1,8 +1,8 @@
-import { supabase } from '@/lib/supabase';
-import type { Database } from '@/lib/database.types';
+import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/database.types";
 
 export type MomentListItem =
-  Database['public']['Functions']['list_moments']['Returns'][number];
+  Database["public"]["Functions"]["list_moments"]["Returns"][number];
 
 export type CreateMomentInput = {
   occurredAt: string;
@@ -24,7 +24,7 @@ export async function listMoments(params?: {
   beforeOccurredAt?: string;
   limit?: number;
 }): Promise<{ data: MomentListItem[] | null; error: string | null }> {
-  const { data, error } = await supabase.rpc('list_moments', {
+  const { data, error } = await supabase.rpc("list_moments", {
     p_before_moment_id: params?.beforeMomentId,
     p_before_occurred_at: params?.beforeOccurredAt,
     p_limit: params?.limit ?? 30,
@@ -36,7 +36,7 @@ export async function listMoments(params?: {
 export async function createMoment(
   input: CreateMomentInput,
 ): Promise<{ data: { id: string } | null; error: string | null }> {
-  const insert: Database['public']['Tables']['moments']['Insert'] = {
+  const insert: Database["public"]["Tables"]["moments"]["Insert"] = {
     occurred_at: input.occurredAt,
     latitude: input.latitude,
     longitude: input.longitude,
@@ -51,9 +51,9 @@ export async function createMoment(
   }
 
   const { data, error } = await supabase
-    .from('moments')
+    .from("moments")
     .insert(insert)
-    .select('id')
+    .select("id")
     .single();
 
   return { data, error: rpcErrorMessage(error) };
@@ -62,6 +62,6 @@ export async function createMoment(
 export async function deleteMoment(
   momentId: string,
 ): Promise<{ error: string | null }> {
-  const { error } = await supabase.from('moments').delete().eq('id', momentId);
+  const { error } = await supabase.from("moments").delete().eq("id", momentId);
   return { error: rpcErrorMessage(error) };
 }

@@ -1,13 +1,13 @@
-import type { ReactNode } from 'react';
-import { Button } from '@expo/ui';
-import { MomentListItemRow } from '@/components/moment-list-item';
-import type { MomentListItem } from '@/lib/moments';
+import type { ReactNode } from "react";
+import { Button } from "@expo/ui";
+import { MomentListItemRow } from "@/components/moment-list-item";
+import type { MomentListItem } from "@/lib/moments";
 
 export type SwipeAction = {
   label: string;
   onPress: () => void;
   disabled?: boolean;
-  role?: 'destructive' | 'default';
+  role?: "destructive" | "default";
 };
 
 export type SwipeableMomentListItemProps = {
@@ -26,7 +26,7 @@ export function SwipeableMomentListItem({
   trailingActions,
 }: SwipeableMomentListItemProps) {
   const deleteAction = trailingActions?.find(
-    (action) => action.role === 'destructive',
+    (action) => action.role === "destructive",
   );
 
   return (

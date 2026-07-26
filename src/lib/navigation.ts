@@ -1,60 +1,57 @@
-import type { ImperativeRouter } from 'expo-router';
-import type { LocalPost } from '@/lib/post-db';
+import type { ImperativeRouter } from "expo-router";
+import type { LocalPost } from "@/lib/post-db";
 
 export type PostDetailTestIDPrefix =
-  | 'home-post'
-  | 'friends-post'
-  | 'profile-post'
-  | 'user-post';
+  "home-post" | "friends-post" | "profile-post" | "user-post";
 
 export type PostFeedSource =
-  | { type: 'home'; at: string; latitude: number; longitude: number }
-  | { type: 'friends' }
-  | { type: 'profile'; userId: string }
-  | { type: 'user'; userId: string };
+  | { type: "home"; at: string; latitude: number; longitude: number }
+  | { type: "friends" }
+  | { type: "profile"; userId: string }
+  | { type: "user"; userId: string };
 
 const POST_DETAIL_TEST_ID_PREFIXES: PostDetailTestIDPrefix[] = [
-  'home-post',
-  'friends-post',
-  'profile-post',
-  'user-post',
+  "home-post",
+  "friends-post",
+  "profile-post",
+  "user-post",
 ];
 
 export function parsePostDetailTestIDPrefix(
   value: string | string[] | undefined,
-): PostDetailTestIDPrefix | 'post' {
-  if (typeof value !== 'string') {
-    return 'post';
+): PostDetailTestIDPrefix | "post" {
+  if (typeof value !== "string") {
+    return "post";
   }
 
   return POST_DETAIL_TEST_ID_PREFIXES.includes(value as PostDetailTestIDPrefix)
     ? (value as PostDetailTestIDPrefix)
-    : 'post';
+    : "post";
 }
 
 export function parsePostFeedSource(
   value: string | string[] | undefined,
 ): PostFeedSource | null {
-  if (!value || typeof value !== 'string') {
+  if (!value || typeof value !== "string") {
     return null;
   }
 
   try {
     const parsed = JSON.parse(value) as PostFeedSource;
     if (
-      parsed.type === 'home' &&
-      typeof parsed.at === 'string' &&
-      typeof parsed.latitude === 'number' &&
-      typeof parsed.longitude === 'number'
+      parsed.type === "home" &&
+      typeof parsed.at === "string" &&
+      typeof parsed.latitude === "number" &&
+      typeof parsed.longitude === "number"
     ) {
       return parsed;
     }
-    if (parsed.type === 'friends') {
+    if (parsed.type === "friends") {
       return parsed;
     }
     if (
-      (parsed.type === 'profile' || parsed.type === 'user') &&
-      typeof parsed.userId === 'string' &&
+      (parsed.type === "profile" || parsed.type === "user") &&
+      typeof parsed.userId === "string" &&
       parsed.userId.length > 0
     ) {
       return parsed;
@@ -71,7 +68,7 @@ export function openPostDetail(
   options: { testIDPrefix: PostDetailTestIDPrefix; feedSource: PostFeedSource },
 ) {
   router.push({
-    pathname: '/(app)/post/[id]',
+    pathname: "/(app)/post/[id]",
     params: {
       id: post.id,
       post: JSON.stringify(post),
@@ -83,7 +80,7 @@ export function openPostDetail(
 
 export function openLocalPostDetail(router: ImperativeRouter, post: LocalPost) {
   router.push({
-    pathname: '/(app)/post/[id]',
+    pathname: "/(app)/post/[id]",
     params: { id: post.id, localPost: JSON.stringify(post) },
   });
 }
@@ -94,12 +91,12 @@ export function openUserProfile(
   profile: { id: string; displayName?: string; username?: string },
 ) {
   if (profile.id === sessionUserId) {
-    router.push('/(app)/(tabs)/profile');
+    router.push("/(app)/(tabs)/profile");
     return;
   }
 
   router.push({
-    pathname: '/(app)/user/[id]',
+    pathname: "/(app)/user/[id]",
     params: {
       id: profile.id,
       displayName: profile.displayName,

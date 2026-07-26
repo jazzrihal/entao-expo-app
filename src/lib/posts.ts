@@ -224,10 +224,10 @@ export function enrichGroupedPost(
 }
 
 export function flattenFriendsPostsGrouped(
-  groups: Array<
-    FriendsPostsGroup & { posts: Array<FriendsPost & { imageUrl?: string }> }
-  >,
-): Array<FriendsPost & { imageUrl?: string }> {
+  groups: (FriendsPostsGroup & {
+    posts: (FriendsPost & { imageUrl?: string })[];
+  })[],
+): (FriendsPost & { imageUrl?: string })[] {
   return groups.flatMap((group) => group.posts);
 }
 

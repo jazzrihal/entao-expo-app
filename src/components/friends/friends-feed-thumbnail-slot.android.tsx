@@ -1,12 +1,12 @@
-import { StyleSheet, View } from 'react-native';
-import { RNHostView } from '@expo/ui';
-import { fillMaxWidth, offset } from '@expo/ui/jetpack-compose/modifiers';
+import { StyleSheet, View } from "react-native";
+import { RNHostView } from "@expo/ui";
+import { fillMaxWidth, offset } from "@expo/ui/jetpack-compose/modifiers";
 import {
   FRIENDS_FEED_ROW_GAP,
   FriendsFeedThumbnailRow,
   getFriendsFeedAndroidListItemOffset,
-} from '@/components/friends/friends-feed-thumbnail-row';
-import type { FriendsFeedThumbnailSlotProps } from '@/components/friends/friends-feed-thumbnail-slot';
+} from "@/components/friends/friends-feed-thumbnail-row";
+import type { FriendsFeedThumbnailSlotProps } from "@/components/friends/friends-feed-thumbnail-slot";
 
 export function FriendsFeedThumbnailSlot({
   posts,
@@ -40,6 +40,6 @@ export function FriendsFeedThumbnailSlot({
 
 const styles = StyleSheet.create({
   slot: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });
