@@ -1,4 +1,5 @@
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { Share } from "react-native";
 import { useRouter } from "expo-router";
 import { PostDetailContent } from "@/components/post-detail-content";
 import { useAuth } from "@/context/auth";
@@ -15,6 +16,10 @@ import {
   useTogglePinMutation,
   type PostDetailWithImage,
 } from "@/queries/posts";
+import {
+  buildPostLink,
+  buildPostShareMessage,
+} from "@/lib/post-sharing";
 
 type PostFeedPageProps = {
   post: PostDetailWithImage;
@@ -33,6 +38,7 @@ export const PostFeedPage = memo(function PostFeedPage({
 }: PostFeedPageProps) {
   const router = useRouter();
   const { session } = useAuth();
+  const [shareError, setShareError] = useState<string | null>(null);
 
   const likeMutation = useToggleLikeMutation(isLocalOnly ? null : post.id);
   const pinMutation = useTogglePinMutation(isLocalOnly ? null : post.id);
@@ -49,7 +55,9 @@ export const PostFeedPage = memo(function PostFeedPage({
 
   const actionPending = likeMutation.isPending || pinMutation.isPending;
   const actionError =
-    likeMutation.error?.message ?? pinMutation.error?.message ?? null;
+    likeMutation.error?.message ??
+    pinMutation.error?.message ??
+    shareError;
   const actionsDisabled = actionPending || !session?.user.id;
 
   const handleToggleLike = useCallback(() => {
@@ -65,6 +73,22 @@ export const PostFeedPage = memo(function PostFeedPage({
     }
     pinMutation.mutate(!postEngagement.isPinned);
   }, [actionPending, pinMutation, postEngagement.isPinned]);
+
+  const handleShare = useCallback(async () => {
+    if (isLocalOnly) {
+      return;
+    }
+
+    setShareError(null);
+    try {
+      await Share.share({
+        message: buildPostShareMessage(post.display_name),
+        url: buildPostLink(post.id),
+      });
+    } catch (error) {
+      setShareError(error instanceof Error ? error.message : "Unable to share post.");
+    }
+  }, [isLocalOnly, post.display_name, post.id]);
 
   const openAuthorProfile = useCallback(() => {
     if (isLocalOnly) return;
@@ -111,6 +135,7 @@ export const PostFeedPage = memo(function PostFeedPage({
       onAuthorPress={openAuthorProfile}
       onToggleLike={handleToggleLike}
       onTogglePin={handleTogglePin}
+      onShare={isLocalOnly ? undefined : handleShare}
       isLiked={postEngagement.isLiked}
       isPinned={postEngagement.isPinned}
       actionsDisabled={actionsDisabled}

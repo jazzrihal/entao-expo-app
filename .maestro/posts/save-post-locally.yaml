@@ -36,3 +36,5 @@ env:
     id: "profile-post-detail"
 - assertVisible:
     id: "profile-post-detail-local-badge"
+- assertNotVisible:
+    id: "profile-post-detail-share"
