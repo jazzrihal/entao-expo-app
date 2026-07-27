@@ -42,6 +42,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Fail fast if patch-package did not apply the TextView testID bridge.
+      # Without this, Maestro cannot see `id: sign-in-error` on @expo/ui Text.
+      - name: Verify @expo/ui TextView testID patch
+        run: |
+          set -euo pipefail
+          TEXT_VIEW="node_modules/@expo/ui/ios/TextView.swift"
+          if ! grep -q 'applyAccessibilityIdentifier(props.testID)' "${TEXT_VIEW}"; then
+            echo "Expected patched TextView.swift to call applyAccessibilityIdentifier(props.testID)" >&2
+            echo "--- ${TEXT_VIEW} ---" >&2
+            sed -n '38,50p' "${TEXT_VIEW}" >&2 || true
+            exit 1
+          fi
+          echo "TextView testID patch present."
+
       - name: Compile E2E iOS app
         run: npm run build:e2e:ios -- --device generic --output ./build/ios-e2e
 

@@ -2,12 +2,14 @@ diff --git a/node_modules/@expo/ui/ios/TextView.swift b/node_modules/@expo/ui/io
 index 7dfe0a9..4c76c43 100644
 --- a/node_modules/@expo/ui/ios/TextView.swift
 +++ b/node_modules/@expo/ui/ios/TextView.swift
-@@ -39,6 +39,7 @@ public struct TextView: ExpoSwiftUI.View {
+@@ -39,6 +39,9 @@ public struct TextView: ExpoSwiftUI.View {
  
    public var body: some View {
++    // Apply testID after modifiers so later view modifiers cannot drop the
++    // accessibilityIdentifier Maestro relies on for `id:` selectors.
      buildText(applyModifiers: false)
-+      .applyAccessibilityIdentifier(props.testID)
        .applyModifiers(props.modifiers, appContext: props.appContext, globalEventDispatcher: props.globalEventDispatcher)
++      .applyAccessibilityIdentifier(props.testID)
    }
  
 diff --git a/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx b/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx
