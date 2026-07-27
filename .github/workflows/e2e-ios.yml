@@ -20,6 +20,8 @@ on:
       - "metro.config.json"
       - "package-lock.json"
       - "package.json"
+      - ".npmrc"
+      - "patches/**"
       - "src/**"
       - "tsconfig.json"
 
