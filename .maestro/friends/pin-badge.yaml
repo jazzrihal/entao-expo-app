@@ -8,42 +8,59 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Friends"
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Seeded friends feed is visible
+# Prefer bob-row-1 over row-0: row-0 often sits under the sticky section header.
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-1"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Open Bob's second friends-feed row
+- assertVisible:
+    id: "friends-post-detail"
 - runFlow:
     when:
-      visible:
-        id: "friends-feed"
+      visible: "Unpin"
     commands:
-      - tapOn:
-          point: "15%,40%"
-      - assertVisible:
-          id: "friends-post-detail"
-      - runFlow:
-          when:
-            visible: "Unpin"
-          commands:
-            - tapOn: "Unpin"
-            # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
-            - swipe:
-                start: "1%,50%"
-                end: "95%,50%"
-            - assertNotVisible:
-                id: "pinned-post-thumbnail"
-            - tapOn:
-                point: "15%,40%"
-            - assertVisible:
-                id: "friends-post-detail"
-      - tapOn: "Pin"
+      - tapOn: "Unpin"
+      # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
       - swipe:
           start: "1%,50%"
           end: "95%,50%"
-      - assertVisible:
+      - assertNotVisible:
           id: "pinned-post-thumbnail"
       - tapOn:
-          point: "15%,40%"
+          id: "friends-feed-section-bob-row-1"
+          label: Re-open Bob row after clearing prior pin
       - assertVisible:
           id: "friends-post-detail"
-      - tapOn: "Unpin"
-      - swipe:
-          start: "1%,50%"
-          end: "95%,50%"
+- tapOn: "Pin"
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "pinned-post-thumbnail"
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Re-open pinned Bob row
+- assertVisible:
+    id: "friends-post-detail"
+- tapOn: "Unpin"
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertNotVisible:
+    id: "pinned-post-thumbnail"
+    label: Pin badge cleared after unpin

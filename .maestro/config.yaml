@@ -7,6 +7,8 @@ flows:
   - "profile/*"
 executionOrder:
   continueOnFailure: false
+  # swipe-unfriend mutates hosted seed (removes Bob). Keep it last so earlier
+  # friends/posts flows still see Bob; CI resets the DB once per suite run.
   flowsOrder:
     - sign-in
     - sign-in-validation
@@ -20,10 +22,10 @@ executionOrder:
     - requests
     - feed
     - pin-badge
-    - swipe-unfriend
-    - save-recall-delete
     - open-profile-from-post
+    - save-recall-delete
     - create-post
     - view-post-detail
     - save-post-locally
     - offline-post-fallback
+    - swipe-unfriend

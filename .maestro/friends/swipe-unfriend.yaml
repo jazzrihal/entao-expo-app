@@ -1,4 +1,8 @@
 appId: com.jazzrihal.entao
+# Mutates hosted seed data: permanently removes Bob as Alice's friend.
+# clearState resets the app only — not Supabase. Full CI is safe because the
+# job resets the hosted DB once per run; keep this flow last in flowsOrder so
+# earlier friends coverage still sees Bob. Re-run locally only after a DB reset.
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
   E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}

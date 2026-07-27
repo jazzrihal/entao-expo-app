@@ -1,5 +1,9 @@
 appId: com.jazzrihal.entao
 # fotuu-supabase-backend supabase/seed.sql — survives `supabase db reset`
+#
+# Dual role: suite flow #1 and the shared auth subflow for feature flows.
+# Contract: ends on Profile with "Sign out" visible (stable logged-in probe;
+# Home can still be resolving location). Consumers must navigate to Home/Friends.
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
   E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}

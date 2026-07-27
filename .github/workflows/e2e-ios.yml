@@ -185,7 +185,7 @@ jobs:
           xcrun simctl install "${SIMULATOR_UDID}" "${APP_PATH}"
 
       - name: Run Maestro E2E suite
-        run: maestro test .maestro/
+        run: maestro test .maestro/ --exclude-tags android
 
       - name: Delete iOS simulator
         if: always() && env.SIMULATOR_UDID != ''

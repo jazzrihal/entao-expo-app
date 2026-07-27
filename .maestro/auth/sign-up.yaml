@@ -14,28 +14,49 @@ env:
 - tapOn:
     id: "sign-up-email"
 - inputText: ${NEW_EMAIL}
-# Tap password — Strong Password dialog blocks all but the first character
-- tapOn:
-    id: "sign-up-password"
-- inputText: "x"
-# Move to confirm field — this dismisses the dialog
-- tapOn:
-    id: "sign-up-confirm-password"
-- inputText: ${NEW_PASSWORD}
-# Return to password, clear the placeholder char, type the full password
-- tapOn:
-    id: "sign-up-password"
-- eraseText: 1
-- inputText: ${NEW_PASSWORD}
+# iOS Strong Password dialog blocks all but the first character; dismiss via confirm field.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - tapOn:
+          id: "sign-up-password"
+      - inputText: "x"
+      - tapOn:
+          id: "sign-up-confirm-password"
+      - inputText: ${NEW_PASSWORD}
+      - tapOn:
+          id: "sign-up-password"
+      - eraseText: 1
+      - inputText: ${NEW_PASSWORD}
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - tapOn:
+          id: "sign-up-password"
+      - inputText: ${NEW_PASSWORD}
+      - tapOn:
+          id: "sign-up-confirm-password"
+      - inputText: ${NEW_PASSWORD}
 - tapOn:
     id: "sign-up-button"
-# Local Supabase skips email confirmation and lands on home immediately.
-# Production requires confirmation and shows sign-up-confirmation screen.
 - runFlow:
     when:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+# Local Supabase skips email confirmation and lands on tabs immediately.
+# Hosted requires confirmation and shows sign-up-confirmation.
+# Exactly one success path must hard-fail if neither appears.
+- runFlow:
+    when:
+      notVisible:
+        id: "sign-up-confirmation"
+    commands:
+      - assertVisible: "Friends"
+      - tapOn: "Profile"
+      - assertVisible: "Sign out"
 - runFlow:
     when:
       visible:
@@ -43,9 +64,3 @@ env:
     commands:
       - assertVisible:
           id: "sign-up-confirmation"
-- runFlow:
-    when:
-      visible: "Friends"
-    commands:
-      - tapOn: "Profile"
-      - assertVisible: "Sign out"

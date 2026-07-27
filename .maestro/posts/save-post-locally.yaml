@@ -29,8 +29,11 @@ env:
     id: "profile-post-grid"
 - assertVisible:
     id: "local-post-thumbnail"
+# Badge has pointerEvents none but Maestro still hits the parent cell in practice.
+# Prefer this over a grid index — local cells are not always first after seed posts.
 - tapOn:
-    point: "16%,32%"
+    id: "local-post-thumbnail"
+    label: Open local-only profile cell via local badge
 - assertVisible:
     id: "profile-post-detail"
 - assertVisible:

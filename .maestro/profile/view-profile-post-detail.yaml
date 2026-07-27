@@ -2,39 +2,38 @@ appId: com.jazzrihal.entao
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
   E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
-  E2E_POST_CAPTION: ${E2E_POST_CAPTION || "Golden hour from Maestro"}
 ---
 - runFlow:
-    file: ../posts/create-post.yaml
+    file: ../auth/sign-in.yaml
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-      E2E_POST_CAPTION: ${E2E_POST_CAPTION}
-- tapOn: "Profile"
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
 - assertVisible: "Sign out"
-- runFlow:
-    when:
-      visible:
-        id: "profile-post-grid"
-    commands:
-      - tapOn:
-          point: "16%,32%"
-      - assertVisible:
-          id: "profile-post-feed-pager"
-      - assertVisible:
-          id: "profile-post-detail"
-      - assertVisible:
-          id: "profile-post-detail-caption"
-      - assertVisible: ${E2E_POST_CAPTION}
-      - swipe:
-          direction: UP
-          from:
-            id: "profile-post-feed-pager"
-      - assertNotVisible: "Home"
-      # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
-      - swipe:
-          start: "1%,50%"
-          end: "95%,50%"
-      - assertVisible: "Sign out"
-      - assertVisible:
-          id: "profile-post-grid"
+- assertVisible:
+    id: "profile-post-grid"
+    label: Alice's seeded profile grid is visible
+- tapOn:
+    id: "profile-feed-post-.*"
+    index: 0
+    label: Open first seeded profile grid cell
+- assertVisible:
+    id: "profile-post-feed-pager"
+- assertVisible:
+    id: "profile-post-detail"
+- assertVisible:
+    id: "profile-post-detail-caption"
+- swipe:
+    direction: UP
+    from:
+      id: "profile-post-feed-pager"
+- assertNotVisible: "Home"
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible: "Sign out"
+- assertVisible:
+    id: "profile-post-grid"
