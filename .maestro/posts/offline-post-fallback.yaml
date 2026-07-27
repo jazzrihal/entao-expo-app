@@ -14,8 +14,7 @@ env:
           env:
             E2E_EMAIL: ${E2E_EMAIL}
             E2E_PASSWORD: ${E2E_PASSWORD}
-      - setAirplaneMode:
-          enable: true
+      - setAirplaneMode: enabled
       - tapOn: "Home"
       - assertVisible:
           id: "home-feed"
@@ -38,12 +37,9 @@ env:
           id: "profile-post-grid"
       - assertVisible:
           id: "local-post-thumbnail"
-      - setAirplaneMode:
-          enable: false
+      - setAirplaneMode: disabled
       # Wait for background sync to complete (up to 30s)
-      - runFlow:
-          when:
-            notVisible:
-              id: "local-post-thumbnail"
-            timeout: 30000
-          commands: []
+      - extendedWaitUntil:
+          notVisible:
+            id: "local-post-thumbnail"
+          timeout: 30000

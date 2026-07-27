@@ -1,17 +1,22 @@
 appId: com.jazzrihal.entao
-env:
-  E2E_EMAIL: ${E2E_EMAIL || "eve@example.com"}
-  E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
 ---
+# Eve is the only seeded user with a pending incoming request (Diana → Eve; see
+# fotuu-supabase-backend/supabase/seeds/01_users.sql), so this flow signs in as Eve
+# unconditionally rather than deferring to ${E2E_EMAIL} — CI sets E2E_EMAIL=alice@example.com
+# as a job-level env var, which would otherwise override the "eve@example.com" default below
+# (env var precedence beats the `${E2E_EMAIL || "..."}` fallback) and break this flow.
 - runFlow:
     file: ../auth/sign-in.yaml
     env:
-      E2E_EMAIL: ${E2E_EMAIL}
-      E2E_PASSWORD: ${E2E_PASSWORD}
+      E2E_EMAIL: "eve@example.com"
+      E2E_PASSWORD: "fotuu-local-dev"
 - tapOn: "Friends"
 - tapOn:
     id: "friends-list-button"
 - assertVisible:
     id: "friends-requests-pending"
+# The row's own testID (on the outer @expo/ui `ListItem` Button) isn't exposed to the
+# accessibility tree once the row also contains other interactive children (nested
+# Text `onPress` + swipe actions); the row-name Text's testID is exposed reliably.
 - assertVisible:
-    id: "incoming-request-diana"
+    id: "incoming-request-diana-name"

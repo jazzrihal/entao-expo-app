@@ -1,0 +1,83 @@
+diff --git a/node_modules/@expo/ui/ios/TextView.swift b/node_modules/@expo/ui/ios/TextView.swift
+index 7dfe0a9..4c76c43 100644
+--- a/node_modules/@expo/ui/ios/TextView.swift
++++ b/node_modules/@expo/ui/ios/TextView.swift
+@@ -39,6 +39,7 @@ public struct TextView: ExpoSwiftUI.View {
+ 
+   public var body: some View {
+     buildText(applyModifiers: false)
++      .applyAccessibilityIdentifier(props.testID)
+       .applyModifiers(props.modifiers, appContext: props.appContext, globalEventDispatcher: props.globalEventDispatcher)
+   }
+ 
+diff --git a/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx b/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx
+index 8aeccaf..c9311eb 100644
+--- a/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx
++++ b/node_modules/@expo/ui/src/universal/FieldGroup/FieldGroup.ios.tsx
+@@ -23,5 +23,9 @@ export function FieldGroup({
+     extraModifiers
+   );
+ 
+-  return <Form modifiers={modifiers}>{children}</Form>;
++  return (
++    <Form testID={testID} modifiers={modifiers}>
++      {children}
++    </Form>
++  );
+ }
+diff --git a/node_modules/@expo/ui/src/universal/FieldGroup/FieldSection.ios.tsx b/node_modules/@expo/ui/src/universal/FieldGroup/FieldSection.ios.tsx
+index e0acd64..d4a3c92 100644
+--- a/node_modules/@expo/ui/src/universal/FieldGroup/FieldSection.ios.tsx
++++ b/node_modules/@expo/ui/src/universal/FieldGroup/FieldSection.ios.tsx
+@@ -35,6 +35,7 @@ export function FieldSection({
+       title={header ? undefined : title}
+       header={header}
+       footer={footer}
++      testID={testID}
+       modifiers={modifiers}>
+       {rows}
+     </Section>
+diff --git a/node_modules/@expo/ui/src/universal/Icon/index.ios.tsx b/node_modules/@expo/ui/src/universal/Icon/index.ios.tsx
+index f298aa8..df835ce 100644
+--- a/node_modules/@expo/ui/src/universal/Icon/index.ios.tsx
++++ b/node_modules/@expo/ui/src/universal/Icon/index.ios.tsx
+@@ -1,4 +1,5 @@
+ import { Image as SwiftUIImage } from '@expo/ui/swift-ui';
++import { accessibilityLabel as accessibilityLabelModifier } from '@expo/ui/swift-ui/modifiers';
+ import type { SFSymbol } from 'sf-symbols-typescript';
+ 
+ import { transformToModifiers } from '../transformStyle';
+@@ -24,6 +25,7 @@ export function Icon({
+   name,
+   size,
+   color,
++  accessibilityLabel,
+   style,
+   onPress,
+   onAppear,
+@@ -37,7 +39,9 @@ export function Icon({
+   const modifiers = transformToModifiers(
+     style,
+     { onAppear, onDisappear, disabled, hidden, testID },
+-    extraModifiers
++    accessibilityLabel
++      ? [accessibilityLabelModifier(accessibilityLabel), ...(extraModifiers ?? [])]
++      : extraModifiers
+   );
+ 
+   return (
+diff --git a/node_modules/@expo/ui/src/universal/Icon/types.ts b/node_modules/@expo/ui/src/universal/Icon/types.ts
+index c3f7ed8..f6cbb8b 100644
+--- a/node_modules/@expo/ui/src/universal/Icon/types.ts
++++ b/node_modules/@expo/ui/src/universal/Icon/types.ts
+@@ -44,8 +44,8 @@ export interface IconProps extends UniversalBaseProps {
+ 
+   /**
+    * Accessibility label for screen readers. On Android, maps to
+-   * `contentDescription`. iOS accessibility is not yet wired up.
+-   * @platform android
++   * `contentDescription`. On iOS, applies the `accessibilityLabel` SwiftUI
++   * modifier, overriding the SF Symbol's default system-provided label.
+    */
+   accessibilityLabel?: string;
+ }

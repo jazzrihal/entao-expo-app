@@ -11,12 +11,16 @@ env:
 - tapOn: "Friends"
 - tapOn:
     id: "friends-list-button"
+# The row's own testID (on the outer @expo/ui `ListItem` Button) isn't exposed to the
+# accessibility tree once the row also contains other interactive children (nested
+# Text `onPress`); the row-name Text's testID is exposed reliably.
 - assertVisible:
-    id: "friend-row-bob"
+    id: "friend-row-bob-name"
 - swipe:
-    start: "50%,50%"
-    end: "10%,50%"
+    direction: LEFT
+    from:
+      id: "friend-row-bob-name"
     duration: 300
 - tapOn: "Remove"
 - assertNotVisible:
-    id: "friend-row-bob"
+    id: "friend-row-bob-name"

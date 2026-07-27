@@ -8,7 +8,7 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Feed"
+- tapOn: "Home"
 - runFlow:
     when:
       visible: "Allow"
@@ -34,16 +34,31 @@ env:
     visible:
       id: "moments-list-section"
     timeout: 10000
-- back
+# `back` is unsupported on iOS; the moments screen is a modal, so swipe it down to dismiss.
+# Start below the nav bar (a swipe starting at the very top can land on the header/Save
+# button instead of the sheet's pan area) and use a slower drag so UIKit's interactive
+# dismiss gesture recognizes it rather than treating it as a quick, ignored flick.
+- swipe:
+    start: "50%,15%"
+    end: "50%,95%"
+    duration: 600
 - tapOn:
     id: "home-feed-location"
 - assertVisible: "Pick Location"
+# The search bar uses `placement: "integratedButton"`, which collapses it to a
+# magnifying-glass icon button (accessibility label "Search") until tapped.
+- tapOn: "Search"
 - tapOn: "Search for a place or address"
-- inputText: "Brooklyn"
+- inputText: "Tokyo Tower"
+# Tap the top suggestion row by testID rather than by its title text: the search
+# field itself echoes the typed query as its own text, so a text-based tapOn can
+# match (and select) the input field instead of the suggestion below it.
 - extendedWaitUntil:
-    visible: "Brooklyn"
+    visible:
+      id: "location-search-suggestion-0"
     timeout: 10000
-- tapOn: "Brooklyn"
+- tapOn:
+    id: "location-search-suggestion-0"
 - tapOn: "Confirm"
 - extendedWaitUntil:
     visible:
@@ -51,8 +66,12 @@ env:
     timeout: 10000
 - tapOn: "Saved moments"
 - assertVisible: "Saved Moments"
+# Tap the (only) saved moment row by its testID prefix rather than a hardcoded
+# point — its position shifts depending on section header heights. The row's own
+# testID isn't exposed once it has a trailing Delete button; its label Text's
+# testID (suffixed `-name`) is exposed reliably.
 - tapOn:
-    point: "50%,55%"
+    id: "moments-list-item-.*-name"
 - extendedWaitUntil:
     visible:
       id: "home-feed-location"
@@ -61,8 +80,9 @@ env:
     text: ${maestro.copiedText}
 - tapOn: "Saved moments"
 - swipe:
-    start: "50%,55%"
-    end: "10%,55%"
+    direction: LEFT
+    from:
+      id: "moments-list-item-.*-name"
     duration: 300
 - tapOn: "Delete"
 - extendedWaitUntil:

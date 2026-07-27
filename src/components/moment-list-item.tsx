@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { ListItem } from "@expo/ui";
+import { ListItem, Text } from "@expo/ui";
 import {
   formatMomentOccurredAt,
   momentListSubtitle,
@@ -25,7 +25,16 @@ export function MomentListItemRow({
       onPress={onPress}
       supportingText={momentListSubtitle(moment)}
     >
-      {formatMomentOccurredAt(moment.occurred_at)}
+      {/* The row's own testID (on the outer @expo/ui ListItem Button) isn't exposed
+      to the accessibility tree once the row also contains other interactive
+      children (e.g. a trailing Delete Button); the row-label Text's testID is
+      exposed reliably, matching the pattern used by ProfileListItem. */}
+      <Text
+        testID={testID ? `${testID}-name` : undefined}
+        onPress={onPress}
+      >
+        {formatMomentOccurredAt(moment.occurred_at)}
+      </Text>
       {trailing ? <ListItem.Trailing>{trailing}</ListItem.Trailing> : null}
     </ListItem>
   );

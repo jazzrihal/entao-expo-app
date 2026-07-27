@@ -24,6 +24,12 @@ env:
     id: "new-post-preview"
 - assertVisible:
     id: "new-post-captured-at"
+# The form fields render in a native SwiftUI Form (List), which lazily materializes
+# off-screen rows — the Caption field isn't in the accessibility tree until scrolled
+# into view, so scroll before tapping it rather than relying on Maestro auto-scroll.
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
 - tapOn:
     id: "new-post-caption"
 - inputText: ${E2E_POST_CAPTION}

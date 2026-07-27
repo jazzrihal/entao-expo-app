@@ -31,7 +31,10 @@ env:
           from:
             id: "profile-post-feed-pager"
       - assertNotVisible: "Home"
-      - back
+      # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+      - swipe:
+          start: "1%,50%"
+          end: "95%,50%"
       - assertVisible: "Sign out"
       - assertVisible:
           id: "profile-post-grid"

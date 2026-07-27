@@ -9,7 +9,6 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn: "Friends"
-- tapOn: "Feed"
 - runFlow:
     when:
       visible:
@@ -24,7 +23,10 @@ env:
             visible: "Unpin"
           commands:
             - tapOn: "Unpin"
-            - back
+            # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+            - swipe:
+                start: "1%,50%"
+                end: "95%,50%"
             - assertNotVisible:
                 id: "pinned-post-thumbnail"
             - tapOn:
@@ -32,7 +34,9 @@ env:
             - assertVisible:
                 id: "friends-post-detail"
       - tapOn: "Pin"
-      - back
+      - swipe:
+          start: "1%,50%"
+          end: "95%,50%"
       - assertVisible:
           id: "pinned-post-thumbnail"
       - tapOn:
@@ -40,4 +44,6 @@ env:
       - assertVisible:
           id: "friends-post-detail"
       - tapOn: "Unpin"
-      - back
+      - swipe:
+          start: "1%,50%"
+          end: "95%,50%"

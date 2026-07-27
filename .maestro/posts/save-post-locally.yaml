@@ -21,8 +21,7 @@ env:
     id: "camera-shutter-button"
 - assertVisible:
     id: "new-post-preview"
-- tapOn:
-    label: "Save for later"
+- tapOn: "Save for later"
 - assertVisible:
     id: "home-feed"
 - tapOn: "Profile"

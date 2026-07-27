@@ -30,14 +30,21 @@ env:
     id: "home-post-detail-share"
 - tapOn:
     id: "home-post-detail-share"
-- assertVisible: "Cancel"
-- tapOn: "Cancel"
+- assertVisible: "então.com"
+# This iOS version's compact share sheet has no "Cancel" button; swipe it down to dismiss.
+- swipe:
+    start: "50%,70%"
+    end: "50%,98%"
+    duration: 400
 - assertVisible:
     id: "home-post-detail-caption"
 - tapOn: "Like"
 - tapOn: "Unlike"
 - tapOn: "Pin"
-- back
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
 - assertVisible:
     id: "home-feed-grid"
 - assertVisible:
@@ -47,12 +54,18 @@ env:
     id: "profile-post-grid"
 - assertVisible:
     id: "pinned-post-thumbnail"
+# After earlier suite flows the profile grid can have many posts; open the pinned
+# one via its badge rather than a fixed grid coordinate that may hit a newer
+# unpinned cell.
 - tapOn:
-    point: "16%,32%"
+    id: "pinned-post-thumbnail"
 - assertVisible:
     id: "profile-post-detail"
+- assertVisible: "Unpin"
 - tapOn: "Unpin"
-- back
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
 - assertVisible:
     id: "profile-post-grid"
 - assertNotVisible:

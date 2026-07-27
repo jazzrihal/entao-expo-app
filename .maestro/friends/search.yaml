@@ -11,6 +11,7 @@ env:
 - tapOn: "Friends"
 - tapOn:
     id: "friends-list-button"
+- tapOn: "Search"
 - tapOn: "Search by username or name"
 - inputText: "bob"
 - assertVisible:

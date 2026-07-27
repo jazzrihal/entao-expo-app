@@ -351,7 +351,13 @@ export function useToggleLikeMutation(postId: string | null) {
     },
     onSettled: () => {
       if (!postId) return;
+      // See the matching comment in useTogglePinMutation's onSettled: guards
+      // against a concurrent focus-triggered refetch clobbering the optimistic
+      // patch with stale data before this mutation's network call commits.
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
     },
   });
 }
@@ -400,8 +406,15 @@ export function useTogglePinMutation(postId: string | null) {
     },
     onSettled: () => {
       if (!postId) return;
+      // A concurrent focus-triggered refetch (e.g. useRefreshOnFocus firing while
+      // navigating back to a list right after this mutation's onMutate optimistic
+      // patch, but before its network call commits) can clobber the optimistic
+      // patch with stale server data. Re-invalidate the list caches once the
+      // mutation has actually settled to guarantee they reflect the true state.
       queryClient.invalidateQueries({ queryKey: queryKeys.post(postId) });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
     },
   });
 }

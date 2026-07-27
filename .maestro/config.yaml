@@ -19,6 +19,7 @@ executionOrder:
     - search
     - requests
     - feed
+    - pin-badge
     - swipe-unfriend
     - save-recall-delete
     - open-profile-from-post

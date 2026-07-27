@@ -174,6 +174,7 @@ export default function MapPickerModal() {
               }
               renderItem={({ item, index }) => (
                 <Pressable
+                  testID={`location-search-suggestion-${index}`}
                   style={({ pressed }) => [
                     styles.suggestionItem,
                     index === 0 && styles.suggestionItemLast,
