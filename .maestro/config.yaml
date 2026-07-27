@@ -9,6 +9,11 @@ executionOrder:
   continueOnFailure: false
   # swipe-unfriend mutates hosted seed (removes Bob). Keep it last so earlier
   # friends/posts flows still see Bob; CI resets the DB once per suite run.
+  #
+  # Do NOT list android-only flows (e.g. offline-post-fallback) here. Maestro's
+  # sequential planner stops at the first flowsOrder entry missing from the
+  # tag-filtered set, and later entries fall into parallel flowsToRun — which
+  # races clearState against sign-in when --exclude-tags android is set.
   flowsOrder:
     - sign-in
     - sign-in-validation
@@ -27,5 +32,4 @@ executionOrder:
     - create-post
     - view-post-detail
     - save-post-locally
-    - offline-post-fallback
     - swipe-unfriend
