@@ -18,6 +18,7 @@ env:
     # simctl privacy, which only accepts always|inuse|never.
     permissions:
       location: inuse
+      camera: allow
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
 # the "Grant access to your location?" fallback sheet blocking navigation below.
