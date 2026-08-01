@@ -5,6 +5,13 @@ env:
 - launchApp:
     clearState: true
 
+# Cold launch after clearState (and keychain/permission setup from prior flows on
+# the same sim) can settle after Maestro's default tap timeout — wait first.
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-button"
+    timeout: 60000
+
 # Empty fields — sync validation (distinguishes from async wrong-password assert)
 - tapOn:
     id: "sign-in-button"

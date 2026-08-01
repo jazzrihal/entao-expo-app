@@ -5,12 +5,16 @@ env:
 ---
 - launchApp:
     clearState: true
-- assertVisible:
-    id: "sign-in-email"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
 - tapOn:
     id: "sign-in-link-to-sign-up"
-- assertVisible:
-    id: "sign-up-email"
+- extendedWaitUntil:
+    visible:
+      id: "sign-up-email"
+    timeout: 15000
 - tapOn:
     id: "sign-up-email"
 - inputText: ${NEW_EMAIL}
