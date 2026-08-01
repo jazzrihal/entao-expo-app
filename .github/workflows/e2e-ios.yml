@@ -123,10 +123,14 @@ jobs:
           } >> "${GITHUB_ENV}"
 
       - name: Install Maestro
+        env:
+          # Pin so CI does not float to a new CLI mid-branch (2.8.0 shipped 2026-07-31).
+          MAESTRO_VERSION: "2.7.0"
         run: |
           set -euo pipefail
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           echo "${HOME}/.maestro/bin" >> "${GITHUB_PATH}"
+          "${HOME}/.maestro/bin/maestro" --version
 
       - name: Validate Supabase reset configuration
         env:
@@ -186,6 +190,15 @@ jobs:
 
       - name: Run Maestro E2E suite
         run: maestro test .maestro/ --exclude-tags android
+
+      - name: Upload Maestro debug artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-debug
+          path: ~/.maestro/tests
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Delete iOS simulator
         if: always() && env.SIMULATOR_UDID != ''

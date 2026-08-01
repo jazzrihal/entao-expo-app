@@ -10,6 +10,11 @@ env:
 ---
 - launchApp:
     clearState: true
+    # Pre-grant "While Using" location so the system permission sheet cannot race
+    # Profile / Sign out on a fresh CI simulator. Use `inuse` (not `allow`) — Maestro
+    # maps location through simctl privacy, which only accepts always|inuse|never.
+    permissions:
+      location: inuse
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
 # the "Grant access to your location?" fallback sheet blocking navigation below.
@@ -18,8 +23,11 @@ env:
 - setLocation:
     latitude: 35.6762
     longitude: 139.6503
-- assertVisible:
-    id: "sign-in-email"
+# Cold release launches on CI macos runners are slower than local; wait explicitly.
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
 - tapOn:
     id: "sign-in-email"
 - inputText: ${E2E_EMAIL}
@@ -41,5 +49,11 @@ env:
         id: "home-feed-location-actions"
     commands:
       - tapOn: "Reject"
+# Auth + tab settle can lag on CI; wait before tapping and for the logged-in probe.
+- extendedWaitUntil:
+    visible: "Profile"
+    timeout: 30000
 - tapOn: "Profile"
-- assertVisible: "Sign out"
+- extendedWaitUntil:
+    visible: "Sign out"
+    timeout: 30000
