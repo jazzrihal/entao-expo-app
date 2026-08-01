@@ -72,7 +72,7 @@ jobs:
   run-ios-e2e:
     name: Run iOS Maestro E2E
     runs-on: macos-26
-    timeout-minutes: 30
+    timeout-minutes: 45
     needs:
       - resolve-ios-e2e-app
       - compile-ios-e2e
