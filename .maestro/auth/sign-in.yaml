@@ -10,9 +10,12 @@ env:
 ---
 - launchApp:
     clearState: true
+    # Avoid iOS Password AutoFill prompting "Save Password?" after sign-in on a
+    # fresh CI simulator (that sheet blocks Profile / Sign out).
+    clearKeychain: true
     # Pre-grant "While Using" location so the system permission sheet cannot race
-    # Profile / Sign out on a fresh CI simulator. Use `inuse` (not `allow`) — Maestro
-    # maps location through simctl privacy, which only accepts always|inuse|never.
+    # Profile / Sign out. Use `inuse` (not `allow`) — Maestro maps location through
+    # simctl privacy, which only accepts always|inuse|never.
     permissions:
       location: inuse
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
@@ -36,8 +39,10 @@ env:
 - inputText: ${E2E_PASSWORD}
 - tapOn:
     id: "sign-in-button"
-- runFlow:
-    when:
+# "Save Password?" / ATT "Not Now" can appear after auth settles — dismiss while
+# present rather than checking once immediately after the button tap.
+- repeat:
+    while:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
@@ -53,7 +58,18 @@ env:
 - extendedWaitUntil:
     visible: "Profile"
     timeout: 30000
+# Password sheet can still race in after tabs appear.
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
 - tapOn: "Profile"
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
 - extendedWaitUntil:
     visible: "Sign out"
     timeout: 30000
