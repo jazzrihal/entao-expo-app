@@ -8,24 +8,43 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Friends"
-- tapOn: "Feed"
-- runFlow:
-    when:
-      visible:
-        id: "friends-feed"
-    commands:
-      - tapOn:
-          point: "15%,40%"
-      - assertVisible:
-          id: "friends-post-detail"
-      - tapOn:
-          id: "friends-post-detail-author"
-      - assertVisible:
-          id: "user-profile"
-      - back
-      - assertVisible:
-          id: "friends-post-detail"
-      - back
-      - assertVisible:
-          id: "friends-feed"
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Seeded friends feed is visible
+# Thumbnail rows bleed past List edge insets; relax visibilityPercentage.
+# Prefer bob-row-1 over row-0: row-0 often sits under the sticky section header,
+# so tapping the row container does not hit a post Pressable.
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-1"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Open Bob's second friends-feed row
+- assertVisible:
+    id: "friends-post-detail"
+- tapOn:
+    id: "friends-post-detail-author"
+    label: Open author profile from post detail
+- assertVisible:
+    id: "user-profile"
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "friends-post-detail"
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "friends-feed"

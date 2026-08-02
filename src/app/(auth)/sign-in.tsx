@@ -1,20 +1,28 @@
-import { useState } from 'react';
-import { ActivityIndicator } from 'react-native';
-import { Button, Column, Host, Row, ScrollView, Text as UiText, TextInput } from '@expo/ui';
-import { router, useTheme } from 'expo-router';
-import { useAuth } from '@/context/auth';
+import { useState } from "react";
+import { ActivityIndicator } from "react-native";
+import {
+  Button,
+  Column,
+  Host,
+  Row,
+  ScrollView,
+  Text as UiText,
+  TextInput,
+} from "@expo/ui";
+import { router, useTheme } from "expo-router";
+import { useAuth } from "@/context/auth";
 
 export default function SignIn() {
   const { colors } = useTheme();
   const { signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSignIn() {
     if (!email || !password) {
-      setError('Please enter your email and password.');
+      setError("Please enter your email and password.");
       return;
     }
     setError(null);
@@ -73,7 +81,7 @@ export default function SignIn() {
             <Button
               testID="sign-in-button"
               variant="filled"
-              label={loading ? undefined : 'Sign in'}
+              label={loading ? undefined : "Sign in"}
               onPress={handleSignIn}
               disabled={loading}
             >
@@ -82,12 +90,12 @@ export default function SignIn() {
           </Column>
 
           <Row spacing={4}>
-            <UiText>Don't have an account?</UiText>
+            <UiText>{"Don't have an account?"}</UiText>
             <Button
               testID="sign-in-link-to-sign-up"
               variant="text"
               label="Sign up"
-              onPress={() => router.replace('/(auth)/sign-up')}
+              onPress={() => router.replace("/(auth)/sign-up")}
             />
           </Row>
         </Column>

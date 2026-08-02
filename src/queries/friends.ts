@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   cancelFriendRequest,
   getRelationshipStatus,
@@ -9,14 +9,16 @@ import {
   respondToFriendRequest,
   searchProfiles,
   sendFriendRequest,
-} from '@/lib/friends';
-import { assertOk } from '@/lib/result';
-import { queryKeys } from '@/queries/keys';
+} from "@/lib/friends";
+import { assertOk } from "@/lib/result";
+import { queryKeys } from "@/queries/keys";
 
-function invalidateFriendsQueries(queryClient: ReturnType<typeof useQueryClient>) {
+function invalidateFriendsQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
   queryClient.invalidateQueries({ queryKey: queryKeys.friends() });
-  queryClient.invalidateQueries({ queryKey: ['friend-requests'] });
-  queryClient.invalidateQueries({ queryKey: ['profile-search'] });
+  queryClient.invalidateQueries({ queryKey: ["friend-requests"] });
+  queryClient.invalidateQueries({ queryKey: ["profile-search"] });
   queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
 }
 
@@ -56,7 +58,13 @@ export function useProfileSearchQuery(
 export function useRespondToFriendRequestMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ requestId, accept }: { requestId: string; accept: boolean }) =>
+    mutationFn: ({
+      requestId,
+      accept,
+    }: {
+      requestId: string;
+      accept: boolean;
+    }) =>
       respondToFriendRequest(requestId, accept).then((result) => {
         if (result.error) throw new Error(result.error);
       }),
@@ -102,11 +110,11 @@ export function useRelationshipStatusQuery(
   options?: { enabled?: boolean },
 ) {
   return useQuery({
-    queryKey: ['relationship-status', otherUserId ?? ''],
+    queryKey: ["relationship-status", otherUserId ?? ""],
     queryFn: async () => {
       const { data, error } = await getRelationshipStatus(otherUserId!);
       if (error) throw new Error(error);
-      return data ?? 'none';
+      return data ?? "none";
     },
     enabled: (options?.enabled ?? true) && !!otherUserId,
   });

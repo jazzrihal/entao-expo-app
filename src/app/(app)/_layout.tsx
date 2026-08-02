@@ -1,8 +1,8 @@
-import { Redirect, usePathname } from 'expo-router';
-import { Stack } from 'expo-router/stack';
-import { useAuth } from '@/context/auth';
-import { PostManagerProvider } from '@/context/post-manager';
-import { validatePostReturnPath } from '@/lib/post-sharing';
+import { Redirect, usePathname } from "expo-router";
+import { Stack } from "expo-router/stack";
+import { useAuth } from "@/context/auth";
+import { PostManagerProvider } from "@/context/post-manager";
+import { validatePostReturnPath } from "@/lib/post-sharing";
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
@@ -15,8 +15,8 @@ export default function AppLayout() {
       <Redirect
         href={
           returnTo
-            ? { pathname: '/(auth)/sign-in', params: { returnTo } }
-            : '/(auth)/sign-in'
+            ? { pathname: "/(auth)/sign-in", params: { returnTo } }
+            : "/(auth)/sign-in"
         }
       />
     );
@@ -29,15 +29,15 @@ export default function AppLayout() {
         <Stack.Screen
           name="user/[id]"
           options={{
-            headerBackButtonDisplayMode: 'minimal',
+            headerBackButtonDisplayMode: "minimal",
             headerLargeTitle: false,
           }}
         />
         <Stack.Screen
           name="post/[id]"
           options={{
-            title: '',
-            headerBackButtonDisplayMode: 'minimal',
+            title: "",
+            headerBackButtonDisplayMode: "minimal",
             headerLargeTitle: false,
           }}
         />

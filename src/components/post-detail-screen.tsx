@@ -97,9 +97,18 @@ export function PostDetailScreen() {
   );
 
   const parsedPost = useMemo(() => parsePostParam(postParam), [postParam]);
-  const parsedLocalPost = useMemo(() => parseLocalPostParam(localPostParam), [localPostParam]);
-  const parsedLocalFeed = useMemo(() => parseLocalFeedParam(localFeedParam), [localFeedParam]);
-  const parsedLocalPostIds = useMemo(() => parseLocalPostIdsParam(localPostIdsParam), [localPostIdsParam]);
+  const parsedLocalPost = useMemo(
+    () => parseLocalPostParam(localPostParam),
+    [localPostParam],
+  );
+  const parsedLocalFeed = useMemo(
+    () => parseLocalFeedParam(localFeedParam),
+    [localFeedParam],
+  );
+  const parsedLocalPostIds = useMemo(
+    () => parseLocalPostIdsParam(localPostIdsParam),
+    [localPostIdsParam],
+  );
 
   const postId = useMemo(() => {
     if (typeof id === "string" && id.length > 0) {

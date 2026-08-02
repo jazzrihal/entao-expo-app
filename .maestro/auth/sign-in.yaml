@@ -1,13 +1,37 @@
 appId: com.jazzrihal.entao
 # fotuu-supabase-backend supabase/seed.sql — survives `supabase db reset`
+#
+# Dual role: suite flow #1 and the shared auth subflow for feature flows.
+# Contract: ends on Profile with "Sign out" visible (stable logged-in probe;
+# Home can still be resolving location). Consumers must navigate to Home/Friends.
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
   E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
 ---
 - launchApp:
     clearState: true
-- assertVisible:
-    id: "sign-in-email"
+    # Avoid iOS Password AutoFill prompting "Save Password?" after sign-in on a
+    # fresh CI simulator (that sheet blocks Profile / Sign out).
+    clearKeychain: true
+    # Pre-grant "While Using" location so the system permission sheet cannot race
+    # Profile / Sign out. Use `inuse` (not `allow`) — Maestro maps location through
+    # simctl privacy, which only accepts always|inuse|never.
+    permissions:
+      location: inuse
+      camera: allow
+# The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
+# hangs for ~15-20s before failing, which both slows every flow down and races with
+# the "Grant access to your location?" fallback sheet blocking navigation below.
+# Mock a fix near the seeded Tokyo post cluster (fotuu-supabase-backend/supabase/seeds/02_posts.sql)
+# so location resolves instantly and the Home feed shows seeded nearby posts.
+- setLocation:
+    latitude: 35.6762
+    longitude: 139.6503
+# Cold release launches on CI macos runners are slower than local; wait explicitly.
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
 - tapOn:
     id: "sign-in-email"
 - inputText: ${E2E_EMAIL}
@@ -16,10 +40,37 @@ env:
 - inputText: ${E2E_PASSWORD}
 - tapOn:
     id: "sign-in-button"
+# "Save Password?" / ATT "Not Now" can appear after auth settles — dismiss while
+# present rather than checking once immediately after the button tap.
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+# With a mocked GPS fix above, location resolves without the "Grant access to your
+# location?" fallback sheet — but guard defensively in case it still races in.
 - runFlow:
     when:
+      visible:
+        id: "home-feed-location-actions"
+    commands:
+      - tapOn: "Reject"
+# Auth + tab settle can lag on CI; wait before tapping and for the logged-in probe.
+- extendedWaitUntil:
+    visible: "Profile"
+    timeout: 30000
+# Password sheet can still race in after tabs appear.
+- repeat:
+    while:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
 - tapOn: "Profile"
-- assertVisible: "Sign out"
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+- extendedWaitUntil:
+    visible: "Sign out"
+    timeout: 30000

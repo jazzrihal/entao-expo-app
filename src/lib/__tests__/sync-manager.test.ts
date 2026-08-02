@@ -7,7 +7,17 @@
 // ---------------------------------------------------------------------------
 // Module mocks must be at the top (hoisted by jest)
 // ---------------------------------------------------------------------------
-jest.mock('@/lib/supabase', () => ({
+// ---------------------------------------------------------------------------
+// Imports after mocks
+// ---------------------------------------------------------------------------
+import { supabase } from "@/lib/supabase";
+import { createPost } from "@/lib/posts";
+import { startUpload } from "../../../modules/background-upload/src";
+import * as PostDb from "@/lib/post-db";
+import { markSynced } from "@/lib/post-manager";
+import { runSync, addSyncListener, resetSyncState } from "../sync-manager";
+
+jest.mock("@/lib/supabase", () => ({
   supabase: {
     storage: {
       from: jest.fn(),
@@ -15,16 +25,16 @@ jest.mock('@/lib/supabase', () => ({
   },
 }));
 
-jest.mock('@/lib/posts', () => ({
+jest.mock("@/lib/posts", () => ({
   createPost: jest.fn(),
 }));
 
 // Mock for the native background-upload module
-jest.mock('../../../modules/background-upload/src', () => ({
+jest.mock("../../../modules/background-upload/src", () => ({
   startUpload: jest.fn(),
 }));
 
-jest.mock('@/lib/post-db', () => ({
+jest.mock("@/lib/post-db", () => ({
   getDb: jest.fn(),
   getDueOutboxEntries: jest.fn(),
   getLocalPostById: jest.fn(),
@@ -33,19 +43,9 @@ jest.mock('@/lib/post-db', () => ({
   deleteOutboxEntry: jest.fn(),
 }));
 
-jest.mock('@/lib/post-manager', () => ({
+jest.mock("@/lib/post-manager", () => ({
   markSynced: jest.fn(),
 }));
-
-// ---------------------------------------------------------------------------
-// Imports after mocks
-// ---------------------------------------------------------------------------
-import { supabase } from '@/lib/supabase';
-import { createPost } from '@/lib/posts';
-import { startUpload } from '../../../modules/background-upload/src';
-import * as PostDb from '@/lib/post-db';
-import { markSynced } from '@/lib/post-manager';
-import { runSync, addSyncListener, resetSyncState } from '../sync-manager';
 
 // ---------------------------------------------------------------------------
 // Typed mocks
@@ -65,21 +65,21 @@ const mockStorageFrom = supabase.storage.from as jest.Mock;
 // Fixtures
 // ---------------------------------------------------------------------------
 const POST = {
-  id: 'post-1',
-  user_id: 'user-a',
-  local_image_uri: 'file:///local/img.jpg',
-  captured_at: '2024-01-01T12:00:00Z',
+  id: "post-1",
+  user_id: "user-a",
+  local_image_uri: "file:///local/img.jpg",
+  captured_at: "2024-01-01T12:00:00Z",
   caption: null,
-  privacy_scope: 'friends_only',
+  privacy_scope: "friends_only",
   latitude: null,
   longitude: null,
-  status: 'queued',
+  status: "queued",
 };
 
 const OUTBOX_ENTRY = {
-  id: 'entry-1',
-  local_post_id: 'post-1',
-  idempotency_key: 'post-1',
+  id: "entry-1",
+  local_post_id: "post-1",
+  idempotency_key: "post-1",
   attempt_count: 0,
   next_attempt_at: Date.now() - 1000,
   last_error: null,
@@ -87,9 +87,9 @@ const OUTBOX_ENTRY = {
 };
 
 const SIGNED_DATA = {
-  signedUrl: 'https://storage.example.com/signed',
-  token: 'tok-abc',
-  path: 'user-a/post-1.jpg',
+  signedUrl: "https://storage.example.com/signed",
+  token: "tok-abc",
+  path: "user-a/post-1.jpg",
 };
 
 // ---------------------------------------------------------------------------
@@ -103,11 +103,16 @@ function setupHappyPath(db: object) {
   mockUpdateOutbox.mockResolvedValue(undefined);
   mockDeleteOutbox.mockResolvedValue(undefined);
 
-  const createSignedUploadUrl = jest.fn().mockResolvedValue({ data: SIGNED_DATA, error: null });
-  mockStorageFrom.mockReturnValue({ createSignedUploadUrl, upload: jest.fn().mockResolvedValue({ error: null }) });
+  const createSignedUploadUrl = jest
+    .fn()
+    .mockResolvedValue({ data: SIGNED_DATA, error: null });
+  mockStorageFrom.mockReturnValue({
+    createSignedUploadUrl,
+    upload: jest.fn().mockResolvedValue({ error: null }),
+  });
 
   mockStartUpload.mockResolvedValue(undefined);
-  mockCreatePost.mockResolvedValue({ data: { id: 'remote-1' }, error: null });
+  mockCreatePost.mockResolvedValue({ data: { id: "remote-1" }, error: null });
   mockMarkSynced.mockResolvedValue({ error: null });
 
   return { createSignedUploadUrl };
@@ -125,11 +130,11 @@ beforeEach(() => {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('sync-manager', () => {
+describe("sync-manager", () => {
   // -------------------------------------------------------------------------
   // Happy path
   // -------------------------------------------------------------------------
-  it('uploads via native module, creates remote post, calls markSynced', async () => {
+  it("uploads via native module, creates remote post, calls markSynced", async () => {
     const db = {};
     setupHappyPath(db);
 
@@ -139,39 +144,52 @@ describe('sync-manager', () => {
       POST.local_image_uri,
       SIGNED_DATA.signedUrl,
       SIGNED_DATA.token,
-      'image/jpeg',
+      "image/jpeg",
     );
     expect(mockCreatePost).toHaveBeenCalledWith(
       expect.objectContaining({ storagePath: SIGNED_DATA.path }),
     );
-    expect(mockMarkSynced).toHaveBeenCalledWith('post-1', 'remote-1', SIGNED_DATA.path);
+    expect(mockMarkSynced).toHaveBeenCalledWith(
+      "post-1",
+      "remote-1",
+      SIGNED_DATA.path,
+    );
   });
 
   // -------------------------------------------------------------------------
   // Native module unavailable – JS fallback
   // -------------------------------------------------------------------------
-  it('falls back to jsUploadFallback when startUpload throws', async () => {
+  it("falls back to jsUploadFallback when startUpload throws", async () => {
     const db = {};
     const { createSignedUploadUrl } = setupHappyPath(db);
 
-    mockStartUpload.mockRejectedValue(new Error('native unavailable'));
+    mockStartUpload.mockRejectedValue(new Error("native unavailable"));
 
     const xhrMock = {
-      responseType: '',
-      onload: null as ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
-      onerror: null as ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
+      responseType: "",
+      onload: null as
+        ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
+      onerror: null as
+        ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
       open: jest.fn(),
       send: jest.fn().mockImplementation(function (this: typeof xhrMock) {
-        if (typeof this.onload === 'function') {
-          Object.defineProperty(this, 'response', { value: new ArrayBuffer(8) });
+        if (typeof this.onload === "function") {
+          Object.defineProperty(this, "response", {
+            value: new ArrayBuffer(8),
+          });
           (this.onload as Function).call(this, {});
         }
       }),
     };
-    (globalThis as Record<string, unknown>).XMLHttpRequest = jest.fn(() => xhrMock) as unknown as typeof XMLHttpRequest;
+    (globalThis as Record<string, unknown>).XMLHttpRequest = jest.fn(
+      () => xhrMock,
+    ) as unknown as typeof XMLHttpRequest;
 
     const uploadMock = jest.fn().mockResolvedValue({ error: null });
-    mockStorageFrom.mockReturnValue({ createSignedUploadUrl, upload: uploadMock });
+    mockStorageFrom.mockReturnValue({
+      createSignedUploadUrl,
+      upload: uploadMock,
+    });
 
     await runSync();
 
@@ -182,7 +200,7 @@ describe('sync-manager', () => {
   // -------------------------------------------------------------------------
   // Upload failure + backoff
   // -------------------------------------------------------------------------
-  it('increments attempt_count and schedules backoff on createSignedUploadUrl failure', async () => {
+  it("increments attempt_count and schedules backoff on createSignedUploadUrl failure", async () => {
     const db = {};
     mockGetDb.mockResolvedValue(db);
     mockGetDue.mockResolvedValue([OUTBOX_ENTRY]);
@@ -190,28 +208,31 @@ describe('sync-manager', () => {
     mockUpdateStatus.mockResolvedValue(undefined);
     mockUpdateOutbox.mockResolvedValue(undefined);
 
-    const createSignedUploadUrl = jest.fn().mockResolvedValue({ data: null, error: { message: 'auth failed' } });
+    const createSignedUploadUrl = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "auth failed" } });
     mockStorageFrom.mockReturnValue({ createSignedUploadUrl });
 
     await runSync();
 
     expect(mockUpdateOutbox).toHaveBeenCalledWith(
       db,
-      'entry-1',
+      "entry-1",
       expect.objectContaining({
         attempt_count: 1,
-        last_error: expect.stringContaining('auth failed'),
+        last_error: expect.stringContaining("auth failed"),
       }),
     );
     // Status should remain queued (not failed yet – attempt 1 of 6)
-    const lastStatusCall = mockUpdateStatus.mock.calls[mockUpdateStatus.mock.calls.length - 1];
-    expect(lastStatusCall[2]).toBe('queued');
+    const lastStatusCall =
+      mockUpdateStatus.mock.calls[mockUpdateStatus.mock.calls.length - 1];
+    expect(lastStatusCall[2]).toBe("queued");
   });
 
   // -------------------------------------------------------------------------
   // Max attempts exceeded — entry deleted, not just updated
   // -------------------------------------------------------------------------
-  it('transitions post to failed and deletes outbox entry after MAX_ATTEMPTS (6) failures', async () => {
+  it("transitions post to failed and deletes outbox entry after MAX_ATTEMPTS (6) failures", async () => {
     const exhaustedEntry = { ...OUTBOX_ENTRY, attempt_count: 5 };
     const db = {};
     mockGetDb.mockResolvedValue(db);
@@ -220,26 +241,31 @@ describe('sync-manager', () => {
     mockUpdateStatus.mockResolvedValue(undefined);
     mockDeleteOutbox.mockResolvedValue(undefined);
 
-    const createSignedUploadUrl = jest.fn().mockResolvedValue({ data: null, error: { message: 'network timeout' } });
+    const createSignedUploadUrl = jest
+      .fn()
+      .mockResolvedValue({ data: null, error: { message: "network timeout" } });
     mockStorageFrom.mockReturnValue({ createSignedUploadUrl });
 
     await runSync();
 
-    const lastStatusCall = mockUpdateStatus.mock.calls[mockUpdateStatus.mock.calls.length - 1];
-    expect(lastStatusCall[2]).toBe('failed');
+    const lastStatusCall =
+      mockUpdateStatus.mock.calls[mockUpdateStatus.mock.calls.length - 1];
+    expect(lastStatusCall[2]).toBe("failed");
     // Outbox entry must be deleted (not updated) so it is never retried
-    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, 'entry-1');
+    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, "entry-1");
     expect(mockUpdateOutbox).not.toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------
   // Mutex: concurrent runSync returns immediately
   // -------------------------------------------------------------------------
-  it('ignores a second concurrent runSync call (mutex)', async () => {
+  it("ignores a second concurrent runSync call (mutex)", async () => {
     const db = {};
 
     let resolveDb!: (v: typeof db) => void;
-    const dbPromise = new Promise<typeof db>((res) => { resolveDb = res; });
+    const dbPromise = new Promise<typeof db>((res) => {
+      resolveDb = res;
+    });
     mockGetDb.mockReturnValue(dbPromise);
     mockGetDue.mockResolvedValue([]);
 
@@ -256,7 +282,7 @@ describe('sync-manager', () => {
   // -------------------------------------------------------------------------
   // Stale entry: local_post no longer exists
   // -------------------------------------------------------------------------
-  it('cleans up outbox entry when local_post has been deleted', async () => {
+  it("cleans up outbox entry when local_post has been deleted", async () => {
     const db = {};
     mockGetDb.mockResolvedValue(db);
     mockGetDue.mockResolvedValue([OUTBOX_ENTRY]);
@@ -265,30 +291,30 @@ describe('sync-manager', () => {
 
     await runSync();
 
-    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, 'entry-1');
+    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, "entry-1");
     expect(mockStartUpload).not.toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------
   // Already synced guard
   // -------------------------------------------------------------------------
-  it('deletes outbox entry and skips upload when post status is synced', async () => {
+  it("deletes outbox entry and skips upload when post status is synced", async () => {
     const db = {};
     mockGetDb.mockResolvedValue(db);
     mockGetDue.mockResolvedValue([OUTBOX_ENTRY]);
-    mockGetLocalPostById.mockResolvedValue({ ...POST, status: 'synced' });
+    mockGetLocalPostById.mockResolvedValue({ ...POST, status: "synced" });
     mockDeleteOutbox.mockResolvedValue(undefined);
 
     await runSync();
 
-    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, 'entry-1');
+    expect(mockDeleteOutbox).toHaveBeenCalledWith(db, "entry-1");
     expect(mockStartUpload).not.toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------
   // Listener notification
   // -------------------------------------------------------------------------
-  it('fires addSyncListener callback after status transitions', async () => {
+  it("fires addSyncListener callback after status transitions", async () => {
     const db = {};
     setupHappyPath(db);
 

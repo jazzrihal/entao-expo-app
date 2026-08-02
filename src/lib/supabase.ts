@@ -1,8 +1,8 @@
-import 'expo-sqlite/localStorage/install';
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/database.types';
+import "expo-sqlite/localStorage/install";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/database.types";
 
-const useLocal = __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === 'local';
+const useLocal = __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local";
 
 const supabaseUrl = useLocal
   ? process.env.EXPO_PUBLIC_SUPABASE_LOCAL_URL!

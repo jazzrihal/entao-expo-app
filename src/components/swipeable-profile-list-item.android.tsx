@@ -1,30 +1,27 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { Host } from '@expo/ui';
-import { RectButton } from 'react-native-gesture-handler';
-import Swipeable from 'react-native-gesture-handler/Swipeable';
-import { ProfileListItem } from '@/components/profile-list-item';
+import { StyleSheet, Text, View } from "react-native";
+import { Host } from "@expo/ui";
+import { RectButton } from "react-native-gesture-handler";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { ProfileListItem } from "@/components/profile-list-item";
 import type {
   SwipeAction,
   SwipeableProfileListItemProps,
-} from '@/components/swipeable-profile-list-item';
+} from "@/components/swipeable-profile-list-item";
 
 function resolveBackgroundColor(
   action: SwipeAction,
-  edge: 'leading' | 'trailing',
+  edge: "leading" | "trailing",
 ): string {
-  if (action.role === 'destructive') {
-    return '#DC2626';
+  if (action.role === "destructive") {
+    return "#DC2626";
   }
-  if (action.role === 'default') {
-    return '#6B7280';
+  if (action.role === "default") {
+    return "#6B7280";
   }
-  return edge === 'trailing' ? '#DC2626' : '#6B7280';
+  return edge === "trailing" ? "#DC2626" : "#6B7280";
 }
 
-function renderActions(
-  actions: SwipeAction[],
-  edge: 'leading' | 'trailing',
-) {
+function renderActions(actions: SwipeAction[], edge: "leading" | "trailing") {
   return (
     <View style={styles.actionsRow}>
       {actions.map((action) => (
@@ -80,12 +77,12 @@ export function SwipeableProfileListItem({
         childrenContainerStyle={styles.childrenContainer}
         renderLeftActions={
           leadingActions?.length
-            ? () => renderActions(leadingActions, 'leading')
+            ? () => renderActions(leadingActions, "leading")
             : undefined
         }
         renderRightActions={
           trailingActions?.length
-            ? () => renderActions(trailingActions, 'trailing')
+            ? () => renderActions(trailingActions, "trailing")
             : undefined
         }
       >
@@ -97,26 +94,26 @@ export function SwipeableProfileListItem({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: '100%',
+    width: "100%",
   },
   childrenContainer: {
-    width: '100%',
+    width: "100%",
   },
   rowHost: {
-    width: '100%',
+    width: "100%",
   },
   actionsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   action: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     minWidth: 88,
     paddingHorizontal: 16,
   },
   actionLabel: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
   },
 });

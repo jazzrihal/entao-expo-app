@@ -8,19 +8,10 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Profile"
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
 - assertVisible: "Sign out"
-- runFlow:
-    when:
-      visible:
-        id: "profile-post-grid"
-    commands:
-      - assertVisible:
-          id: "profile-post-grid"
-- runFlow:
-    when:
-      visible:
-        id: "profile-feed-empty"
-    commands:
-      - assertVisible:
-          id: "profile-feed-empty"
+- assertVisible:
+    id: "profile-post-grid"
+    label: Alice's seeded profile grid is visible

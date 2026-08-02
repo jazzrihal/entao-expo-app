@@ -1,12 +1,12 @@
-import { StyleSheet, View } from 'react-native';
-import { Group, RNHostView } from '@expo/ui/swift-ui';
-import { listRowInsets, listRowSeparator } from '@expo/ui/swift-ui/modifiers';
+import { StyleSheet, View } from "react-native";
+import { Group, RNHostView } from "@expo/ui/swift-ui";
+import { listRowInsets, listRowSeparator } from "@expo/ui/swift-ui/modifiers";
 import {
   FRIENDS_FEED_ROW_GAP,
   FRIENDS_FEED_IOS_LIST_ROW_BLEED,
   FriendsFeedThumbnailRow,
-} from '@/components/friends/friends-feed-thumbnail-row';
-import type { FriendsFeedThumbnailSlotProps } from '@/components/friends/friends-feed-thumbnail-slot';
+} from "@/components/friends/friends-feed-thumbnail-row";
+import type { FriendsFeedThumbnailSlotProps } from "@/components/friends/friends-feed-thumbnail-slot";
 
 export function FriendsFeedThumbnailSlot({
   posts,
@@ -29,7 +29,7 @@ export function FriendsFeedThumbnailSlot({
           leading: -horizontal,
           trailing: -horizontal,
         }),
-        listRowSeparator('hidden'),
+        listRowSeparator("hidden"),
       ]}
     >
       <RNHostView matchContents>
@@ -49,6 +49,6 @@ export function FriendsFeedThumbnailSlot({
 
 const styles = StyleSheet.create({
   slot: {
-    overflow: 'hidden',
+    overflow: "hidden",
   },
 });

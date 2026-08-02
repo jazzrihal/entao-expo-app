@@ -1,25 +1,20 @@
-import { useCallback, useMemo, useRef } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { Host, Text } from '@expo/ui';
-import { Empty } from '@/components/empty';
-import { PostFeedGrid, type PostGridItem } from '@/components/post-feed-grid';
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
-import { useAuth } from '@/context/auth';
-import { profileDisplayName } from '@/lib/profile-display';
+import { useCallback, useMemo, useRef } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { Host, Text } from "@expo/ui";
+import { Empty } from "@/components/empty";
+import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
+import { useAuth } from "@/context/auth";
+import { profileDisplayName } from "@/lib/profile-display";
 import {
   useProfileFeedQuery,
   type ProfileFeedPostWithImage,
-} from '@/queries/posts';
-import { useUserProfileQuery } from '@/queries/profile';
-import { useLocalPosts } from '@/hooks/useLocalPosts';
-import { localPostToDetail } from '@/lib/local-post-adapter';
-import type { LocalPost } from '@/lib/post-manager';
-import type { PostDetailWithImage } from '@/queries/posts';
+  PostDetailWithImage,
+} from "@/queries/posts";
+import { useUserProfileQuery } from "@/queries/profile";
+import { useLocalPosts } from "@/hooks/useLocalPosts";
+import { localPostToDetail } from "@/lib/local-post-adapter";
+import type { LocalPost } from "@/lib/post-manager";
 
 type ProfileGridItem = PostGridItem & {
   _sortKey: number;
@@ -35,12 +30,15 @@ export default function Profile() {
 
   const profileQuery = useUserProfileQuery(userId);
   const feedQuery = useProfileFeedQuery(userId);
+  const { refetch: refetchFeed } = feedQuery;
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
   const isFirstProfileFocus = useRef(true);
 
   // Re-fetch local posts and remote feed every time this tab gains focus (covers
   // NativeTabs remount/lazy-load scenarios where listeners may have fired while
   // the screen was inactive, e.g. pin toggled from Home or Friends).
+  // Depend on stable `refetchFeed`, not `feedQuery` — the query result object
+  // changes every render and would retrigger this effect into an infinite refetch loop.
   useFocusEffect(
     useCallback(() => {
       refreshLocalPosts();
@@ -48,8 +46,8 @@ export default function Profile() {
         isFirstProfileFocus.current = false;
         return;
       }
-      void feedQuery.refetch();
-    }, [feedQuery.refetch, refreshLocalPosts]),
+      void refetchFeed();
+    }, [refetchFeed, refreshLocalPosts]),
   );
 
   const displayName = profileDisplayName(profileQuery.data, email);
@@ -59,7 +57,7 @@ export default function Profile() {
     const remoteIds = new Set((feedQuery.data ?? []).map((p) => p.id));
 
     const localItems: ProfileGridItem[] = localPosts
-      .filter((lp) => !remoteIds.has(lp.remote_post_id ?? ''))
+      .filter((lp) => !remoteIds.has(lp.remote_post_id ?? ""))
       .map((lp) => ({
         id: lp.id,
         imageUrl: lp.local_image_uri,
@@ -76,11 +74,14 @@ export default function Profile() {
       _remotePost: rp,
     }));
 
-    return [...localItems, ...remoteItems].sort((a, b) => b._sortKey - a._sortKey);
+    return [...localItems, ...remoteItems].sort(
+      (a, b) => b._sortKey - a._sortKey,
+    );
   }, [localPosts, feedQuery.data]);
 
   const showFeedLoading = feedQuery.isPending && localPosts.length === 0;
-  const showFeedError = !!feedQuery.error && !feedQuery.isPending && mergedPosts.length === 0;
+  const showFeedError =
+    !!feedQuery.error && !feedQuery.isPending && mergedPosts.length === 0;
   const showFeedEmpty =
     !feedQuery.isPending && !feedQuery.error && mergedPosts.length === 0;
 
@@ -91,15 +92,17 @@ export default function Profile() {
       // Adapt the full merged feed so the pager can scroll through all posts,
       // both local and remote, regardless of which was tapped.
       const adaptedFeed: PostDetailWithImage[] = mergedPosts.map((item) =>
-        item._localPost ? localPostToDetail(item._localPost) : item._remotePost!,
+        item._localPost
+          ? localPostToDetail(item._localPost)
+          : item._remotePost!,
       );
       const localPostIdsList = localPosts.map((lp) => lp.id);
 
       router.push({
-        pathname: '/(app)/post/[id]',
+        pathname: "/(app)/post/[id]",
         params: {
           id: post.id,
-          testIDPrefix: 'profile-post',
+          testIDPrefix: "profile-post",
           localFeed: JSON.stringify(adaptedFeed),
           localPostIds: JSON.stringify(localPostIdsList),
         },
@@ -133,7 +136,7 @@ export default function Profile() {
         >
           <Host matchContents style={styles.feedMessage}>
             <Text testID="profile-feed-error">
-              {feedQuery.error?.message ?? 'Failed to load posts'}
+              {feedQuery.error?.message ?? "Failed to load posts"}
             </Text>
           </Host>
         </ScrollView>
@@ -169,7 +172,7 @@ export default function Profile() {
 
   return (
     <>
-      <Stack.Screen options={{ title: displayName || 'Profile' }} />
+      <Stack.Screen options={{ title: displayName || "Profile" }} />
       <View testID="profile-feed" style={styles.feed}>
         {feedContent}
       </View>

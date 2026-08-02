@@ -21,10 +21,10 @@ import type { LocalPost } from "@/lib/post-manager";
 type PostDetailTestIDPrefixValue = PostDetailTestIDPrefix | "post";
 
 const SYNC_STATUS_LABELS: Record<string, string> = {
-  local: 'Saved locally',
-  queued: 'Waiting to upload',
-  uploading: 'Uploading…',
-  failed: 'Upload failed',
+  local: "Saved locally",
+  queued: "Waiting to upload",
+  uploading: "Uploading…",
+  failed: "Upload failed",
 };
 
 type PostDetailContentProps = {
@@ -149,11 +149,14 @@ export function PostDetailContent({
         <Row spacing={8} alignment="center">
           <Text
             testID={`${testIDPrefix}-detail-sync-status`}
-            textStyle={{ color: localPost.status === 'failed' ? '#DC2626' : '#6B7280' }}
+            textStyle={{
+              color: localPost.status === "failed" ? "#DC2626" : "#6B7280",
+            }}
           >
             {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
           </Text>
-          {(localPost.status === 'local' || localPost.status === 'failed') && onUploadToCloud ? (
+          {(localPost.status === "local" || localPost.status === "failed") &&
+          onUploadToCloud ? (
             <Button
               testID={`${testIDPrefix}-detail-upload-btn`}
               variant="outlined"

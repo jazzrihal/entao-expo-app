@@ -1,5 +1,9 @@
 /* eslint-disable no-restricted-imports -- wrapper delegates to expo-image */
-import { Image as ExpoImage, type ImageContentFit, type ImageProps } from "expo-image";
+import {
+  Image as ExpoImage,
+  type ImageContentFit,
+  type ImageProps,
+} from "expo-image";
 import * as Device from "expo-device";
 import { useCallback, useState, type ComponentType } from "react";
 import { Pressable, StyleSheet } from "react-native";
@@ -27,7 +31,8 @@ function ImageComponent({
   testID,
   ...props
 }: EntaoImageProps) {
-  const [activeContentFit, setActiveContentFit] = useState<ImageContentFit>(contentFit);
+  const [activeContentFit, setActiveContentFit] =
+    useState<ImageContentFit>(contentFit);
   const resolvedContentFit = resizeOnTap ? activeContentFit : contentFit;
 
   const flattenedStyle = StyleSheet.flatten([
@@ -71,8 +76,10 @@ function ImageComponent({
   );
 }
 
-export const Image = Object.assign(ImageComponent, ExpoImage) as ComponentType<EntaoImageProps> &
-  typeof ExpoImage;
+export const Image = Object.assign(
+  ImageComponent,
+  ExpoImage,
+) as ComponentType<EntaoImageProps> & typeof ExpoImage;
 
 export type {
   ImageCacheConfig,

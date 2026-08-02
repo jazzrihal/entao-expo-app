@@ -1,21 +1,16 @@
-import { useCallback, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
-import { Button, Host, Row, Text } from '@expo/ui';
-import { Empty } from '@/components/empty';
-import { PostFeedGrid } from '@/components/post-feed-grid';
-import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { useAuth } from '@/context/auth';
-import { profileDisplayName } from '@/lib/profile-display';
-import { openPostDetail } from '@/lib/navigation';
+import { useCallback, useMemo } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { Button, Host, Row, Text } from "@expo/ui";
+import { Empty } from "@/components/empty";
+import { PostFeedGrid } from "@/components/post-feed-grid";
+import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useAuth } from "@/context/auth";
+import { profileDisplayName } from "@/lib/profile-display";
+import { openPostDetail } from "@/lib/navigation";
 import {
   parseRelationshipStatus,
   type RelationshipKind,
-} from '@/lib/relationship-status';
+} from "@/lib/relationship-status";
 import {
   useCancelFriendRequestMutation,
   useIncomingRequestsQuery,
@@ -23,36 +18,41 @@ import {
   useRelationshipStatusQuery,
   useRespondToFriendRequestMutation,
   useSendFriendRequestMutation,
-} from '@/queries/friends';
+} from "@/queries/friends";
 import {
   useProfileFeedQuery,
   type ProfileFeedPostWithImage,
-} from '@/queries/posts';
-import { useUserProfileQuery } from '@/queries/profile';
+} from "@/queries/posts";
+import { useUserProfileQuery } from "@/queries/profile";
 
 export default function UserProfileScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const { id, displayName: paramDisplayName, username: paramUsername } =
-    useLocalSearchParams<{
-      id: string;
-      displayName?: string;
-      username?: string;
-    }>();
-  const userId = typeof id === 'string' ? id : undefined;
+  const {
+    id,
+    displayName: paramDisplayName,
+    username: paramUsername,
+  } = useLocalSearchParams<{
+    id: string;
+    displayName?: string;
+    username?: string;
+  }>();
+  const userId = typeof id === "string" ? id : undefined;
   const routeDisplayName =
-    typeof paramDisplayName === 'string' && paramDisplayName.length > 0
+    typeof paramDisplayName === "string" && paramDisplayName.length > 0
       ? paramDisplayName
       : undefined;
   const routeUsername =
-    typeof paramUsername === 'string' && paramUsername.length > 0
+    typeof paramUsername === "string" && paramUsername.length > 0
       ? paramUsername
       : undefined;
   const isSelf = !!userId && session?.user.id === userId;
 
   const profileQuery = useUserProfileQuery(userId, { enabled: !isSelf });
   const feedQuery = useProfileFeedQuery(userId, { enabled: !isSelf });
-  const relationshipQuery = useRelationshipStatusQuery(userId, { enabled: !isSelf });
+  const relationshipQuery = useRelationshipStatusQuery(userId, {
+    enabled: !isSelf,
+  });
   const incomingQuery = useIncomingRequestsQuery();
   const outgoingQuery = useOutgoingRequestsQuery();
 
@@ -63,17 +63,21 @@ export default function UserProfileScreen() {
   const relationship = parseRelationshipStatus(relationshipQuery.data);
   const requestId = useMemo(() => {
     if (!userId) return null;
-    const incoming = incomingQuery.data?.find((request) => request.id === userId);
+    const incoming = incomingQuery.data?.find(
+      (request) => request.id === userId,
+    );
     if (incoming) return incoming.request_id;
-    const outgoing = outgoingQuery.data?.find((request) => request.id === userId);
+    const outgoing = outgoingQuery.data?.find(
+      (request) => request.id === userId,
+    );
     if (outgoing) return outgoing.request_id;
     return null;
   }, [incomingQuery.data, outgoingQuery.data, userId]);
 
   const displayName =
-    profileDisplayName(profileQuery.data, undefined) || routeDisplayName || '';
+    profileDisplayName(profileQuery.data, undefined) || routeDisplayName || "";
   const username = profileQuery.data?.username ?? routeUsername;
-  const headerTitle = displayName || username || 'Profile';
+  const headerTitle = displayName || username || "Profile";
   const hasRouteProfileHint = !!routeDisplayName || !!routeUsername;
 
   const posts = feedQuery.data ?? [];
@@ -96,8 +100,8 @@ export default function UserProfileScreen() {
         return;
       }
       openPostDetail(router, post, {
-        testIDPrefix: 'user-post',
-        feedSource: { type: 'user', userId },
+        testIDPrefix: "user-post",
+        feedSource: { type: "user", userId },
       });
     },
     [router, userId],
@@ -162,7 +166,7 @@ export default function UserProfileScreen() {
         >
           <Host matchContents style={styles.feedMessage}>
             <Text testID="user-profile-feed-error">
-              {feedQuery.error?.message ?? 'Failed to load posts'}
+              {feedQuery.error?.message ?? "Failed to load posts"}
             </Text>
           </Host>
         </ScrollView>
@@ -264,44 +268,44 @@ function renderRelationshipActions({
   onCancel: () => void;
 }) {
   switch (relationship) {
-    case 'friends':
+    case "friends":
       return null;
-    case 'incoming_request':
+    case "incoming_request":
       return (
         <Row spacing={8} alignment="center">
           <Button
             testID={`user-profile-accept-${userId}`}
             variant="filled"
-            label={actionPending ? 'Accepting…' : 'Accept'}
+            label={actionPending ? "Accepting…" : "Accept"}
             disabled={actionPending || !requestId}
             onPress={onAccept}
           />
           <Button
             testID={`user-profile-decline-${userId}`}
             variant="outlined"
-            label={actionPending ? 'Declining…' : 'Decline'}
+            label={actionPending ? "Declining…" : "Decline"}
             disabled={actionPending || !requestId}
             onPress={onDecline}
           />
         </Row>
       );
-    case 'outgoing_request':
+    case "outgoing_request":
       return (
         <Button
           testID={`user-profile-cancel-${userId}`}
           variant="outlined"
-          label={actionPending ? 'Canceling…' : 'Cancel request'}
+          label={actionPending ? "Canceling…" : "Cancel request"}
           disabled={actionPending || !requestId}
           onPress={onCancel}
         />
       );
-    case 'none':
-    case 'unknown':
+    case "none":
+    case "unknown":
       return (
         <Button
           testID={`user-profile-add-${userId}`}
           variant="filled"
-          label={actionPending ? 'Adding…' : 'Add friend'}
+          label={actionPending ? "Adding…" : "Add friend"}
           disabled={actionPending}
           onPress={onSend}
         />
@@ -322,9 +326,9 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   feed: {
     flex: 1,

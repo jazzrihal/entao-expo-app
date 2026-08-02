@@ -9,10 +9,7 @@ import {
   formatMomentLocation,
   formatMomentOccurredAt,
 } from "@/lib/moment-display";
-import {
-  isValidMomentDraft,
-  momentPicker$,
-} from "@/lib/moment-picker-store";
+import { isValidMomentDraft, momentPicker$ } from "@/lib/moment-picker-store";
 import type { MomentListItem } from "@/lib/moments";
 import {
   useCreateMomentMutation,
@@ -137,21 +134,23 @@ export default function MomentsScreen() {
             </FieldGroup>
           </Host>
         </View>
-        {momentsQuery.isPending && (
-          <ActivityIndicator style={styles.loader} />
-        )}
+        {momentsQuery.isPending && <ActivityIndicator style={styles.loader} />}
         {momentsQuery.error && (
           <Column style={styles.message}>
-            <Text testID="moments-load-error">{momentsQuery.error.message}</Text>
+            <Text testID="moments-load-error">
+              {momentsQuery.error.message}
+            </Text>
           </Column>
         )}
-        {!momentsQuery.isPending && !momentsQuery.error && moments.length === 0 && (
-          <Empty
-            testID="moments-empty"
-            title="No saved moments"
-            description="Save a date and location from Home to recall them later."
-          />
-        )}
+        {!momentsQuery.isPending &&
+          !momentsQuery.error &&
+          moments.length === 0 && (
+            <Empty
+              testID="moments-empty"
+              title="No saved moments"
+              description="Save a date and location from Home to recall them later."
+            />
+          )}
         {actionError ? (
           <Column style={styles.message}>
             <Text testID="moments-action-error">{actionError}</Text>

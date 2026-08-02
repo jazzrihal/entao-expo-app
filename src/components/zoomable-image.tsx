@@ -7,7 +7,11 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { Image, type ImageContentFit, type ImageProps } from "@/components/image";
+import {
+  Image,
+  type ImageContentFit,
+  type ImageProps,
+} from "@/components/image";
 import {
   ZOOM_MIN_SCALE,
   clampOffset,

@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
-import { ProfileListItem } from '@/components/profile-list-item';
+import type { ReactNode } from "react";
+import { ProfileListItem } from "@/components/profile-list-item";
 
 export type SwipeAction = {
   label: string;
   onPress: () => void;
   disabled?: boolean;
-  role?: 'destructive' | 'default';
+  role?: "destructive" | "default";
 };
 
 export type SwipeableProfileListItemProps = {

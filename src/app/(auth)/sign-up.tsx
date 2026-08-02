@@ -1,30 +1,38 @@
-import { useState } from 'react';
-import { ActivityIndicator } from 'react-native';
-import { Button, Column, Host, Row, ScrollView, Text as UiText, TextInput } from '@expo/ui';
-import { router, useTheme } from 'expo-router';
-import { useAuth } from '@/context/auth';
+import { useState } from "react";
+import { ActivityIndicator } from "react-native";
+import {
+  Button,
+  Column,
+  Host,
+  Row,
+  ScrollView,
+  Text as UiText,
+  TextInput,
+} from "@expo/ui";
+import { router, useTheme } from "expo-router";
+import { useAuth } from "@/context/auth";
 
 export default function SignUp() {
   const { colors } = useTheme();
   const { signUp } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSignUp() {
     if (!email || !password) {
-      setError('Please fill in all fields.');
+      setError("Please fill in all fields.");
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError("Passwords do not match.");
       return;
     }
     if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      setError("Password must be at least 6 characters.");
       return;
     }
     setError(null);
@@ -40,16 +48,19 @@ export default function SignUp() {
 
   if (needsConfirmation) {
     return (
-      <Host testID="sign-up-confirmation" style={{ flex: 1, justifyContent: 'center' }}>
+      <Host
+        testID="sign-up-confirmation"
+        style={{ flex: 1, justifyContent: "center" }}
+      >
         <Column spacing={16} style={{ padding: 24 }}>
           <UiText>Check your email</UiText>
-          <UiText textStyle={{ textAlign: 'center' }}>
-            We sent a confirmation link to {email}. Click the link to activate your account.
+          <UiText textStyle={{ textAlign: "center" }}>
+            {`We sent a confirmation link to ${email}. Click the link to activate your account.`}
           </UiText>
           <Button
             variant="text"
             label="Back to sign in"
-            onPress={() => router.replace('/(auth)/sign-in')}
+            onPress={() => router.replace("/(auth)/sign-in")}
           />
         </Column>
       </Host>
@@ -117,7 +128,7 @@ export default function SignUp() {
             <Button
               testID="sign-up-button"
               variant="filled"
-              label={loading ? undefined : 'Create account'}
+              label={loading ? undefined : "Create account"}
               onPress={handleSignUp}
               disabled={loading}
             >
@@ -131,7 +142,7 @@ export default function SignUp() {
               testID="sign-up-link-to-sign-in"
               variant="text"
               label="Sign in"
-              onPress={() => router.replace('/(auth)/sign-in')}
+              onPress={() => router.replace("/(auth)/sign-in")}
             />
           </Row>
         </Column>

@@ -1,10 +1,13 @@
 appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
 ---
 - runFlow:
     file: sign-in.yaml
     env:
-      E2E_EMAIL: "alice@example.com"
-      E2E_PASSWORD: "fotuu-local-dev"
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn: "Sign out"
 - assertVisible:
     id: "sign-in-email"

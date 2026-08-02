@@ -5,7 +5,15 @@ import {
   View,
   Text as RNText,
 } from "react-native";
-import { Button, Column, FieldGroup, Host, RNHostView, Row, Text } from "@expo/ui";
+import {
+  Button,
+  Column,
+  FieldGroup,
+  Host,
+  RNHostView,
+  Row,
+  Text,
+} from "@expo/ui";
 import { Empty } from "@/components/empty";
 import { FriendsCountBar } from "@/components/friends/friends-count-bar";
 import { ProfileListItem } from "@/components/profile-list-item";
@@ -217,7 +225,6 @@ export function FriendsListTab({ query, isSearchOpen }: FriendsListTabProps) {
                       busyRequestId !== request.request_id,
                     onPress: () => handleRespond(request.request_id, false),
                   },
-                  ,
                 ]}
                 trailing={
                   <Row spacing={8} alignment="center">
@@ -297,8 +304,7 @@ export function FriendsListTab({ query, isSearchOpen }: FriendsListTabProps) {
                   {
                     label: "Remove",
                     role: "destructive",
-                    disabled:
-                      busyFriendId !== null && busyFriendId !== item.id,
+                    disabled: busyFriendId !== null && busyFriendId !== item.id,
                     onPress: () => handleRemoveFriend(item.id),
                   },
                 ]}

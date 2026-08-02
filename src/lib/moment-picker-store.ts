@@ -1,4 +1,4 @@
-import { observable } from '@legendapp/state';
+import { observable } from "@legendapp/state";
 
 export type MomentDraft = {
   occurredAt: string;

@@ -27,11 +27,7 @@ export function EmptyActionsSheet({
 
   return (
     <Host>
-      <BottomSheet
-        isPresented
-        onDismiss={onDismiss}
-        testID={testID}
-      >
+      <BottomSheet isPresented onDismiss={onDismiss} testID={testID}>
         <Column
           spacing={12}
           alignment="center"

@@ -3,17 +3,22 @@
  * RNTL v14 renderHook is async and must be awaited. All act() calls must be awaited.
  */
 
-import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import { renderHook, act, waitFor } from "@testing-library/react-native";
+import { AppState } from "react-native";
+
+import { getLocalPosts } from "@/lib/post-manager";
+import * as SyncManager from "@/lib/sync-manager";
+import { useLocalPosts } from "../useLocalPosts";
 
 // ---------------------------------------------------------------------------
 // Mocks
 // ---------------------------------------------------------------------------
-jest.mock('@/lib/post-manager', () => ({
+jest.mock("@/lib/post-manager", () => ({
   getLocalPosts: jest.fn(),
+  addPostChangeListener: jest.fn(() => () => {}),
 }));
 
-jest.mock('@/lib/sync-manager', () => {
+jest.mock("@/lib/sync-manager", () => {
   // Use module-level listeners so we can trigger them from tests
   const listeners = new Set<() => void>();
   return {
@@ -25,12 +30,10 @@ jest.mock('@/lib/sync-manager', () => {
   };
 });
 
-import { getLocalPosts } from '@/lib/post-manager';
-import * as SyncManager from '@/lib/sync-manager';
-import { useLocalPosts } from '../useLocalPosts';
-
 const mockGetLocalPosts = getLocalPosts as jest.Mock;
-const syncListeners = (SyncManager as unknown as { __listeners: Set<() => void> }).__listeners;
+const syncListeners = (
+  SyncManager as unknown as { __listeners: Set<() => void> }
+).__listeners;
 
 function triggerSyncListeners() {
   syncListeners.forEach((fn) => fn());
@@ -40,15 +43,15 @@ function triggerSyncListeners() {
 // Fixtures
 // ---------------------------------------------------------------------------
 const POSTS_A = [
-  { id: 'p1', user_id: 'user-a', status: 'local' },
-  { id: 'p2', user_id: 'user-a', status: 'queued' },
+  { id: "p1", user_id: "user-a", status: "local" },
+  { id: "p2", user_id: "user-a", status: "queued" },
 ];
 
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('useLocalPosts', () => {
+describe("useLocalPosts", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     syncListeners.clear();
@@ -56,35 +59,35 @@ describe('useLocalPosts', () => {
   });
 
   // -------------------------------------------------------------------------
-  it('returns empty array when userId is undefined', async () => {
+  it("returns empty array when userId is undefined", async () => {
     const { result } = await renderHook(() => useLocalPosts(undefined));
     expect(result.current.localPosts).toEqual([]);
     expect(mockGetLocalPosts).not.toHaveBeenCalled();
   });
 
   // -------------------------------------------------------------------------
-  it('loads posts for the given userId on mount', async () => {
+  it("loads posts for the given userId on mount", async () => {
     mockGetLocalPosts.mockResolvedValue(POSTS_A);
 
-    const { result } = await renderHook(() => useLocalPosts('user-a'));
+    const { result } = await renderHook(() => useLocalPosts("user-a"));
 
     await waitFor(() => {
       expect(result.current.localPosts).toEqual(POSTS_A);
     });
 
-    expect(mockGetLocalPosts).toHaveBeenCalledWith('user-a');
+    expect(mockGetLocalPosts).toHaveBeenCalledWith("user-a");
   });
 
   // -------------------------------------------------------------------------
-  it('re-fetches posts when a sync listener fires', async () => {
+  it("re-fetches posts when a sync listener fires", async () => {
     mockGetLocalPosts.mockResolvedValue(POSTS_A);
-    const { result } = await renderHook(() => useLocalPosts('user-a'));
+    const { result } = await renderHook(() => useLocalPosts("user-a"));
 
     await waitFor(() => {
       expect(result.current.localPosts).toHaveLength(POSTS_A.length);
     });
 
-    const UPDATED = [{ id: 'p1', user_id: 'user-a', status: 'synced' }];
+    const UPDATED = [{ id: "p1", user_id: "user-a", status: "synced" }];
     mockGetLocalPosts.mockResolvedValue(UPDATED);
 
     await act(async () => {
@@ -97,16 +100,18 @@ describe('useLocalPosts', () => {
   });
 
   // -------------------------------------------------------------------------
-  it('re-fetches when AppState transitions to active', async () => {
+  it("re-fetches when AppState transitions to active", async () => {
     // Capture the AppState change handler registered by the hook
     let capturedHandler: ((state: string) => void) | null = null;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, handler) => {
-      capturedHandler = handler as (state: string) => void;
-      return { remove: jest.fn() };
-    });
+    jest
+      .spyOn(AppState, "addEventListener")
+      .mockImplementation((_event, handler) => {
+        capturedHandler = handler as (state: string) => void;
+        return { remove: jest.fn() };
+      });
 
     mockGetLocalPosts.mockResolvedValue(POSTS_A);
-    const { result } = await renderHook(() => useLocalPosts('user-a'));
+    const { result } = await renderHook(() => useLocalPosts("user-a"));
 
     await waitFor(() => {
       expect(result.current.localPosts).toHaveLength(POSTS_A.length);
@@ -114,11 +119,11 @@ describe('useLocalPosts', () => {
 
     expect(capturedHandler).not.toBeNull();
 
-    const UPDATED = [{ id: 'p3', user_id: 'user-a', status: 'queued' }];
+    const UPDATED = [{ id: "p3", user_id: "user-a", status: "queued" }];
     mockGetLocalPosts.mockResolvedValue(UPDATED);
 
     await act(async () => {
-      capturedHandler!('active');
+      capturedHandler!("active");
     });
 
     await waitFor(() => {
@@ -129,12 +134,12 @@ describe('useLocalPosts', () => {
   });
 
   // -------------------------------------------------------------------------
-  it('does not expose posts from a previous userId after userId changes', async () => {
+  it("does not expose posts from a previous userId after userId changes", async () => {
     mockGetLocalPosts.mockResolvedValue(POSTS_A);
 
     const { result, rerender } = await renderHook(
       ({ userId }: { userId: string | undefined }) => useLocalPosts(userId),
-      { initialProps: { userId: 'user-a' as string | undefined } },
+      { initialProps: { userId: "user-a" as string | undefined } },
     );
 
     await waitFor(() => {
@@ -144,11 +149,14 @@ describe('useLocalPosts', () => {
     // Switch to a different user whose posts haven't loaded yet
     let resolvePending!: (posts: typeof POSTS_A) => void;
     mockGetLocalPosts.mockImplementation(
-      () => new Promise<typeof POSTS_A>((res) => { resolvePending = res; }),
+      () =>
+        new Promise<typeof POSTS_A>((res) => {
+          resolvePending = res;
+        }),
     );
 
     await act(async () => {
-      rerender({ userId: 'user-b' });
+      rerender({ userId: "user-b" });
     });
 
     // localPosts should be empty while the new user's posts are loading

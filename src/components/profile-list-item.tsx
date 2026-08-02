@@ -1,10 +1,13 @@
-import type { ReactNode } from 'react';
-import { useCallback } from 'react';
-import { ListItem, Text } from '@expo/ui';
-import { useRouter } from 'expo-router';
-import { useAuth } from '@/context/auth';
-import { openUserProfile } from '@/lib/navigation';
-import { relationshipLabel, type RelationshipKind } from '@/lib/relationship-status';
+import type { ReactNode } from "react";
+import { useCallback } from "react";
+import { ListItem, Text } from "@expo/ui";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/context/auth";
+import { openUserProfile } from "@/lib/navigation";
+import {
+  relationshipLabel,
+  type RelationshipKind,
+} from "@/lib/relationship-status";
 
 type ProfileListItemProps = {
   displayName: string;
@@ -30,7 +33,7 @@ export function ProfileListItem({
   const router = useRouter();
   const { session } = useAuth();
 
-  const statusLabel = relationship ? relationshipLabel(relationship) : '';
+  const statusLabel = relationship ? relationshipLabel(relationship) : "";
   const meta = subtitle ?? (trailing ? undefined : statusLabel || undefined);
   const supportingText = meta ? `@${username} · ${meta}` : `@${username}`;
 
@@ -48,7 +51,7 @@ export function ProfileListItem({
 
   const title = profileId ? (
     <Text
-      textStyle={{ fontWeight: '600' }}
+      textStyle={{ fontWeight: "600" }}
       testID={testID ? `${testID}-name` : undefined}
       onPress={openProfile}
     >

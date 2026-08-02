@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
-import NetInfo from '@react-native-community/netinfo';
-import { runSync } from '@/lib/sync-manager';
+import { useEffect } from "react";
+import NetInfo from "@react-native-community/netinfo";
+import { runSync } from "@/lib/sync-manager";
 
 /**
  * Listens for network reconnection events and triggers the outbox sync loop.

@@ -1,11 +1,7 @@
 export const ZOOM_MIN_SCALE = 1;
 export const ZOOM_MAX_SCALE = 4;
 
-export function clampScale(
-  scale: number,
-  min?: number,
-  max?: number,
-): number {
+export function clampScale(scale: number, min?: number, max?: number): number {
   "worklet";
   const minScale = min ?? 1;
   const maxScale = max ?? 4;

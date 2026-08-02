@@ -8,6 +8,6 @@ export function assertOk<T>(result: {
   error: string | null;
 }): T {
   if (result.error) throw new Error(result.error);
-  if (result.data == null) throw new Error('Not found');
+  if (result.data == null) throw new Error("Not found");
   return result.data;
 }

@@ -7,45 +7,46 @@
 // ---------------------------------------------------------------------------
 // Capture the TaskManager.defineTask callback so we can invoke it directly
 // ---------------------------------------------------------------------------
+// Importing the module triggers defineTask, capturing the callback
+import * as BackgroundTask from "expo-background-task";
+import { runSync } from "@/lib/sync-manager";
+
 let taskCallback: (() => Promise<unknown>) | null = null;
 
-jest.mock('expo-task-manager', () => ({
+jest.mock("expo-task-manager", () => ({
   defineTask: jest.fn((_name: string, cb: () => Promise<unknown>) => {
     taskCallback = cb;
   }),
   isTaskRegisteredAsync: jest.fn().mockResolvedValue(false),
 }));
 
-jest.mock('expo-background-task', () => ({
+jest.mock("expo-background-task", () => ({
   BackgroundTaskResult: {
-    Success: 'success',
-    Failed: 'failed',
+    Success: "success",
+    Failed: "failed",
   },
   registerTaskAsync: jest.fn().mockResolvedValue(undefined),
   unregisterTaskAsync: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock('@/lib/sync-manager', () => ({
+jest.mock("@/lib/sync-manager", () => ({
   runSync: jest.fn(),
 }));
-
-// Importing the module triggers defineTask, capturing the callback
-import * as BackgroundTask from 'expo-background-task';
-import { runSync } from '@/lib/sync-manager';
 
 const mockRunSync = runSync as jest.Mock;
 
 // Force the module to load and register the task
 beforeAll(() => {
-  require('../post-sync-task');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- must load lazily after `taskCallback` is declared to avoid a TDZ error from the mocked defineTask()
+  require("../post-sync-task");
 });
 
-describe('post-sync-task', () => {
+describe("post-sync-task", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('returns BackgroundTaskResult.Success when runSync resolves', async () => {
+  it("returns BackgroundTaskResult.Success when runSync resolves", async () => {
     mockRunSync.mockResolvedValue(undefined);
 
     const result = await taskCallback!();
@@ -54,8 +55,8 @@ describe('post-sync-task', () => {
     expect(result).toBe(BackgroundTask.BackgroundTaskResult.Success);
   });
 
-  it('returns BackgroundTaskResult.Failed when runSync throws', async () => {
-    mockRunSync.mockRejectedValue(new Error('sync error'));
+  it("returns BackgroundTaskResult.Failed when runSync throws", async () => {
+    mockRunSync.mockRejectedValue(new Error("sync error"));
 
     const result = await taskCallback!();
 

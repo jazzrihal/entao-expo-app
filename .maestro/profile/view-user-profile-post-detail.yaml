@@ -8,42 +8,61 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Friends"
-- tapOn: "Feed"
-- runFlow:
-    when:
-      visible:
-        id: "friends-feed"
-    commands:
-      - tapOn:
-          point: "15%,40%"
-      - assertVisible:
-          id: "friends-post-detail"
-      - tapOn:
-          id: "friends-post-detail-author"
-      - assertVisible:
-          id: "user-profile"
-      - runFlow:
-          when:
-            visible:
-              id: "user-profile-feed-grid"
-          commands:
-            - tapOn:
-                point: "16%,32%"
-            - assertVisible:
-                id: "user-post-feed-pager"
-            - assertVisible:
-                id: "user-post-detail"
-            - swipe:
-                direction: UP
-                from:
-                  id: "user-post-feed-pager"
-            - back
-            - assertVisible:
-                id: "user-profile"
-      - back
-      - assertVisible:
-          id: "friends-post-detail"
-      - back
-      - assertVisible:
-          id: "friends-feed"
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Seeded friends feed is visible
+# Prefer bob-row-1 over row-0: row-0 often sits under the sticky section header.
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-1"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Open Bob's second friends-feed row
+- assertVisible:
+    id: "friends-post-detail"
+- tapOn:
+    id: "friends-post-detail-author"
+    label: Open Bob's profile from post detail
+- assertVisible:
+    id: "user-profile"
+- assertVisible:
+    id: "user-profile-feed-grid"
+    label: Bob's profile grid is seeded
+- tapOn:
+    id: "user-profile-feed-post-.*"
+    index: 0
+    label: Open first cell on Bob's profile grid
+- assertVisible:
+    id: "user-post-feed-pager"
+- assertVisible:
+    id: "user-post-detail"
+- swipe:
+    direction: UP
+    from:
+      id: "user-post-feed-pager"
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "user-profile"
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "friends-post-detail"
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "friends-feed"

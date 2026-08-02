@@ -12,7 +12,11 @@ import { useKeyboardHandler } from "react-native-keyboard-controller";
 import { runOnJS } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { SearchBarCommands } from "react-native-screens";
-import { MapPicker, type MapCoordinates, type MapPickerHandle } from "@/components/map-picker";
+import {
+  MapPicker,
+  type MapCoordinates,
+  type MapPickerHandle,
+} from "@/components/map-picker";
 import { locationPicker$ } from "@/lib/location-picker-store";
 import {
   getCompletions,
@@ -115,7 +119,10 @@ export default function MapPickerModal() {
           latitude: draftLocation.latitude,
           longitude: draftLocation.longitude,
         });
-        const coords = { latitude: resolved.latitude, longitude: resolved.longitude };
+        const coords = {
+          latitude: resolved.latitude,
+          longitude: resolved.longitude,
+        };
         setDraftLocation(coords);
         mapRef.current?.setCameraPosition(coords);
       } catch {
@@ -167,6 +174,7 @@ export default function MapPickerModal() {
               }
               renderItem={({ item, index }) => (
                 <Pressable
+                  testID={`location-search-suggestion-${index}`}
                   style={({ pressed }) => [
                     styles.suggestionItem,
                     index === 0 && styles.suggestionItemLast,

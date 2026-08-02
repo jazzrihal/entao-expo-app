@@ -4,12 +4,12 @@ import {
   useContext,
   useEffect,
   type ReactNode,
-} from 'react';
-import { AppState, type AppStateStatus } from 'react-native';
-import { getDb } from '@/lib/post-db';
-import { runSync } from '@/lib/sync-manager';
-import { registerPostSyncTask } from '@/tasks/post-sync-task';
-import { useNetworkSync } from '@/hooks/useNetworkSync';
+} from "react";
+import { AppState, type AppStateStatus } from "react-native";
+import { getDb } from "@/lib/post-db";
+import { runSync } from "@/lib/sync-manager";
+import { registerPostSyncTask } from "@/tasks/post-sync-task";
+import { useNetworkSync } from "@/hooks/useNetworkSync";
 
 type PostManagerContextValue = {
   triggerSync: () => void;
@@ -31,11 +31,11 @@ export function PostManagerProvider({ children }: { children: ReactNode }) {
   // Trigger sync when app comes to foreground
   useEffect(() => {
     function handleAppStateChange(nextState: AppStateStatus) {
-      if (nextState === 'active') {
+      if (nextState === "active") {
         triggerSync();
       }
     }
-    const sub = AppState.addEventListener('change', handleAppStateChange);
+    const sub = AppState.addEventListener("change", handleAppStateChange);
     return () => sub.remove();
   }, [triggerSync]);
 
@@ -52,7 +52,7 @@ export function PostManagerProvider({ children }: { children: ReactNode }) {
 export function usePostManager(): PostManagerContextValue {
   const ctx = useContext(PostManagerContext);
   if (!ctx) {
-    throw new Error('usePostManager must be used within PostManagerProvider');
+    throw new Error("usePostManager must be used within PostManagerProvider");
   }
   return ctx;
 }

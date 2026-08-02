@@ -1,20 +1,24 @@
-import { useCallback, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
-import { FieldGroup, Host, Text } from '@expo/ui';
-import { useRouter } from 'expo-router';
-import { Empty } from '@/components/empty';
-import { chunkFriendsFeedPosts } from '@/components/friends/friends-feed-rows';
-import { FriendsFeedThumbnailSlot } from '@/components/friends/friends-feed-thumbnail-slot';
-import { getFriendsFeedThumbnailRowHeight } from '@/components/friends/friends-feed-thumbnail-row';
-import { useAuth } from '@/context/auth';
-import { openPostDetail, openUserProfile } from '@/lib/navigation';
-import { flattenFriendsPostsGrouped } from '@/lib/posts';
-import { queryKeys } from '@/queries/keys';
+import { useCallback, useMemo } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
+import { FieldGroup, Host, Text } from "@expo/ui";
+import { useRouter } from "expo-router";
+import { Empty } from "@/components/empty";
+import { chunkFriendsFeedPosts } from "@/components/friends/friends-feed-rows";
+import { FriendsFeedThumbnailSlot } from "@/components/friends/friends-feed-thumbnail-slot";
+import { getFriendsFeedThumbnailRowHeight } from "@/components/friends/friends-feed-thumbnail-row";
+import { useAuth } from "@/context/auth";
+import { openPostDetail, openUserProfile } from "@/lib/navigation";
+import { flattenFriendsPostsGrouped } from "@/lib/posts";
+import { queryKeys } from "@/queries/keys";
 import {
   useFriendsPostsQuery,
   type FriendsPostWithImage,
-} from '@/queries/posts';
-import { useRefreshOnFocus } from '@/queries/useRefreshOnFocus';
+} from "@/queries/posts";
+import { useRefreshOnFocus } from "@/queries/useRefreshOnFocus";
 
 export function FriendsFeedTab() {
   const router = useRouter();
@@ -32,13 +36,14 @@ export function FriendsFeedTab() {
 
   const showLoading = feedQuery.isPending;
   const showError = !!feedQuery.error && !showLoading;
-  const showEmpty = !showLoading && !feedQuery.error && flattenedPosts.length === 0;
+  const showEmpty =
+    !showLoading && !feedQuery.error && flattenedPosts.length === 0;
 
   const handleOpenPostDetail = useCallback(
     (post: FriendsPostWithImage) => {
       openPostDetail(router, post, {
-        testIDPrefix: 'friends-post',
-        feedSource: { type: 'friends' },
+        testIDPrefix: "friends-post",
+        feedSource: { type: "friends" },
       });
     },
     [router],
@@ -56,14 +61,16 @@ export function FriendsFeedTab() {
   );
 
   if (showLoading) {
-    return <ActivityIndicator style={styles.loader} testID="friends-feed-loading" />;
+    return (
+      <ActivityIndicator style={styles.loader} testID="friends-feed-loading" />
+    );
   }
 
   if (showError) {
     return (
       <Host matchContents style={styles.message}>
         <Text testID="friends-feed-error">
-          {feedQuery.error?.message ?? 'Failed to load feed'}
+          {feedQuery.error?.message ?? "Failed to load feed"}
         </Text>
       </Host>
     );
@@ -93,7 +100,7 @@ export function FriendsFeedTab() {
               <FieldGroup.SectionHeader>
                 <Text
                   testID={`friends-feed-section-${group.username}-name`}
-                  textStyle={{ fontWeight: '600' }}
+                  textStyle={{ fontWeight: "600" }}
                   onPress={() =>
                     handleOpenProfile({
                       id: group.author_id,

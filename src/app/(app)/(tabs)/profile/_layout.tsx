@@ -1,11 +1,11 @@
-import { Stack } from 'expo-router/stack';
+import { Stack } from "expo-router/stack";
 
 export default function ProfileLayout() {
   return (
     <Stack
       screenOptions={{
         headerLargeTitle: true,
-        headerBackButtonDisplayMode: 'minimal',
+        headerBackButtonDisplayMode: "minimal",
       }}
     >
       <Stack.Screen name="index" />

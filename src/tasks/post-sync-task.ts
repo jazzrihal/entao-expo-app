@@ -1,8 +1,8 @@
-import * as BackgroundTask from 'expo-background-task';
-import * as TaskManager from 'expo-task-manager';
-import { runSync } from '@/lib/sync-manager';
+import * as BackgroundTask from "expo-background-task";
+import * as TaskManager from "expo-task-manager";
+import { runSync } from "@/lib/sync-manager";
 
-export const POST_SYNC_TASK = 'entao-post-sync';
+export const POST_SYNC_TASK = "entao-post-sync";
 
 TaskManager.defineTask(POST_SYNC_TASK, async () => {
   try {
@@ -25,7 +25,8 @@ export async function registerPostSyncTask(): Promise<void> {
 
 export async function unregisterPostSyncTask(): Promise<void> {
   try {
-    const isRegistered = await TaskManager.isTaskRegisteredAsync(POST_SYNC_TASK);
+    const isRegistered =
+      await TaskManager.isTaskRegisteredAsync(POST_SYNC_TASK);
     if (isRegistered) {
       await BackgroundTask.unregisterTaskAsync(POST_SYNC_TASK);
     }

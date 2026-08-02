@@ -8,41 +8,37 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Friends"
-- tapOn: "Feed"
-- runFlow:
-    when:
-      visible:
-        id: "friends-feed"
-    commands:
-      - assertVisible:
-          id: "friends-feed"
-      - scrollUntilVisible:
-          element:
-            id: "friends-feed-section-bob-row-0"
-          direction: DOWN
-      - assertVisible:
-          id: "friends-feed-section-bob-row-0"
-      - scrollUntilVisible:
-          element:
-            id: "friends-feed-section-bob-row-1"
-          direction: DOWN
-      - assertVisible:
-          id: "friends-feed-section-bob-row-1"
-      - tapOn:
-          id: "friends-feed-section-bob-row-1"
-      - assertVisible:
-          id: "friends-post-feed-pager"
-      - assertVisible:
-          id: "friends-post-detail"
-      - swipe:
-          direction: UP
-          from:
-            id: "friends-post-feed-pager"
-- runFlow:
-    when:
-      visible:
-        id: "friends-feed-empty"
-    commands:
-      - assertVisible:
-          id: "friends-feed-empty"
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Seeded friends feed is visible
+# Thumbnail rows intentionally bleed a few px past the List's edge insets for an
+# edge-to-edge grid look, so they're never "100% in viewport" — the default for
+# scrollUntilVisible — even when fully scrolled into view. Relax the threshold.
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- assertVisible:
+    id: "friends-feed-section-bob-row-0"
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-1"
+    direction: DOWN
+    visibilityPercentage: 90
+- assertVisible:
+    id: "friends-feed-section-bob-row-1"
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Open Bob's second friends-feed row
+- assertVisible:
+    id: "friends-post-feed-pager"
+- assertVisible:
+    id: "friends-post-detail"
+- swipe:
+    direction: UP
+    from:
+      id: "friends-post-feed-pager"

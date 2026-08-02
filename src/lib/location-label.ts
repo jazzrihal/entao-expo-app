@@ -1,7 +1,7 @@
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 
-import type { MapCoordinates } from '@/components/map-picker';
-import type { PostLocationParts } from '@/lib/post-display';
+import type { MapCoordinates } from "@/components/map-picker";
+import type { PostLocationParts } from "@/lib/post-display";
 
 export async function resolvePostLocationParts(
   coordinates: MapCoordinates,
@@ -24,18 +24,20 @@ export async function resolvePostLocationParts(
 }
 
 export function formatLocationButtonLabel(parts: PostLocationParts): string {
-  return parts.city ?? parts.region ?? parts.country ?? 'Selected location';
+  return parts.city ?? parts.region ?? parts.country ?? "Selected location";
 }
 
-export async function resolveLocationLabel(coordinates: MapCoordinates): Promise<string> {
+export async function resolveLocationLabel(
+  coordinates: MapCoordinates,
+): Promise<string> {
   try {
     const [place] = await Location.reverseGeocodeAsync(coordinates);
     if (!place) {
-      return 'Selected location';
+      return "Selected location";
     }
 
-    return place.city ?? place.region ?? place.country ?? 'Selected location';
+    return place.city ?? place.region ?? place.country ?? "Selected location";
   } catch {
-    return 'Selected location';
+    return "Selected location";
   }
 }

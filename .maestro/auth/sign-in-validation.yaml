@@ -5,13 +5,23 @@ env:
 - launchApp:
     clearState: true
 
-# Empty fields — should show validation error
+# Cold launch after clearState (and keychain/permission setup from prior flows on
+# the same sim) can settle after Maestro's default tap timeout — wait first.
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-button"
+    timeout: 60000
+
+# Empty fields — sync validation (distinguishes from async wrong-password assert)
 - tapOn:
     id: "sign-in-button"
-- assertVisible:
-    id: "sign-in-error"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-error"
+    timeout: 5000
+- assertVisible: "Please enter your email and password."
 
-# Wrong password — should show Supabase error
+# Wrong password — async Supabase error (hosted on CI; allow network latency)
 - tapOn:
     id: "sign-in-email"
 - inputText: ${E2E_EMAIL}
@@ -20,5 +30,7 @@ env:
 - inputText: "wrongpassword"
 - tapOn:
     id: "sign-in-button"
-- assertVisible:
-    id: "sign-in-error"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-error"
+    timeout: 20000
