@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { ActivityIndicator } from "react-native";
-import {
-  Button,
-  Column,
-  Host,
-  Row,
-  ScrollView,
-  Text as UiText,
-  TextInput,
-} from "@expo/ui";
+import { Button, Column, Row, Text as UiText } from "@expo/ui";
 import { router, useTheme } from "expo-router";
+import { AuthScreen } from "@/components/auth/auth-screen";
+import { AuthTextField } from "@/components/auth/auth-text-field";
 import { useAuth } from "@/context/auth";
 
 export default function SignIn() {
@@ -33,73 +27,64 @@ export default function SignIn() {
   }
 
   return (
-    <Host ignoreSafeArea="keyboard" style={{ flex: 1 }}>
-      <ScrollView>
-        <Column spacing={24} style={{ padding: 24 }}>
-          <Column spacing={8}>
-            <UiText>Welcome back</UiText>
-            <UiText>Sign in to your account</UiText>
-          </Column>
+    <AuthScreen
+      title="Welcome back"
+      subtitle="Sign in to your account"
+      footer={
+        <Row spacing={4}>
+          <UiText>{"Don't have an account?"}</UiText>
+          <Button
+            testID="sign-in-link-to-sign-up"
+            variant="text"
+            label="Sign up"
+            onPress={() => router.replace("/(auth)/sign-up")}
+          />
+        </Row>
+      }
+    >
+      <Column spacing={12}>
+        <AuthTextField
+          label="Email"
+          testID="sign-in-email"
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          autoComplete="email"
+          returnKeyType="next"
+          placeholder="you@example.com"
+        />
 
-          <Column spacing={12}>
-            <Column spacing={6}>
-              <UiText>Email</UiText>
-              <TextInput
-                testID="sign-in-email"
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                autoCorrect={false}
-                keyboardType="email-address"
-                autoComplete="email"
-                returnKeyType="next"
-                placeholder="you@example.com"
-              />
-            </Column>
+        <AuthTextField
+          label="Password"
+          testID="sign-in-password"
+          onChangeText={setPassword}
+          secureTextEntry
+          autoComplete="password"
+          returnKeyType="done"
+          onSubmitEditing={handleSignIn}
+          placeholder="••••••••"
+        />
 
-            <Column spacing={6}>
-              <UiText>Password</UiText>
-              <TextInput
-                testID="sign-in-password"
-                onChangeText={setPassword}
-                secureTextEntry
-                autoComplete="password"
-                returnKeyType="done"
-                onSubmitEditing={handleSignIn}
-                placeholder="••••••••"
-              />
-            </Column>
+        {error ? (
+          <UiText
+            testID="sign-in-error"
+            textStyle={{ color: colors.notification as string }}
+          >
+            {error}
+          </UiText>
+        ) : null}
 
-            {error ? (
-              <UiText
-                testID="sign-in-error"
-                textStyle={{ color: colors.notification as string }}
-              >
-                {error}
-              </UiText>
-            ) : null}
-
-            <Button
-              testID="sign-in-button"
-              variant="filled"
-              label={loading ? undefined : "Sign in"}
-              onPress={handleSignIn}
-              disabled={loading}
-            >
-              {loading ? <ActivityIndicator color={colors.text} /> : null}
-            </Button>
-          </Column>
-
-          <Row spacing={4}>
-            <UiText>{"Don't have an account?"}</UiText>
-            <Button
-              testID="sign-in-link-to-sign-up"
-              variant="text"
-              label="Sign up"
-              onPress={() => router.replace("/(auth)/sign-up")}
-            />
-          </Row>
-        </Column>
-      </ScrollView>
-    </Host>
+        <Button
+          testID="sign-in-button"
+          variant="filled"
+          label={loading ? undefined : "Sign in"}
+          onPress={handleSignIn}
+          disabled={loading}
+        >
+          {loading ? <ActivityIndicator color={colors.text} /> : null}
+        </Button>
+      </Column>
+    </AuthScreen>
   );
 }
