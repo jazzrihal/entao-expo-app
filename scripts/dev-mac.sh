@@ -8,7 +8,7 @@ SUPABASE_START_ATTEMPTS=10
 SUPABASE_START_RETRY_SECONDS=5
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BACKEND_DIR="$(cd "$REPO_ROOT/.." && pwd)/fotuu-supabase-backend"
+BACKEND_DIR="$(cd "$REPO_ROOT/.." && pwd)/entao-supabase-backend"
 
 require_command() {
   local cmd="$1"
@@ -49,7 +49,7 @@ docker_daemon_ready() {
 
 supabase_containers_settled() {
   local statuses
-  statuses="$(docker ps -a --filter "name=fotuu-supabase-backend" --format '{{.Status}}' 2>/dev/null || true)"
+  statuses="$(docker ps -a --filter "name=entao-supabase-backend" --format '{{.Status}}' 2>/dev/null || true)"
   if [[ -z "$statuses" ]]; then
     return 0
   fi
