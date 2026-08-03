@@ -44,8 +44,7 @@ export default function SignUp() {
     return (
       <AuthScreen
         testID="sign-up-confirmation"
-        title="Check your email"
-        subtitle={`We sent a confirmation link to ${email}. Click the link to activate your account.`}
+        title={`We sent a confirmation link to ${email}. Click the link to activate your account.`}
         footer={
           <Button
             variant="text"
@@ -60,7 +59,6 @@ export default function SignUp() {
   return (
     <AuthScreen
       title="Create account"
-      subtitle="Sign up to get started"
       action={
         <Button
           testID="sign-up-button"

@@ -29,7 +29,6 @@ export default function SignIn() {
   return (
     <AuthScreen
       title="Welcome back"
-      subtitle="Sign in to your account"
       action={
         <Button
           testID="sign-in-button"

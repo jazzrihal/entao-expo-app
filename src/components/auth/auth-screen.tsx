@@ -12,7 +12,6 @@ const MUTED = "#8E8E93";
 
 type AuthScreenProps = {
   title: string;
-  subtitle?: string;
   /** Primary action (e.g. submit button). Centered horizontally. */
   action?: ReactNode;
   /** Secondary row (e.g. link to the other auth screen). Centered horizontally. */
@@ -33,7 +32,6 @@ function CenteredHost({ children }: { children: ReactNode }) {
 
 function AuthScreenContent({
   title,
-  subtitle,
   action,
   footer,
   testID,
@@ -69,11 +67,8 @@ function AuthScreenContent({
               <Text textStyle={{ fontSize: 32, fontWeight: "700" }}>Então</Text>
 
               <Column spacing={8} alignment="center">
-                <Text textStyle={{ fontSize: 22, fontWeight: "600" }}>
-                  {title}
-                </Text>
-                {subtitle ? (
-                  <Text textStyle={{ color: MUTED }}>{subtitle}</Text>
+                {title ? (
+                  <Text textStyle={{ color: MUTED }}>{title}</Text>
                 ) : null}
               </Column>
             </Column>
