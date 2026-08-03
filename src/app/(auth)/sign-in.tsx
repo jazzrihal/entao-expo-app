@@ -30,8 +30,19 @@ export default function SignIn() {
     <AuthScreen
       title="Welcome back"
       subtitle="Sign in to your account"
+      action={
+        <Button
+          testID="sign-in-button"
+          variant="filled"
+          label={loading ? undefined : "Sign in"}
+          onPress={handleSignIn}
+          disabled={loading}
+        >
+          {loading ? <ActivityIndicator color={colors.text} /> : null}
+        </Button>
+      }
       footer={
-        <Row spacing={4}>
+        <Row spacing={4} alignment="center">
           <UiText>{"Don't have an account?"}</UiText>
           <Button
             testID="sign-in-link-to-sign-up"
@@ -42,7 +53,7 @@ export default function SignIn() {
         </Row>
       }
     >
-      <Column spacing={12}>
+      <Column spacing={12} style={{ width: "100%" }}>
         <AuthTextField
           label="Email"
           testID="sign-in-email"
@@ -74,16 +85,6 @@ export default function SignIn() {
             {error}
           </UiText>
         ) : null}
-
-        <Button
-          testID="sign-in-button"
-          variant="filled"
-          label={loading ? undefined : "Sign in"}
-          onPress={handleSignIn}
-          disabled={loading}
-        >
-          {loading ? <ActivityIndicator color={colors.text} /> : null}
-        </Button>
       </Column>
     </AuthScreen>
   );

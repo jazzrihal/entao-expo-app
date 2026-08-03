@@ -1,51 +1,124 @@
 import type { ReactNode } from "react";
-import { Column, Host, ScrollView, Text } from "@expo/ui";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Pressable, View } from "react-native";
+import { Column, Host, Text } from "@expo/ui";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  AuthKeyboardProvider,
+  useAuthKeyboard,
+} from "@/components/auth/auth-keyboard";
 
 const MUTED = "#8E8E93";
 
 type AuthScreenProps = {
   title: string;
   subtitle?: string;
+  /** Primary action (e.g. submit button). Centered horizontally. */
+  action?: ReactNode;
+  /** Secondary row (e.g. link to the other auth screen). Centered horizontally. */
   footer?: ReactNode;
   testID?: string;
-  children: ReactNode;
+  children?: ReactNode;
 };
 
-export function AuthScreen({
+function CenteredHost({ children }: { children: ReactNode }) {
+  return (
+    <View style={{ width: "100%", alignItems: "center" }}>
+      <Host matchContents ignoreSafeArea="all">
+        {children}
+      </Host>
+    </View>
+  );
+}
+
+function AuthScreenContent({
   title,
   subtitle,
+  action,
   footer,
   testID,
   children,
 }: AuthScreenProps) {
-  const insets = useSafeAreaInsets();
+  const keyboard = useAuthKeyboard();
 
   return (
-    <Host testID={testID} ignoreSafeArea="keyboard" style={{ flex: 1 }}>
-      <ScrollView>
-        <Column
-          spacing={24}
-          style={{
-            paddingTop: insets.top + 24,
-            paddingHorizontal: 24,
-            paddingBottom: 24,
-          }}
+    <SafeAreaView
+      edges={["top", "bottom"]}
+      style={{
+        flex: 1,
+        paddingBottom: 32,
+        paddingHorizontal: 24,
+      }}
+      testID={testID}
+    >
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1 }}
+        onScrollBeginDrag={keyboard?.dismiss}
+      >
+        <Pressable
+          accessible={false}
+          onPress={keyboard?.dismiss}
+          style={{ flex: 1 }}
+        />
+
+        <Pressable accessible={false} onPress={keyboard?.dismiss}>
+          <CenteredHost>
+            <Column spacing={24} alignment="center">
+              <Text textStyle={{ fontSize: 32, fontWeight: "700" }}>Então</Text>
+
+              <Column spacing={8} alignment="center">
+                <Text textStyle={{ fontSize: 22, fontWeight: "600" }}>
+                  {title}
+                </Text>
+                {subtitle ? (
+                  <Text textStyle={{ color: MUTED }}>{subtitle}</Text>
+                ) : null}
+              </Column>
+            </Column>
+          </CenteredHost>
+        </Pressable>
+
+        <Pressable
+          accessible={false}
+          onPress={keyboard?.dismiss}
+          style={{ flex: 2, minHeight: 24 }}
+        />
+
+        <Pressable
+          accessible={false}
+          onPress={keyboard?.dismiss}
+          style={{ width: "100%", gap: 24 }}
         >
-          <Text textStyle={{ fontSize: 32, fontWeight: "700" }}>Então</Text>
+          {children ? (
+            <Host
+              ignoreSafeArea="all"
+              matchContents={{ vertical: true }}
+              style={{ width: "100%" }}
+            >
+              {children}
+            </Host>
+          ) : null}
 
-          <Column spacing={8}>
-            <Text textStyle={{ fontSize: 22, fontWeight: "600" }}>{title}</Text>
-            {subtitle ? (
-              <Text textStyle={{ color: MUTED }}>{subtitle}</Text>
-            ) : null}
-          </Column>
+          {action || footer ? (
+            <CenteredHost>
+              <Column spacing={24} alignment="center">
+                {action}
+                {footer}
+              </Column>
+            </CenteredHost>
+          ) : null}
+        </Pressable>
+      </KeyboardAwareScrollView>
+    </SafeAreaView>
+  );
+}
 
-          {children}
-
-          {footer}
-        </Column>
-      </ScrollView>
-    </Host>
+export function AuthScreen(props: AuthScreenProps) {
+  return (
+    <AuthKeyboardProvider>
+      <AuthScreenContent {...props} />
+    </AuthKeyboardProvider>
   );
 }

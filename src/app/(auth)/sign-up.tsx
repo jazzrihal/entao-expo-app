@@ -45,6 +45,7 @@ export default function SignUp() {
       <AuthScreen
         testID="sign-up-confirmation"
         title="Check your email"
+        subtitle={`We sent a confirmation link to ${email}. Click the link to activate your account.`}
         footer={
           <Button
             variant="text"
@@ -52,11 +53,7 @@ export default function SignUp() {
             onPress={() => router.replace("/(auth)/sign-in")}
           />
         }
-      >
-        <UiText>
-          {`We sent a confirmation link to ${email}. Click the link to activate your account.`}
-        </UiText>
-      </AuthScreen>
+      />
     );
   }
 
@@ -64,8 +61,19 @@ export default function SignUp() {
     <AuthScreen
       title="Create account"
       subtitle="Sign up to get started"
+      action={
+        <Button
+          testID="sign-up-button"
+          variant="filled"
+          label={loading ? undefined : "Create account"}
+          onPress={handleSignUp}
+          disabled={loading}
+        >
+          {loading ? <ActivityIndicator color={colors.text} /> : null}
+        </Button>
+      }
       footer={
-        <Row spacing={4}>
+        <Row spacing={4} alignment="center">
           <UiText>Already have an account?</UiText>
           <Button
             testID="sign-up-link-to-sign-in"
@@ -76,7 +84,7 @@ export default function SignUp() {
         </Row>
       }
     >
-      <Column spacing={12}>
+      <Column spacing={12} style={{ width: "100%" }}>
         <AuthTextField
           label="Email"
           testID="sign-up-email"
@@ -118,16 +126,6 @@ export default function SignUp() {
             {error}
           </UiText>
         ) : null}
-
-        <Button
-          testID="sign-up-button"
-          variant="filled"
-          label={loading ? undefined : "Create account"}
-          onPress={handleSignUp}
-          disabled={loading}
-        >
-          {loading ? <ActivityIndicator color={colors.text} /> : null}
-        </Button>
       </Column>
     </AuthScreen>
   );
