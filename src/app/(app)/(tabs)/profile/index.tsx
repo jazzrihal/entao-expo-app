@@ -1,9 +1,9 @@
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Host, Text } from "@expo/ui";
 import { Empty } from "@/components/empty";
 import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
-import { Stack, useFocusEffect, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { profileDisplayName } from "@/lib/profile-display";
 import {
@@ -30,25 +30,7 @@ export default function Profile() {
 
   const profileQuery = useUserProfileQuery(userId);
   const feedQuery = useProfileFeedQuery(userId);
-  const { refetch: refetchFeed } = feedQuery;
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
-  const isFirstProfileFocus = useRef(true);
-
-  // Re-fetch local posts and remote feed every time this tab gains focus (covers
-  // NativeTabs remount/lazy-load scenarios where listeners may have fired while
-  // the screen was inactive, e.g. pin toggled from Home or Friends).
-  // Depend on stable `refetchFeed`, not `feedQuery` — the query result object
-  // changes every render and would retrigger this effect into an infinite refetch loop.
-  useFocusEffect(
-    useCallback(() => {
-      refreshLocalPosts();
-      if (isFirstProfileFocus.current) {
-        isFirstProfileFocus.current = false;
-        return;
-      }
-      void refetchFeed();
-    }, [refetchFeed, refreshLocalPosts]),
-  );
 
   const displayName = profileDisplayName(profileQuery.data, email);
 
@@ -79,11 +61,11 @@ export default function Profile() {
     );
   }, [localPosts, feedQuery.data]);
 
-  const showFeedLoading = feedQuery.isPending && localPosts.length === 0;
+  const showFeedLoading = feedQuery.isLoading && localPosts.length === 0;
   const showFeedError =
-    !!feedQuery.error && !feedQuery.isPending && mergedPosts.length === 0;
+    !!feedQuery.error && !feedQuery.isLoading && mergedPosts.length === 0;
   const showFeedEmpty =
-    !feedQuery.isPending && !feedQuery.error && mergedPosts.length === 0;
+    !feedQuery.isLoading && !feedQuery.error && mergedPosts.length === 0;
 
   const handleOpenPostDetail = useCallback(
     (post: ProfileGridItem) => {
@@ -162,8 +144,9 @@ export default function Profile() {
         posts={mergedPosts}
         onPostPress={handleOpenPostDetail}
         contentInsetAdjustmentBehavior="automatic"
-        refreshing={feedQuery.isRefetching && !feedQuery.isPending}
+        refreshing={feedQuery.isRefetching && !feedQuery.isLoading}
         onRefresh={() => {
+          refreshLocalPosts();
           void feedQuery.refetch();
         }}
       />
