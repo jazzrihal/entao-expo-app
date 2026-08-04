@@ -142,15 +142,6 @@ export default function MomentsScreen() {
             </Text>
           </Column>
         )}
-        {!momentsQuery.isPending &&
-          !momentsQuery.error &&
-          moments.length === 0 && (
-            <Empty
-              testID="moments-empty"
-              title="No saved moments"
-              description="Save a date and location from Home to recall them later."
-            />
-          )}
         {actionError ? (
           <Column style={styles.message}>
             <Text testID="moments-action-error">{actionError}</Text>
