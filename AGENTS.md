@@ -4,7 +4,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 
 ## Cursor Cloud — how agents should work
 
-**Linux Cloud VMs are not full mobile dev environments.** Do not spend setup time installing Docker, cloning `fotuu-supabase-backend`, starting local Supabase, or running Expo Metro/iOS/Android to “prove the app works.” Those steps belong on a developer Mac (or in GitHub Actions), not in the cloud agent VM bootstrap.
+**Linux Cloud VMs are not full mobile dev environments.** Do not spend setup time installing Docker, cloning `entao-supabase-backend`, starting local Supabase, or running Expo Metro/iOS/Android to “prove the app works.” Those steps belong on a developer Mac (or in GitHub Actions), not in the cloud agent VM bootstrap.
 
 ### Operating model (feature agents)
 
@@ -31,7 +31,7 @@ Do not mark work complete based only on local `tsc`/lint if the change affects U
 | Edit app code, `.maestro/**`, workflows | Local Supabase / Docker (unless the user explicitly asks) |
 | `gh` PR + Actions monitoring | “Hello world” via Metro or signing into the app in a simulator |
 
-**Maestro test user (CI):** `alice@example.com` / `fotuu-local-dev` (seed in `fotuu-supabase-backend`; workflow `env` may override via `E2E_EMAIL` / `E2E_PASSWORD`).
+**Maestro test user (CI):** `alice@example.com` / `entao-local-dev` (seed in `entao-supabase-backend`; workflow `env` may override via `E2E_EMAIL` / `E2E_PASSWORD`).
 
 ### Environment setup agent (bootstrap only)
 
@@ -63,7 +63,7 @@ Workflows under `.github/workflows/`:
 **Required GitHub secrets** (repo settings; used by CI, not the Linux agent VM):
 
 - `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY` — baked into the E2E iOS build
-- `SUPABASE_ACCESS_TOKEN`, `E2E_SUPABASE_DB_PASSWORD`, `E2E_SUPABASE_PROJECT_REF`, `E2E_SUPABASE_BACKEND_TOKEN` — reset hosted DB from `jazzrihal/fotuu-supabase-backend` (or `vars.E2E_SUPABASE_BACKEND_REPOSITORY`)
+- `SUPABASE_ACCESS_TOKEN`, `E2E_SUPABASE_DB_PASSWORD`, `E2E_SUPABASE_PROJECT_REF`, `E2E_SUPABASE_BACKEND_TOKEN` — reset hosted DB from `jazzrihal/entao-supabase-backend` (or `vars.E2E_SUPABASE_BACKEND_REPOSITORY`)
 
 **Artifact reuse:** `.github/scripts/resolve-ios-e2e-artifact.py` skips recompile when the PR only touches test-only paths (e.g. `.maestro/**`) and build inputs are unchanged since the last `ios-e2e-app` artifact.
 
@@ -73,7 +73,7 @@ Workflows under `.github/workflows/`:
 
 | Piece | Notes |
 | --- | --- |
-| **Supabase** | Backend repo `fotuu-supabase-backend`; `npm run gen:types` uses `--workdir ../fotuu-supabase-backend` |
+| **Supabase** | Backend repo `entao-supabase-backend`; `npm run gen:types` uses `--workdir ../entao-supabase-backend` |
 | **Metro** | `npm start` / dev client (`expo-dev-client`, not Expo Go) |
 | **E2E locally** | `npm run build:e2e:ios` + `npm run test:e2e` on macOS with simulator |
 | **Native dirs** | `ios/` and `android/` are gitignored. After identity or native-config changes in `app.json`, regenerate with `rm -rf ios android && npx expo prebuild` (or `npx expo run:ios` / `run:android`). |

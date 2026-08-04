@@ -14,7 +14,7 @@ describe("post sharing", () => {
   });
 
   it("builds the fixed share message without post content", () => {
-    expect(buildPostShareMessage("Alice")).toBe("See Alice’s post on Fotuu.");
+    expect(buildPostShareMessage("Alice")).toBe("See Alice’s post on Então.");
   });
 
   it("validates and normalizes only internal post paths", () => {

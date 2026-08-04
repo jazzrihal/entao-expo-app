@@ -154,7 +154,7 @@ jobs:
       - name: Check out Supabase backend
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.E2E_SUPABASE_BACKEND_REPOSITORY || 'jazzrihal/fotuu-supabase-backend' }}
+          repository: ${{ vars.E2E_SUPABASE_BACKEND_REPOSITORY || 'jazzrihal/entao-supabase-backend' }}
           path: supabase-backend
           token: ${{ secrets.E2E_SUPABASE_BACKEND_TOKEN }}
 

@@ -7,7 +7,7 @@ export function buildPostLink(postId: string): string {
 }
 
 export function buildPostShareMessage(authorName: string): string {
-  return `See ${authorName}’s post on Fotuu.`;
+  return `See ${authorName}’s post on Então.`;
 }
 
 /**

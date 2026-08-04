@@ -1,5 +1,5 @@
 appId: com.jazzrihal.entao
-# fotuu-supabase-backend supabase/seed.sql — survives `supabase db reset`
+# entao-supabase-backend supabase/seed.sql — survives `supabase db reset`
 #
 # Dual role: suite flow #1 and the shared auth subflow for feature flows.
 # Contract: ends on Profile with "Sign out" visible (stable logged-in probe;
@@ -22,7 +22,7 @@ env:
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
 # the "Grant access to your location?" fallback sheet blocking navigation below.
-# Mock a fix near the seeded Tokyo post cluster (fotuu-supabase-backend/supabase/seeds/02_posts.sql)
+# Mock a fix near the seeded Tokyo post cluster (entao-supabase-backend/supabase/seeds/02_posts.sql)
 # so location resolves instantly and the Home feed shows seeded nearby posts.
 - setLocation:
     latitude: 35.6762

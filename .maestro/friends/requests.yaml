@@ -1,7 +1,7 @@
 appId: com.jazzrihal.entao
 ---
 # Eve is the only seeded user with a pending incoming request (Diana → Eve; see
-# fotuu-supabase-backend/supabase/seeds/01_users.sql), so this flow signs in as Eve
+# entao-supabase-backend/supabase/seeds/01_users.sql), so this flow signs in as Eve
 # unconditionally rather than deferring to ${E2E_EMAIL} — CI sets E2E_EMAIL=alice@example.com
 # as a job-level env var, which would otherwise override the "eve@example.com" default below
 # (env var precedence beats the `${E2E_EMAIL || "..."}` fallback) and break this flow.
