@@ -14,6 +14,8 @@ type AuthScreenProps = {
   title: string;
   /** Primary action (e.g. submit button). Centered horizontally. */
   action?: ReactNode;
+  /** Native social buttons (outside Host — Apple SDK view). */
+  social?: ReactNode;
   /** Secondary row (e.g. link to the other auth screen). Centered horizontally. */
   footer?: ReactNode;
   testID?: string;
@@ -33,6 +35,7 @@ function CenteredHost({ children }: { children: ReactNode }) {
 function AuthScreenContent({
   title,
   action,
+  social,
   footer,
   testID,
   children,
@@ -96,10 +99,19 @@ function AuthScreenContent({
             </Host>
           ) : null}
 
-          {action || footer ? (
+          {action ? (
             <CenteredHost>
               <Column spacing={24} alignment="center">
                 {action}
+              </Column>
+            </CenteredHost>
+          ) : null}
+
+          {social ? <View style={{ width: "100%" }}>{social}</View> : null}
+
+          {footer ? (
+            <CenteredHost>
+              <Column spacing={24} alignment="center">
                 {footer}
               </Column>
             </CenteredHost>

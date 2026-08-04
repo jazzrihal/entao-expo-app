@@ -3,12 +3,13 @@ import { ActivityIndicator } from "react-native";
 import { Button, Column, Row, Text as UiText } from "@expo/ui";
 import { router, useTheme } from "expo-router";
 import { AuthScreen } from "@/components/auth/auth-screen";
+import { AuthSocialButtons } from "@/components/auth/auth-social-buttons";
 import { AuthTextField } from "@/components/auth/auth-text-field";
 import { useAuth } from "@/context/auth";
 
 export default function SignIn() {
   const { colors } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn, signInWithApple } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,6 +40,16 @@ export default function SignIn() {
         >
           {loading ? <ActivityIndicator color={colors.text} /> : null}
         </Button>
+      }
+      social={
+        <AuthSocialButtons
+          disabled={loading}
+          onApplePress={async (opts) => {
+            setError(null);
+            return signInWithApple(opts);
+          }}
+          onError={(message) => setError(message)}
+        />
       }
       footer={
         <Row spacing={4} alignment="center">

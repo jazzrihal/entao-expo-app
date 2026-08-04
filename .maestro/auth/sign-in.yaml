@@ -32,6 +32,10 @@ env:
     visible:
       id: "sign-in-email"
     timeout: 60000
+# Continue with Apple renders on iOS when Sign in with Apple is available.
+# Do not tap it — Apple provider sandbox is not available in CI.
+- assertVisible:
+    id: "auth-apple-button"
 - tapOn:
     id: "sign-in-email"
 - inputText: ${E2E_EMAIL}

@@ -1,19 +1,24 @@
 import React, { createContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
+import { signInWithApple } from "@/lib/auth-social";
 import { queryClient } from "@/lib/query-client";
 import { supabase } from "@/lib/supabase";
+
+type AuthResult = { error: string | null };
+
+type SignInWithAppleOptions = {
+  onAfterNativeAuth?: () => void;
+};
 
 type AuthContextValue = {
   session: Session | null;
   loading: boolean;
-  signIn: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: string | null }>;
+  signIn: (email: string, password: string) => Promise<AuthResult>;
   signUp: (
     email: string,
     password: string,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
+  signInWithApple: (options?: SignInWithAppleOptions) => Promise<AuthResult>;
   signOut: () => Promise<void>;
 };
 
@@ -63,7 +68,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext value={{ session, loading, signIn, signUp, signOut }}>
+    <AuthContext
+      value={{
+        session,
+        loading,
+        signIn,
+        signUp,
+        signInWithApple,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext>
   );
