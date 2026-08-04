@@ -79,7 +79,9 @@ export const PostFeedPage = memo(function PostFeedPage({
   const actionPending = likeMutation.isPending || pinMutation.isPending;
   const actionError =
     likeMutation.error?.message ?? pinMutation.error?.message ?? shareError;
-  const actionsDisabled = actionPending || !session?.user.id;
+  // Keep an in-flight guard in handlers, but do not gray both icons for the
+  // full network round-trip — that reads as a flash on optimistic updates.
+  const actionsDisabled = !session?.user.id;
 
   const handleToggleLike = useCallback(() => {
     if (actionPending) {

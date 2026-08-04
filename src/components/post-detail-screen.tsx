@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { Host } from "@expo/ui";
 import { Empty } from "@/components/empty";
@@ -121,11 +121,23 @@ export function PostDetailScreen() {
 
   // Always call hooks unconditionally (Rules of Hooks).
   const feedQuery = usePostFeedPosts(isInlineMode ? null : feedSource);
+  // Only show the RefreshControl spinner for user pull-to-refresh. Driving
+  // `refreshing` from engagement-triggered invalidations shifts the paging
+  // FlatList contentOffset by ~60pt (visible jump on Like/Pin).
+  const [userPullRefreshing, setUserPullRefreshing] = useState(false);
 
   const fallbackPostQuery = usePostQuery(isInlineMode ? null : postId, {
     placeholderData: parsedPost ?? undefined,
     enabled: !feedSource && !isInlineMode,
   });
+
+  const handleUserRefresh = useCallback(() => {
+    if (!feedQuery) return;
+    setUserPullRefreshing(true);
+    void feedQuery.refetch().finally(() => {
+      setUserPullRefreshing(false);
+    });
+  }, [feedQuery]);
 
   const screenOptions = (
     <Stack.Screen options={{ title: "", headerLargeTitle: false }} />
@@ -223,10 +235,8 @@ export function PostDetailScreen() {
             testID={`${testIDPrefix}-feed-pager`}
             initialIndex={initialIndex}
             includeTabBarInset={false}
-            refreshing={feedQuery.isRefetching && !feedQuery.isPending}
-            onRefresh={() => {
-              void feedQuery.refetch();
-            }}
+            refreshing={userPullRefreshing}
+            onRefresh={handleUserRefresh}
           />
         </>
       );
