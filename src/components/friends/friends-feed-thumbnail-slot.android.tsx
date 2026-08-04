@@ -9,7 +9,7 @@ import {
 import type { FriendsFeedThumbnailSlotProps } from "@/components/friends/friends-feed-thumbnail-slot";
 
 export function FriendsFeedThumbnailSlot({
-  posts,
+  post,
   screenWidth,
   rowHeight,
   isLastRow,
@@ -27,7 +27,7 @@ export function FriendsFeedThumbnailSlot({
     >
       <View style={[styles.slot, { width: screenWidth, height: slotHeight }]}>
         <FriendsFeedThumbnailRow
-          posts={posts}
+          post={post}
           screenWidth={screenWidth}
           testID={testID}
           testIDPrefix={testIDPrefix}

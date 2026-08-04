@@ -36,40 +36,18 @@ export function getFriendsFeedAndroidListItemOffset(rowHeight: number): {
   };
 }
 
-const GRID_GAP = 1;
-const FRIENDS_FEED_COLUMNS = 3;
-export const FRIENDS_FEED_ROW_GAP = GRID_GAP;
+export const FRIENDS_FEED_ROW_GAP = 1;
 
 /** Clears rounded FieldGroup row corners (overflow: hidden on slot). */
-const FRIENDS_FEED_PIN_BADGE_INSET = { bottom: 18, right: 18 };
+const FRIENDS_FEED_PIN_BADGE_INSET = { bottom: 10, right: 18 };
 
-function getFriendsFeedThumbnailLayout(postCount: number, screenWidth: number) {
-  if (postCount === 0) {
-    return { tileSize: 0, lastTileWidth: 0 };
-  }
-
-  const tileSize = Math.floor(
-    (screenWidth - GRID_GAP * (postCount - 1)) / postCount,
-  );
-  const distributedWidth = tileSize * postCount + GRID_GAP * (postCount - 1);
-
-  return {
-    tileSize,
-    lastTileWidth: tileSize + (screenWidth - distributedWidth),
-  };
-}
-
-export function getFriendsFeedThumbnailRowHeight(
-  _postCount: number,
-  screenWidth: number,
-): number {
-  void _postCount;
-  return getFriendsFeedThumbnailLayout(FRIENDS_FEED_COLUMNS, screenWidth)
-    .tileSize;
+/** Full-width strip height (~3:1), matching former 3-column tile size. */
+export function getFriendsFeedThumbnailRowHeight(screenWidth: number): number {
+  return Math.floor(screenWidth / 3);
 }
 
 type FriendsFeedThumbnailRowProps = {
-  posts: FriendsPostWithImage[];
+  post: FriendsPostWithImage;
   testID: string;
   testIDPrefix: string;
   onPostPress: (post: FriendsPostWithImage) => void;
@@ -77,7 +55,7 @@ type FriendsFeedThumbnailRowProps = {
 };
 
 export function FriendsFeedThumbnailRow({
-  posts,
+  post,
   testID,
   testIDPrefix,
   onPostPress,
@@ -87,18 +65,7 @@ export function FriendsFeedThumbnailRow({
   const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
   const { width: windowWidth } = useWindowDimensions();
   const screenWidth = screenWidthProp ?? windowWidth;
-  const { tileSize, lastTileWidth } = getFriendsFeedThumbnailLayout(
-    posts.length,
-    screenWidth,
-  );
-  const rowTileHeight = getFriendsFeedThumbnailRowHeight(
-    FRIENDS_FEED_COLUMNS,
-    screenWidth,
-  );
-
-  if (posts.length === 0) {
-    return null;
-  }
+  const rowHeight = getFriendsFeedThumbnailRowHeight(screenWidth);
 
   return (
     <View
@@ -107,38 +74,29 @@ export function FriendsFeedThumbnailRow({
         styles.row,
         {
           width: screenWidth,
-          height: rowTileHeight,
+          height: rowHeight,
           backgroundColor: gridSeparatorColor,
         },
       ]}
     >
-      {posts.map((post, index) => {
-        const isLast = index === posts.length - 1;
-        const tileWidth = isLast ? lastTileWidth : tileSize;
-
-        return (
-          <Pressable
-            key={post.id}
-            testID={`${testIDPrefix}-post-${post.id}`}
-            onPress={() => onPostPress(post)}
-            style={{
-              width: tileWidth,
-              height: rowTileHeight,
-              marginRight: isLast ? 0 : GRID_GAP,
-            }}
-          >
-            <Image
-              recyclingKey={post.id}
-              source={post.imageUrl ? { uri: post.imageUrl } : undefined}
-              style={{ width: tileWidth, height: rowTileHeight }}
-              contentFit="cover"
-            />
-            {post.is_pinned_by_current_user ? (
-              <PinnedPostBadge style={styles.pinnedBadge} />
-            ) : null}
-          </Pressable>
-        );
-      })}
+      <Pressable
+        testID={`${testIDPrefix}-post-${post.id}`}
+        onPress={() => onPostPress(post)}
+        style={{
+          width: screenWidth,
+          height: rowHeight,
+        }}
+      >
+        <Image
+          recyclingKey={post.id}
+          source={post.imageUrl ? { uri: post.imageUrl } : undefined}
+          style={{ width: screenWidth, height: rowHeight }}
+          contentFit="cover"
+        />
+        {post.is_pinned_by_current_user ? (
+          <PinnedPostBadge style={styles.pinnedBadge} />
+        ) : null}
+      </Pressable>
     </View>
   );
 }

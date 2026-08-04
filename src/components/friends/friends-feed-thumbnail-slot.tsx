@@ -8,7 +8,7 @@ import {
 import type { FriendsPostWithImage } from "@/queries/posts";
 
 export type FriendsFeedThumbnailSlotProps = {
-  posts: FriendsPostWithImage[];
+  post: FriendsPostWithImage;
   screenWidth: number;
   rowHeight: number;
   isLastRow: boolean;
@@ -18,7 +18,7 @@ export type FriendsFeedThumbnailSlotProps = {
 };
 
 export function FriendsFeedThumbnailSlot({
-  posts,
+  post,
   screenWidth,
   rowHeight,
   isLastRow,
@@ -41,7 +41,7 @@ export function FriendsFeedThumbnailSlot({
         ]}
       >
         <FriendsFeedThumbnailRow
-          posts={posts}
+          post={post}
           screenWidth={screenWidth}
           testID={testID}
           testIDPrefix={testIDPrefix}
