@@ -7,7 +7,6 @@ import {
 import { FieldGroup, Host, Text } from "@expo/ui";
 import { useRouter } from "expo-router";
 import { Empty } from "@/components/empty";
-import { chunkFriendsFeedPosts } from "@/components/friends/friends-feed-rows";
 import { FriendsFeedThumbnailSlot } from "@/components/friends/friends-feed-thumbnail-slot";
 import { getFriendsFeedThumbnailRowHeight } from "@/components/friends/friends-feed-thumbnail-row";
 import { useAuth } from "@/context/auth";
@@ -86,12 +85,12 @@ export function FriendsFeedTab() {
     );
   }
 
+  const rowHeight = getFriendsFeedThumbnailRowHeight(screenWidth);
+
   return (
     <Host testID="friends-feed" useViewportSizeMeasurement style={styles.feed}>
       <FieldGroup>
         {groups?.map((group) => {
-          const postRows = chunkFriendsFeedPosts(group.posts);
-
           return (
             <FieldGroup.Section
               key={group.author_id}
@@ -112,17 +111,14 @@ export function FriendsFeedTab() {
                   {group.display_name}
                 </Text>
               </FieldGroup.SectionHeader>
-              {postRows.map((posts, rowIndex) => (
+              {group.posts.map((post, index) => (
                 <FriendsFeedThumbnailSlot
-                  key={`${group.author_id}-${rowIndex}`}
-                  posts={posts}
+                  key={post.id}
+                  post={post}
                   screenWidth={screenWidth}
-                  rowHeight={getFriendsFeedThumbnailRowHeight(
-                    posts.length,
-                    screenWidth,
-                  )}
-                  isLastRow={rowIndex === postRows.length - 1}
-                  testID={`friends-feed-section-${group.username}-row-${rowIndex}`}
+                  rowHeight={rowHeight}
+                  isLastRow={index === group.posts.length - 1}
+                  testID={`friends-feed-section-${group.username}-row-${index}`}
                   testIDPrefix="friends-feed"
                   onPostPress={handleOpenPostDetail}
                 />

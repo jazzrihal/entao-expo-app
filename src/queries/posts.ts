@@ -34,7 +34,9 @@ export type FeedPostWithImage = FeedPost & { imageUrl?: string };
 export type ProfileFeedPostWithImage = ProfileFeedPost & { imageUrl?: string };
 export type FriendsPostWithImage = FriendsPost & { imageUrl?: string };
 export type FriendsPostsGroupedWithImages = {
-  groups: (FriendsPostsGroup & { posts: FriendsPostWithImage[] })[];
+  groups: (Omit<FriendsPostsGroup, "posts"> & {
+    posts: FriendsPostWithImage[];
+  })[];
 };
 export type PostDetailWithImage = (
   FeedPost | PostDetail | ProfileFeedPost | FriendsPost
