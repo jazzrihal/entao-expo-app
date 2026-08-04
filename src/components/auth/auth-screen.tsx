@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, useColorScheme, View } from "react-native";
 import { Column, Host, Text } from "@expo/ui";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,8 +7,11 @@ import {
   AuthKeyboardProvider,
   useAuthKeyboard,
 } from "@/components/auth/auth-keyboard";
+import { Image } from "@/components/image";
 
 const MUTED = "#8E8E93";
+const LOGO_LIGHT = require("../../../assets/images/logo-light.png");
+const LOGO_DARK = require("../../../assets/images/logo-dark.png");
 
 type AuthScreenProps = {
   title: string;
@@ -41,6 +44,7 @@ function AuthScreenContent({
   children,
 }: AuthScreenProps) {
   const keyboard = useAuthKeyboard();
+  const colorScheme = useColorScheme();
 
   return (
     <SafeAreaView
@@ -61,61 +65,55 @@ function AuthScreenContent({
         <Pressable
           accessible={false}
           onPress={keyboard?.dismiss}
-          style={{ flex: 1 }}
-        />
-
-        <Pressable accessible={false} onPress={keyboard?.dismiss}>
-          <CenteredHost>
-            <Column spacing={24} alignment="center">
-              <Text textStyle={{ fontSize: 32, fontWeight: "700" }}>Então</Text>
-
+          style={{
+            flex: 1,
+            justifyContent: "space-between",
+            width: "100%",
+          }}
+        >
+          <View style={{ width: "100%", alignItems: "center", gap: 24 }}>
+            <Image
+              source={colorScheme === "dark" ? LOGO_DARK : LOGO_LIGHT}
+              style={{ width: 176, height: 176 }}
+              contentFit="contain"
+              accessibilityLabel="Então"
+            />
+            <CenteredHost>
               <Column spacing={8} alignment="center">
                 {title ? (
                   <Text textStyle={{ color: MUTED }}>{title}</Text>
                 ) : null}
               </Column>
-            </Column>
-          </CenteredHost>
-        </Pressable>
+            </CenteredHost>
+          </View>
 
-        <Pressable
-          accessible={false}
-          onPress={keyboard?.dismiss}
-          style={{ flex: 2, minHeight: 24 }}
-        />
+          <View style={{ width: "100%", gap: 24 }}>
+            {children ? (
+              <Host
+                ignoreSafeArea="all"
+                matchContents={{ vertical: true }}
+                style={{ width: "100%" }}
+              >
+                {children}
+              </Host>
+            ) : null}
 
-        <Pressable
-          accessible={false}
-          onPress={keyboard?.dismiss}
-          style={{ width: "100%", gap: 24 }}
-        >
-          {children ? (
-            <Host
-              ignoreSafeArea="all"
-              matchContents={{ vertical: true }}
-              style={{ width: "100%" }}
-            >
-              {children}
-            </Host>
-          ) : null}
-
-          {action ? (
-            <CenteredHost>
-              <Column spacing={24} alignment="center">
+            {action ? (
+              <View style={{ width: "100%", alignItems: "center" }}>
                 {action}
-              </Column>
-            </CenteredHost>
-          ) : null}
+              </View>
+            ) : null}
 
-          {social ? <View style={{ width: "100%" }}>{social}</View> : null}
+            {social ? <View style={{ width: "100%" }}>{social}</View> : null}
 
-          {footer ? (
-            <CenteredHost>
-              <Column spacing={24} alignment="center">
-                {footer}
-              </Column>
-            </CenteredHost>
-          ) : null}
+            {footer ? (
+              <CenteredHost>
+                <Column spacing={24} alignment="center">
+                  {footer}
+                </Column>
+              </CenteredHost>
+            ) : null}
+          </View>
         </Pressable>
       </KeyboardAwareScrollView>
     </SafeAreaView>

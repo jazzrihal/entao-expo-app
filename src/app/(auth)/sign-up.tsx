@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { ActivityIndicator } from "react-native";
 import { Button, Column, Row, Text as UiText } from "@expo/ui";
 import { router, useTheme } from "expo-router";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthSocialButtons } from "@/components/auth/auth-social-buttons";
+import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { AuthTextField } from "@/components/auth/auth-text-field";
 import { useAuth } from "@/context/auth";
 
@@ -30,7 +30,6 @@ export default function SignUp() {
       setError("Password must be at least 6 characters.");
       return;
     }
-    setError(null);
     setLoading(true);
     const { error, needsConfirmation } = await signUp(email.trim(), password);
     setLoading(false);
@@ -38,6 +37,8 @@ export default function SignUp() {
       setError(error);
     } else if (needsConfirmation) {
       setNeedsConfirmation(true);
+    } else {
+      setError(null);
     }
   }
 
@@ -61,22 +62,20 @@ export default function SignUp() {
     <AuthScreen
       title="Create account"
       action={
-        <Button
+        <AuthSubmitButton
           testID="sign-up-button"
-          variant="filled"
-          label={loading ? undefined : "Create account"}
+          label="Create account"
           onPress={handleSignUp}
-          disabled={loading}
-        >
-          {loading ? <ActivityIndicator color={colors.text} /> : null}
-        </Button>
+          loading={loading}
+        />
       }
       social={
         <AuthSocialButtons
           disabled={loading}
           onApplePress={async (opts) => {
-            setError(null);
-            return signInWithApple(opts);
+            const result = await signInWithApple(opts);
+            if (!result.error) setError(null);
+            return result;
           }}
           onError={(message) => setError(message)}
         />
@@ -94,6 +93,15 @@ export default function SignUp() {
       }
     >
       <Column spacing={12} style={{ width: "100%" }}>
+        {error ? (
+          <UiText
+            testID="sign-up-error"
+            textStyle={{ color: colors.notification as string }}
+          >
+            {error}
+          </UiText>
+        ) : null}
+
         <AuthTextField
           label="Email"
           testID="sign-up-email"
@@ -126,15 +134,6 @@ export default function SignUp() {
           onSubmitEditing={handleSignUp}
           placeholder="••••••••"
         />
-
-        {error ? (
-          <UiText
-            testID="sign-up-error"
-            textStyle={{ color: colors.notification as string }}
-          >
-            {error}
-          </UiText>
-        ) : null}
       </Column>
     </AuthScreen>
   );
