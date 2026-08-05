@@ -31,5 +31,6 @@ executionOrder:
     - save-recall-delete
     - create-post
     - view-post-detail
+    - open-post-deep-link
     - save-post-locally
     - swipe-unfriend

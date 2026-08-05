@@ -1,4 +1,4 @@
-export const POST_LINK_ORIGIN = "https://xn--ento-ioa.com";
+export const POST_LINK_ORIGIN = "https://entao.link";
 const POST_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
 
 export function buildPostLink(postId: string): string {

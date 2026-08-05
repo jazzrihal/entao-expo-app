@@ -1,0 +1,97 @@
+appId: com.jazzrihal.entao
+# Opens a seeded post via the custom scheme (`entao://post/{id}`), which CI can
+# exercise without Associated Domains re-verification on the simulator.
+#
+# Seed post UUIDs are random each DB reset, so we copy the id from the home
+# grid cell accessibility label (dev / E2E builds only — see post-feed-grid).
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Home"
+    label: Open Home tab
+- assertVisible:
+    id: "home-feed-grid"
+    label: Seeded nearby home grid is visible
+# Capture a dynamic seeded post id from the first grid cell (E2E a11y label).
+- copyTextFrom:
+    id: "home-feed-post-.*"
+    index: 0
+    label: Copy first home grid post id
+- evalScript: ${output.postId = maestro.copiedText}
+- assertTrue:
+    condition: ${output.postId != null && String(output.postId).length > 0}
+    label: Captured a non-empty post id
+# Authenticated path: custom-scheme deep link → post detail (default "post" prefix).
+- openLink:
+    link: ${"entao://post/" + output.postId}
+    label: Open post deep link while signed in
+- runFlow:
+    when:
+      visible: 'Open in "Então"'
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: "post-detail"
+    timeout: 30000
+- assertVisible:
+    id: "post-detail-image"
+- assertVisible:
+    id: "post-detail-author"
+# Cold / signed-out path: wipe session, relaunch, openLink, sign in with returnTo.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    permissions:
+      location: inuse
+      camera: allow
+- setLocation:
+    latitude: 35.6762
+    longitude: 139.6503
+- openLink:
+    link: ${"entao://post/" + output.postId}
+    label: Open post deep link while signed out
+- runFlow:
+    when:
+      visible: 'Open in "Então"'
+    commands:
+      - tapOn: Open
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
+- tapOn:
+    id: "sign-in-email"
+- inputText: ${E2E_EMAIL}
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${E2E_PASSWORD}
+- tapOn:
+    id: "sign-in-button"
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+- runFlow:
+    when:
+      visible:
+        id: "home-feed-location-actions"
+    commands:
+      - tapOn: "Reject"
+# Auth layout redirects to /(app)/post/[id] when returnTo was preserved.
+- extendedWaitUntil:
+    visible:
+      id: "post-detail"
+    timeout: 30000
+- assertVisible:
+    id: "post-detail-image"
+- assertVisible:
+    id: "post-detail-author"

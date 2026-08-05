@@ -66,6 +66,14 @@ export function PostFeedGrid<T extends PostGridItem>({
       return (
         <Pressable
           testID={`${testIDPrefix}-post-${item.id}`}
+          // Dev / E2E builds only: expose the post id as the accessibility label
+          // so Maestro can `copyTextFrom` it for deep-link flows. Production
+          // VoiceOver is unchanged (label stays unset).
+          accessibilityLabel={
+            __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local"
+              ? item.id
+              : undefined
+          }
           onPress={() => onPostPress(item)}
           style={{
             width: itemWidth,
