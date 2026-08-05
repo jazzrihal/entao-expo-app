@@ -4,6 +4,10 @@ import { useAuth } from "@/context/auth";
 import { PostManagerProvider } from "@/context/post-manager";
 import { validatePostReturnPath } from "@/lib/post-sharing";
 
+export const unstable_settings = {
+  anchor: "(tabs)",
+};
+
 export default function AppLayout() {
   const { session, loading } = useAuth();
   const returnTo = validatePostReturnPath(usePathname());

@@ -45,6 +45,12 @@ env:
     id: "post-detail-image"
 - assertVisible:
     id: "post-detail-author"
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "home-feed-grid"
 # Cold / signed-out path: wipe session, relaunch, openLink, sign in with returnTo.
 - launchApp:
     clearState: true
@@ -95,3 +101,9 @@ env:
     id: "post-detail-image"
 - assertVisible:
     id: "post-detail-author"
+# `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- assertVisible:
+    id: "home-feed-grid"

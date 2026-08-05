@@ -14,6 +14,7 @@ export default function AuthLayout() {
     return postId ? (
       <Redirect
         href={{ pathname: "/(app)/post/[id]", params: { id: postId } }}
+        withAnchor
       />
     ) : (
       <Redirect href="/(app)/(tabs)/home" />
