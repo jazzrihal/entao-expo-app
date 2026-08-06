@@ -35,7 +35,6 @@ type PostDetailContentProps = {
   onAuthorPress: () => void;
   onToggleLike: () => void;
   onTogglePin: () => void;
-  onShare?: () => void;
   isLiked: boolean;
   isPinned: boolean;
   actionsDisabled: boolean;
@@ -60,7 +59,6 @@ export function PostDetailContent({
   onAuthorPress,
   onToggleLike,
   onTogglePin,
-  onShare,
   isLiked,
   isPinned,
   actionsDisabled,
@@ -98,45 +96,43 @@ export function PostDetailContent({
         <Spacer flexible />
         <Row spacing={25} alignment="center">
           {!isLocalOnly ? (
-            <>
-              {onShare ? (
-                <PostFeedIconButton
-                  testID={`${testIDPrefix}-detail-share`}
-                  icon="square.and.arrow.up"
-                  accessibilityLabel="Share"
-                  onPress={onShare}
-                />
-              ) : null}
-              <PostFeedIconButton
-                icon={isLiked ? "heart.fill" : "heart"}
-                accessibilityLabel={isLiked ? "Unlike" : "Like"}
-                disabled={actionsDisabled}
-                onPress={onToggleLike}
-              />
-              <PostFeedIconButton
-                icon={isPinned ? "pin.fill" : "pin"}
-                accessibilityLabel={isPinned ? "Unpin" : "Pin"}
-                disabled={actionsDisabled}
-                onPress={onTogglePin}
-              />
-            </>
-          ) : null}
-          {onExploreNearby ? (
             <PostFeedIconButton
-              icon="safari"
-              accessibilityLabel="Explore nearby"
-              disabled={exploreNearbyDisabled}
-              onPress={onExploreNearby}
+              icon={isPinned ? "pin.fill" : "pin"}
+              accessibilityLabel={isPinned ? "Unpin" : "Pin"}
+              disabled={actionsDisabled}
+              onPress={onTogglePin}
+            />
+          ) : null}
+          {!isLocalOnly ? (
+            <PostFeedIconButton
+              icon={isLiked ? "heart.fill" : "heart"}
+              accessibilityLabel={isLiked ? "Unlike" : "Like"}
+              disabled={actionsDisabled}
+              onPress={onToggleLike}
             />
           ) : null}
         </Row>
       </Row>
-      <Text testID={`${testIDPrefix}-detail-date`}>
-        {formatCapturedAtAgo(post.captured_at)}
-      </Text>
-      {locationLine ? (
-        <Text testID={`${testIDPrefix}-detail-location`}>{locationLine}</Text>
-      ) : null}
+      <Column
+        spacing={2}
+        onPress={onExploreNearby}
+        disabled={!onExploreNearby || exploreNearbyDisabled}
+      >
+        <Text
+          testID={`${testIDPrefix}-detail-date`}
+          textStyle={{ fontSize: 12 }}
+        >
+          {formatCapturedAtAgo(post.captured_at)}
+        </Text>
+        {locationLine ? (
+          <Text
+            testID={`${testIDPrefix}-detail-location`}
+            textStyle={{ fontSize: 12 }}
+          >
+            {locationLine}
+          </Text>
+        ) : null}
+      </Column>
       {actionError ? (
         <Text
           testID={`${testIDPrefix}-detail-action-error`}

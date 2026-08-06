@@ -1,5 +1,4 @@
-import { memo, useCallback, useMemo, useRef, useState } from "react";
-import { Share } from "react-native";
+import { memo, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "expo-router";
 import { PostDetailContent } from "@/components/post-detail-content";
 import { useAuth } from "@/context/auth";
@@ -13,7 +12,6 @@ import {
   useTogglePinMutation,
   type PostDetailWithImage,
 } from "@/queries/posts";
-import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 
 type PostFeedPageProps = {
   post: PostDetailWithImage;
@@ -32,7 +30,6 @@ export const PostFeedPage = memo(function PostFeedPage({
 }: PostFeedPageProps) {
   const router = useRouter();
   const { session } = useAuth();
-  const [shareError, setShareError] = useState<string | null>(null);
   // Once like/pin is toggled on this screen, the detail-cache optimistic patch
   // is authoritative — the `post` prop may be a frozen navigation snapshot
   // (e.g. profile `localFeed`) that won't update until we leave the screen.
@@ -71,14 +68,13 @@ export const PostFeedPage = memo(function PostFeedPage({
     // patches from the previous screen remain visible.
     return {
       isLiked: fromPost.isLiked || fromCache.isLiked,
-      isPinned:
-        fromPost.isPinned || fromCache.isPinned || ownProfilePinned,
+      isPinned: fromPost.isPinned || fromCache.isPinned || ownProfilePinned,
     };
   }, [cachedPost, post, session?.user.id]);
 
   const actionPending = likeMutation.isPending || pinMutation.isPending;
   const actionError =
-    likeMutation.error?.message ?? pinMutation.error?.message ?? shareError;
+    likeMutation.error?.message ?? pinMutation.error?.message ?? null;
   // Keep an in-flight guard in handlers, but do not gray both icons for the
   // full network round-trip — that reads as a flash on optimistic updates.
   const actionsDisabled = !session?.user.id;
@@ -98,24 +94,6 @@ export const PostFeedPage = memo(function PostFeedPage({
     hasLocalEngagementMutation.current = true;
     pinMutation.mutate(!postEngagement.isPinned);
   }, [actionPending, pinMutation, postEngagement.isPinned]);
-
-  const handleShare = useCallback(async () => {
-    if (isLocalOnly) {
-      return;
-    }
-
-    setShareError(null);
-    try {
-      await Share.share({
-        message: buildPostShareMessage(post.display_name),
-        url: buildPostLink(post.id),
-      });
-    } catch (error) {
-      setShareError(
-        error instanceof Error ? error.message : "Unable to share post.",
-      );
-    }
-  }, [isLocalOnly, post.display_name, post.id]);
 
   const openAuthorProfile = useCallback(() => {
     if (isLocalOnly) return;
@@ -169,7 +147,6 @@ export const PostFeedPage = memo(function PostFeedPage({
       onAuthorPress={openAuthorProfile}
       onToggleLike={handleToggleLike}
       onTogglePin={handleTogglePin}
-      onShare={isLocalOnly ? undefined : handleShare}
       isLiked={postEngagement.isLiked}
       isPinned={postEngagement.isPinned}
       actionsDisabled={actionsDisabled}
