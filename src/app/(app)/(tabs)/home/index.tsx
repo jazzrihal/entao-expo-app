@@ -6,7 +6,7 @@ import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
 import { PostFeedGrid } from "@/components/post-feed-grid";
 import { useObserve } from "@legendapp/state/react";
 import * as Location from "expo-location";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { HomeFeedHeader } from "@/components/home-feed-header";
 import { type MapCoordinates } from "@/components/map-picker";
 import { locationPicker$ } from "@/lib/location-picker-store";
@@ -14,7 +14,10 @@ import {
   formatLocationButtonLabel,
   resolvePostLocationParts,
 } from "@/lib/location-label";
-import { momentPicker$ } from "@/lib/moment-picker-store";
+import {
+  momentPicker$,
+  type AppliedMoment,
+} from "@/lib/moment-picker-store";
 import type { PostLocationParts } from "@/lib/post-display";
 import { openPostDetail } from "@/lib/navigation";
 import { useFeedQuery, type FeedPostWithImage } from "@/queries/posts";
@@ -71,11 +74,7 @@ export default function Home() {
     locationPicker$.confirmed.set(null);
   });
 
-  useObserve(momentPicker$.applied, ({ value }) => {
-    if (!value) {
-      return;
-    }
-
+  const applyMoment = useCallback((value: AppliedMoment) => {
     setSelectedDate(new Date(value.occurredAt));
     setSelectedLocation({
       latitude: value.latitude,
@@ -94,8 +93,21 @@ export default function Home() {
         country: value.country || null,
       }),
     );
-    momentPicker$.applied.set(null);
-  });
+    setInitializingLocation(false);
+  }, []);
+
+  // Post detail lives outside the tab stack, so consume pending jumps on focus
+  // instead of a live useObserve (which can miss the write or lose to GPS init).
+  useFocusEffect(
+    useCallback(() => {
+      const value = momentPicker$.applied.get();
+      if (!value) {
+        return;
+      }
+      applyMoment(value);
+      momentPicker$.applied.set(null);
+    }, [applyMoment]),
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -125,8 +137,22 @@ export default function Home() {
           return;
         }
 
-        setSelectedLocation(coordinates);
+        // Do not clobber a jumped/applied moment (or any location already chosen).
+        let skippedOverwrite = false;
+        setSelectedLocation((prev) => {
+          if (prev != null) {
+            skippedOverwrite = true;
+            return prev;
+          }
+          return coordinates;
+        });
+        if (skippedOverwrite || momentPicker$.applied.get()) {
+          return;
+        }
         const parts = await resolvePostLocationParts(coordinates);
+        if (cancelled) {
+          return;
+        }
         setLocationParts(parts);
         setLocationLabel(formatLocationButtonLabel(parts));
       } catch {

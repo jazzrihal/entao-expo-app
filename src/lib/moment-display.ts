@@ -1,7 +1,11 @@
-import type { MomentListItem } from "@/lib/moments";
+import { format } from "date-fns";
 
-export function formatMomentOccurredAt(iso: string): string {
-  return new Date(iso).toLocaleString();
+export function formatMomentDate(iso: string): string {
+  return format(new Date(iso), "EEE do MMM yyyy");
+}
+
+export function formatMomentTime(iso: string): string {
+  return format(new Date(iso), "p");
 }
 
 export function formatMomentLocation(parts: {
@@ -15,8 +19,4 @@ export function formatMomentLocation(parts: {
     .join(", ");
 
   return line || "Selected location";
-}
-
-export function momentListSubtitle(item: MomentListItem): string {
-  return formatMomentLocation(item);
 }

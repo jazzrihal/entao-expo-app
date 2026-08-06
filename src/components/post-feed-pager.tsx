@@ -1,14 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Alert,
   FlatList,
   Platform,
+  Share,
   StyleSheet,
   View,
   type ListRenderItemInfo,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
 } from "react-native";
+import { Host } from "@expo/ui";
+import { Stack } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { PostFeedPage } from "@/components/post-feed-page";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
+import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 import type { PostDetailWithImage } from "@/queries/posts";
 
 type PostFeedPagerProps = {
@@ -41,6 +49,9 @@ export function PostFeedPager({
   localPostIds,
 }: PostFeedPagerProps) {
   const [pageHeight, setPageHeight] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() =>
+    initialIndex != null && initialIndex >= 0 ? initialIndex : 0,
+  );
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<PostDetailWithImage>>(null);
   const didScrollToInitial = useRef(false);
@@ -50,6 +61,15 @@ export function PostFeedPager({
   const pagerTestID = testID ?? `${testIDPrefix}-feed-pager`;
   const scrollIndex =
     initialIndex != null && initialIndex >= 0 ? initialIndex : undefined;
+
+  const safeActiveIndex =
+    posts.length === 0
+      ? 0
+      : Math.min(Math.max(activeIndex, 0), posts.length - 1);
+  const activePost = posts[safeActiveIndex];
+  const activeIsLocalOnly =
+    !!activePost &&
+    (isLocalOnly || (localPostIds?.has(activePost.id) ?? false));
 
   const handleLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -80,6 +100,58 @@ export function PostFeedPager({
     });
   }, [pageHeight, posts.length, scrollIndex]);
 
+  const handleMomentumScrollEnd = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (pageHeight <= 0 || posts.length === 0) {
+        return;
+      }
+      const nextIndex = Math.round(
+        event.nativeEvent.contentOffset.y / pageHeight,
+      );
+      setActiveIndex(Math.min(Math.max(nextIndex, 0), posts.length - 1));
+    },
+    [pageHeight, posts.length],
+  );
+
+  const handleShare = useCallback(async () => {
+    if (!activePost || activeIsLocalOnly) {
+      return;
+    }
+
+    try {
+      await Share.share({
+        message: buildPostShareMessage(activePost.display_name),
+        url: buildPostLink(activePost.id),
+      });
+    } catch (error) {
+      Alert.alert(
+        "Unable to share",
+        error instanceof Error ? error.message : "Unable to share post.",
+      );
+    }
+  }, [activeIsLocalOnly, activePost]);
+
+  const headerRight = useMemo(() => {
+    if (!activePost || activeIsLocalOnly) {
+      return undefined;
+    }
+
+    function PostDetailShareHeaderButton() {
+      return (
+        <Host matchContents>
+          <PostFeedIconButton
+            testID={`${testIDPrefix}-detail-share`}
+            icon="square.and.arrow.up"
+            accessibilityLabel="Share"
+            onPress={handleShare}
+          />
+        </Host>
+      );
+    }
+
+    return PostDetailShareHeaderButton;
+  }, [activeIsLocalOnly, activePost, handleShare, testIDPrefix]);
+
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<PostDetailWithImage>) => (
       <PostFeedPage
@@ -106,36 +178,46 @@ export function PostFeedPager({
   );
 
   return (
-    <View style={styles.container} onLayout={handleLayout}>
-      {pageHeight > 0 ? (
-        <FlatList
-          ref={listRef}
-          testID={pagerTestID}
-          data={posts}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          getItemLayout={getItemLayout}
-          initialScrollIndex={scrollIndex}
-          snapToInterval={pageHeight}
-          snapToAlignment="start"
-          decelerationRate="fast"
-          disableIntervalMomentum
-          pagingEnabled
-          showsVerticalScrollIndicator={false}
-          contentInsetAdjustmentBehavior="never"
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          onScrollToIndexFailed={(info) => {
-            requestAnimationFrame(() => {
-              listRef.current?.scrollToOffset({
-                offset: info.averageItemLength * info.index,
-                animated: false,
+    <>
+      <Stack.Screen
+        options={{
+          title: "",
+          headerLargeTitle: false,
+          headerRight,
+        }}
+      />
+      <View style={styles.container} onLayout={handleLayout}>
+        {pageHeight > 0 ? (
+          <FlatList
+            ref={listRef}
+            testID={pagerTestID}
+            data={posts}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            getItemLayout={getItemLayout}
+            initialScrollIndex={scrollIndex}
+            snapToInterval={pageHeight}
+            snapToAlignment="start"
+            decelerationRate="fast"
+            disableIntervalMomentum
+            pagingEnabled
+            showsVerticalScrollIndicator={false}
+            contentInsetAdjustmentBehavior="never"
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            onMomentumScrollEnd={handleMomentumScrollEnd}
+            onScrollToIndexFailed={(info) => {
+              requestAnimationFrame(() => {
+                listRef.current?.scrollToOffset({
+                  offset: info.averageItemLength * info.index,
+                  animated: false,
+                });
               });
-            });
-          }}
-        />
-      ) : null}
-    </View>
+            }}
+          />
+        ) : null}
+      </View>
+    </>
   );
 }
 
