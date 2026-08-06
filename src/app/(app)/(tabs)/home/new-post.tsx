@@ -35,7 +35,7 @@ import {
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Empty } from "@/components/empty";
 import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
-import { Image } from "@/components/image";
+import { ZoomableImage } from "@/components/zoomable-image";
 import * as Location from "expo-location";
 import { Stack, useRouter, useTheme } from "expo-router";
 import { useAuth } from "@/context/auth";
@@ -57,7 +57,7 @@ function formatZoomLabel(zoom: number): string {
 export default function NewPostScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const { colors, dark } = useTheme();
   const cameraRef = useRef<CameraView>(null);
   const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
@@ -592,73 +592,70 @@ export default function NewPostScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         onScrollBeginDrag={blurCaption}
       >
-        <Image
-          resizeOnTap
+        <ZoomableImage
           testID="new-post-preview"
           source={{ uri: imageUri }}
-          style={{
-            width,
-            height: width,
-          }}
+          width={width}
+          height={Math.round(height / 3)}
+          style={{ width, height: Math.round(height / 3) }}
         />
 
         <Host style={{ flex: 1 }}>
           <FieldGroup>
             <FieldGroup.Section>
               <Row spacing={8}>
-                <Icon name="person.circle" size={16} />
-                <Text testID="new-post-author">{displayName}</Text>
-              </Row>
-              <Row spacing={8}>
                 <Icon name="calendar.badge.clock" size={16} />
                 <Text testID="new-post-captured-at">
                   {capturedAt ? formatCapturedAt(capturedAt) : ""}
                 </Text>
               </Row>
-            </FieldGroup.Section>
-
-            {resolvingLocation || locationLine ? (
-              <FieldGroup.Section>
-                <FieldGroup.SectionHeader>
-                  <Row spacing={8} alignment="center">
-                    <Text>Location</Text>
+              <Row spacing={8}>
+                <Icon
+                  name={
+                    resolvingLocation
+                      ? "location"
+                      : locationLine
+                        ? "location.fill"
+                        : "location.slash"
+                  }
+                  size={16}
+                />
+                <Text
+                  testID="new-post-location"
+                  textStyle={
+                    locationLine
+                      ? undefined
+                      : { fontSize: 12, color: "#8E8E93" }
+                  }
+                >
+                  {resolvingLocation
+                    ? "Getting user location…"
+                    : (locationLine ?? "Location disabled for this post")}
+                </Text>
+                {locationLine ? (
+                  <>
                     <Spacer flexible />
-                    {!resolvingLocation && locationLine ? (
-                      <Button variant="text" onPress={handleDeleteLocation}>
-                        <Icon
-                          name="trash"
-                          size={14}
-                          accessibilityLabel="Remove location"
-                        />
-                      </Button>
-                    ) : null}
-                  </Row>
-                </FieldGroup.SectionHeader>
-                {resolvingLocation ? (
-                  <Row spacing={8}>
-                    <ActivityIndicator size="small" />
-                    <Text>Getting location…</Text>
-                  </Row>
+                    <Button variant="text" onPress={handleDeleteLocation}>
+                      <Icon
+                        name="trash"
+                        size={14}
+                        accessibilityLabel="Remove location"
+                      />
+                    </Button>
+                  </>
                 ) : null}
-                {!resolvingLocation && locationLine ? (
-                  <Row spacing={8}>
-                    <Icon name="location.fill" size={16} />
-                    <Text testID="new-post-location">{locationLine}</Text>
-                  </Row>
-                ) : null}
-                {!resolvingLocation &&
-                locationLine &&
-                latitude != null &&
-                longitude != null ? (
-                  <Row spacing={8}>
-                    <Icon name="mappin.and.ellipse" size={16} />
-                    <Text textStyle={{ fontSize: 12, color: "#8E8E93" }}>
-                      {`${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"},  ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`}
-                    </Text>
-                  </Row>
-                ) : null}
-              </FieldGroup.Section>
-            ) : null}
+              </Row>
+              <Row spacing={8}>
+                <Icon name="mappin.and.ellipse" size={16} />
+                <Text textStyle={{ fontSize: 12, color: "#8E8E93" }}>
+                  {resolvingLocation
+                    ? "Getting user location…"
+                    : latitude != null && longitude != null
+                      ? `${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"},  ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`
+                      : "Location disabled for this post"}
+                </Text>
+              </Row>
+            </FieldGroup.Section>
 
             <FieldGroup.Section title="Caption">
               <TextInput
@@ -727,7 +724,7 @@ export default function NewPostScreen() {
             void handleSaveForLater();
           }}
         >
-          Save
+          Save for Later
         </Stack.Toolbar.Button>
         <Stack.Toolbar.Button
           accessibilityLabel="Post"
