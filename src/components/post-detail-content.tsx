@@ -120,14 +120,14 @@ export function PostDetailContent({
       >
         <Text
           testID={`${testIDPrefix}-detail-date`}
-          textStyle={{ fontSize: 12 }}
+          textStyle={{ fontSize: 14 }}
         >
           {formatCapturedAtAgo(post.captured_at)}
         </Text>
         {locationLine ? (
           <Text
             testID={`${testIDPrefix}-detail-location`}
-            textStyle={{ fontSize: 12 }}
+            textStyle={{ fontSize: 14 }}
           >
             {locationLine}
           </Text>

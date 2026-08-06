@@ -625,7 +625,7 @@ export default function NewPostScreen() {
                   textStyle={
                     locationLine
                       ? undefined
-                      : { fontSize: 12, color: "#8E8E93" }
+                      : { fontSize: 14, color: "#8E8E93" }
                   }
                 >
                   {resolvingLocation
@@ -647,7 +647,7 @@ export default function NewPostScreen() {
               </Row>
               <Row spacing={8}>
                 <Icon name="mappin.and.ellipse" size={16} />
-                <Text textStyle={{ fontSize: 12, color: "#8E8E93" }}>
+                <Text textStyle={{ fontSize: 14, color: "#8E8E93" }}>
                   {resolvingLocation
                     ? "Getting user location…"
                     : latitude != null && longitude != null
@@ -669,7 +669,7 @@ export default function NewPostScreen() {
                 multiline
               />
               <FieldGroup.SectionFooter>
-                <Text textStyle={{ fontSize: 12, color: "#8E8E93" }}>
+                <Text textStyle={{ fontSize: 14, color: "#8E8E93" }}>
                   {`${caption.length} / ${CAPTION_MAX_LENGTH}`}
                 </Text>
               </FieldGroup.SectionFooter>
