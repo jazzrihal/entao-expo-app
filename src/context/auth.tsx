@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { signInWithApple } from "@/lib/auth-social";
 import { queryClient } from "@/lib/query-client";
+import { unregisterPushToken } from "@/lib/push-notifications";
 import { supabase } from "@/lib/supabase";
 
 type AuthResult = { error: string | null };
@@ -64,7 +65,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signOut() {
-    await supabase.auth.signOut();
+    try {
+      await unregisterPushToken();
+    } finally {
+      await supabase.auth.signOut();
+    }
   }
 
   return (
