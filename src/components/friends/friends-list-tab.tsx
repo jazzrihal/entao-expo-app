@@ -14,6 +14,7 @@ import {
   Row,
   Text,
 } from "@expo/ui";
+import { fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
 import { Empty } from "@/components/empty";
 import { FriendsCountBar } from "@/components/friends/friends-count-bar";
 import { ProfileListItem } from "@/components/profile-list-item";
@@ -230,7 +231,7 @@ export function FriendsListTab({ query, isSearchOpen }: FriendsListTabProps) {
                   <Row spacing={8} alignment="center">
                     <Button
                       testID={`accept-request-${request.username}`}
-                      variant="filled"
+                      variant="outlined"
                       label={
                         busyRequestId === request.request_id
                           ? "Accepting…"
@@ -238,6 +239,10 @@ export function FriendsListTab({ query, isSearchOpen }: FriendsListTabProps) {
                       }
                       disabled={busyRequestId !== null}
                       onPress={() => handleRespond(request.request_id, true)}
+                      modifiers={[
+                        fixedSize({ horizontal: true }),
+                        lineLimit(1),
+                      ]}
                     />
                     <Button
                       testID={`decline-request-${request.username}`}
@@ -249,6 +254,10 @@ export function FriendsListTab({ query, isSearchOpen }: FriendsListTabProps) {
                       }
                       disabled={busyRequestId !== null}
                       onPress={() => handleRespond(request.request_id, false)}
+                      modifiers={[
+                        fixedSize({ horizontal: true }),
+                        lineLimit(1),
+                      ]}
                     />
                   </Row>
                 }

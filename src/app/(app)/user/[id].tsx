@@ -1,7 +1,9 @@
 import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Button, Host, Row, Text } from "@expo/ui";
+import { fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
 import { Empty } from "@/components/empty";
+
 import { PostFeedGrid } from "@/components/post-feed-grid";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
@@ -275,10 +277,11 @@ function renderRelationshipActions({
         <Row spacing={8} alignment="center">
           <Button
             testID={`user-profile-accept-${userId}`}
-            variant="filled"
+            variant="outlined"
             label={actionPending ? "Accepting…" : "Accept"}
             disabled={actionPending || !requestId}
             onPress={onAccept}
+            modifiers={[fixedSize({ horizontal: true }), lineLimit(1)]}
           />
           <Button
             testID={`user-profile-decline-${userId}`}
@@ -286,6 +289,7 @@ function renderRelationshipActions({
             label={actionPending ? "Declining…" : "Decline"}
             disabled={actionPending || !requestId}
             onPress={onDecline}
+            modifiers={[fixedSize({ horizontal: true }), lineLimit(1)]}
           />
         </Row>
       );
