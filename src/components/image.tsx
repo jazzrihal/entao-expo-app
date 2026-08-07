@@ -4,11 +4,10 @@ import {
   type ImageContentFit,
   type ImageProps,
 } from "expo-image";
-import * as Device from "expo-device";
 import { useCallback, useState, type ComponentType } from "react";
 import { Pressable, StyleSheet } from "react-native";
 
-const SIMULATOR_BACKGROUND = "grey";
+const DEV_BACKGROUND = "grey";
 
 type EntaoImageProps = Omit<ImageProps, "onPress"> & {
   resizeOnTap?: boolean;
@@ -36,7 +35,7 @@ function ImageComponent({
   const resolvedContentFit = resizeOnTap ? activeContentFit : contentFit;
 
   const flattenedStyle = StyleSheet.flatten([
-    !Device.isDevice ? { backgroundColor: SIMULATOR_BACKGROUND } : undefined,
+    __DEV__ ? { backgroundColor: DEV_BACKGROUND } : undefined,
     style,
   ]);
 
