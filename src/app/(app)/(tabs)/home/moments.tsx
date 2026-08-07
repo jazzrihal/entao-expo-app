@@ -3,10 +3,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Column, FieldGroup, Host, ListItem, Text } from "@expo/ui";
 import { Stack, useRouter } from "expo-router";
 import { Empty } from "@/components/empty";
-import {
-  MomentLocationLabel,
-  MomentOccurredLabels,
-} from "@/components/moment-list-item";
+import { MomentListLabels } from "@/components/moment-list-item";
 import { SwipeableMomentListItem } from "@/components/swipeable-moment-list-item";
 import { useAuth } from "@/context/auth";
 import { isValidMomentDraft, momentPicker$ } from "@/lib/moment-picker-store";
@@ -123,10 +120,11 @@ export default function MomentsScreen() {
                 title="Current moment"
               >
                 {draftValid ? (
-                  <ListItem
-                    supportingText={<MomentLocationLabel {...draft} />}
-                  >
-                    <MomentOccurredLabels occurredAt={draft.occurredAt} />
+                  <ListItem>
+                    <MomentListLabels
+                      occurredAt={draft.occurredAt}
+                      location={draft}
+                    />
                   </ListItem>
                 ) : (
                   <ListItem>Set a location on Home to save a moment</ListItem>
