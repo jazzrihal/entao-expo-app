@@ -20,6 +20,30 @@ require_command() {
   fi
 }
 
+# First non-empty KEY=value from .env.local then .env. Strips surrounding quotes; does not source.
+read_dotenv_value() {
+  local key="$1"
+  local file line value
+  for file in "$REPO_ROOT/.env.local" "$REPO_ROOT/.env"; do
+    [[ -f "$file" ]] || continue
+    line="$(grep -E "^[[:space:]]*${key}=" "$file" | tail -n 1 || true)"
+    [[ -n "$line" ]] || continue
+    value="${line#*=}"
+    value="${value#"${value%%[![:space:]]*}"}"
+    value="${value%"${value##*[![:space:]]}"}"
+    if [[ "$value" == \"*\" ]]; then
+      value="${value:1:${#value}-2}"
+    elif [[ "$value" == \'*\' ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+    if [[ -n "$value" ]]; then
+      printf '%s' "$value"
+      return 0
+    fi
+  done
+  return 0
+}
+
 require_command tmux "Install with: brew install tmux"
 require_command lazygit "Install with: brew install lazygit"
 require_command nvim "Install with: brew install neovim"
@@ -32,6 +56,8 @@ if [[ -d "$BACKEND_DIR" ]]; then
 else
   echo "note: $BACKEND_DIR not found; skipping supabase start"
 fi
+
+TUNNEL_URL="$(read_dotenv_value EXPO_PUBLIC_SUPABASE_TUNNEL_URL)"
 
 if [[ ! -f "$REPO_ROOT/.env" && ! -f "$REPO_ROOT/.env.local" ]]; then
   echo "warning: no .env or .env.local found; copy .env.example and set Supabase keys" >&2
@@ -166,6 +192,20 @@ create_tmux_session() {
   tmux new-window -t "$SESSION" -n lazygit -c "$REPO_ROOT" lazygit
   tmux new-window -t "$SESSION" -n nvim -c "$REPO_ROOT" nvim .
   tmux new-window -t "$SESSION" -n agent -c "$REPO_ROOT" agent
+
+  if [[ -n "$TUNNEL_URL" ]]; then
+    tmux new-window -t "$SESSION" -n ngrok -c "$REPO_ROOT" \
+      ngrok http --url="$TUNNEL_URL" 54321
+  fi
+
+  if [[ -d "$BACKEND_DIR" ]]; then
+    if [[ ! -f "$BACKEND_DIR/supabase/.env.local" ]]; then
+      echo "warning: $BACKEND_DIR/supabase/.env.local missing; functions serve may fail" >&2
+    fi
+    tmux new-window -t "$SESSION" -n functions -c "$BACKEND_DIR" \
+      supabase functions serve --env-file ./supabase/.env.local
+  fi
+
   tmux new-window -t "$SESSION" -n ios -c "$REPO_ROOT" bash -lc 'npm run ios'
   tmux select-window -t "$SESSION:shell"
 }
@@ -176,6 +216,12 @@ start_supabase
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "Attaching to existing tmux session: $SESSION"
   exec tmux attach -t "$SESSION"
+fi
+
+if [[ -n "$TUNNEL_URL" ]]; then
+  require_command ngrok "Install with: brew install ngrok/ngrok/ngrok"
+else
+  echo "warning: EXPO_PUBLIC_SUPABASE_TUNNEL_URL unset; skipping ngrok window" >&2
 fi
 
 echo "Creating tmux session: $SESSION"
