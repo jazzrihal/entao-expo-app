@@ -6,6 +6,7 @@ import {
 } from "@tanstack/react-query";
 import {
   createPost,
+  deletePost,
   enrichGroupedPost,
   flattenFriendsPostsGrouped,
   getPost,
@@ -444,6 +445,30 @@ export function useCreatePostMutation() {
       return result.data;
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
+    },
+  });
+}
+
+export type DeletePostMutationInput = {
+  postId: string;
+  storageObjectPath: string;
+};
+
+export function useDeletePostMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: DeletePostMutationInput) => {
+      const { error } = await deletePost(input.postId, input.storageObjectPath);
+      if (error) throw new Error(error);
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.removeQueries({
+        queryKey: queryKeys.post(variables.postId),
+      });
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });

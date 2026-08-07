@@ -146,6 +146,23 @@ export async function createPost(
   return { data, error: rpcErrorMessage(error) };
 }
 
+export async function deletePost(
+  postId: string,
+  storageObjectPath: string,
+): Promise<{ error: string | null }> {
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) {
+    return { error: rpcErrorMessage(error) };
+  }
+
+  if (storageObjectPath) {
+    // Best-effort: row delete already succeeded; orphaned objects are acceptable.
+    await supabase.storage.from(POST_IMAGES_BUCKET).remove([storageObjectPath]);
+  }
+
+  return { error: null };
+}
+
 export async function listProfileFeedPosts(params: {
   profileUserId: string;
   limit?: number;

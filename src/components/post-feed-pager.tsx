@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -10,14 +10,17 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from "react-native";
-import { Host } from "@expo/ui";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { PostFeedPage } from "@/components/post-feed-page";
+import { useAuth } from "@/context/auth";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
+import { deleteLocalPost } from "@/lib/post-manager";
 import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
-import type { PostDetailWithImage } from "@/queries/posts";
+import {
+  useDeletePostMutation,
+  type PostDetailWithImage,
+} from "@/queries/posts";
 
 type PostFeedPagerProps = {
   posts: PostDetailWithImage[];
@@ -55,6 +58,9 @@ export function PostFeedPager({
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<PostDetailWithImage>>(null);
   const didScrollToInitial = useRef(false);
+  const { session } = useAuth();
+  const router = useRouter();
+  const deleteMutation = useDeletePostMutation();
 
   const bottomInset =
     insets.bottom + (includeTabBarInset ? NATIVE_TAB_BAR_HEIGHT : 0);
@@ -70,6 +76,12 @@ export function PostFeedPager({
   const activeIsLocalOnly =
     !!activePost &&
     (isLocalOnly || (localPostIds?.has(activePost.id) ?? false));
+  const isOwner =
+    !!session?.user.id &&
+    !!activePost &&
+    activePost.author_id === session.user.id;
+  const showDelete = !!activePost && isOwner;
+  const showShare = !!activePost && !activeIsLocalOnly;
 
   const handleLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -131,26 +143,42 @@ export function PostFeedPager({
     }
   }, [activeIsLocalOnly, activePost]);
 
-  const headerRight = useMemo(() => {
-    if (!activePost || activeIsLocalOnly) {
-      return undefined;
+  const handleDelete = useCallback(() => {
+    if (!activePost || !isOwner || deleteMutation.isPending) {
+      return;
     }
 
-    function PostDetailShareHeaderButton() {
-      return (
-        <Host matchContents>
-          <PostFeedIconButton
-            testID={`${testIDPrefix}-detail-share`}
-            icon="square.and.arrow.up"
-            accessibilityLabel="Share"
-            onPress={handleShare}
-          />
-        </Host>
-      );
-    }
-
-    return PostDetailShareHeaderButton;
-  }, [activeIsLocalOnly, activePost, handleShare, testIDPrefix]);
+    Alert.alert("Delete post?", "This cannot be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          void (async () => {
+            try {
+              if (activeIsLocalOnly) {
+                const { error } = await deleteLocalPost(activePost.id);
+                if (error) throw new Error(error);
+              } else {
+                await deleteMutation.mutateAsync({
+                  postId: activePost.id,
+                  storageObjectPath: activePost.storage_object_path,
+                });
+              }
+              router.back();
+            } catch (error) {
+              Alert.alert(
+                "Unable to delete",
+                error instanceof Error
+                  ? error.message
+                  : "Unable to delete post.",
+              );
+            }
+          })();
+        },
+      },
+    ]);
+  }, [activeIsLocalOnly, activePost, deleteMutation, isOwner, router]);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<PostDetailWithImage>) => (
@@ -183,9 +211,25 @@ export function PostFeedPager({
         options={{
           title: "",
           headerLargeTitle: false,
-          headerRight,
         }}
       />
+      {showDelete || showShare ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            accessibilityLabel="Delete"
+            icon="trash"
+            hidden={!showDelete}
+            disabled={deleteMutation.isPending}
+            onPress={handleDelete}
+          />
+          <Stack.Toolbar.Button
+            accessibilityLabel="Share"
+            icon="square.and.arrow.up"
+            hidden={!showShare}
+            onPress={handleShare}
+          />
+        </Stack.Toolbar>
+      ) : null}
       <View style={styles.container} onLayout={handleLayout}>
         {pageHeight > 0 ? (
           <FlatList
