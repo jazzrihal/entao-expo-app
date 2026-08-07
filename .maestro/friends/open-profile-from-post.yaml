@@ -14,9 +14,8 @@ env:
 - assertVisible:
     id: "friends-feed"
     label: Seeded friends feed is visible
-# Thumbnail rows bleed past List edge insets; relax visibilityPercentage.
-# Prefer bob-row-1 over row-0: row-0 often sits under the sticky section header,
-# so tapping the row container does not hit a post Pressable.
+# Full-bleed rows may sit partially under the nav/safe-area edge; relax
+# visibilityPercentage. Prefer bob-row-1 for a reliably tappable post row.
 - scrollUntilVisible:
     element:
       id: "friends-feed-section-bob-row-0"

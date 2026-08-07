@@ -1,14 +1,17 @@
 import { useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
+  Pressable,
   StyleSheet,
+  Text,
+  useColorScheme,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { FieldGroup, Host, Text } from "@expo/ui";
+import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { Empty } from "@/components/empty";
-import { FriendsFeedThumbnailSlot } from "@/components/friends/friends-feed-thumbnail-slot";
-import { getFriendsFeedThumbnailRowHeight } from "@/components/friends/friends-feed-thumbnail-row";
+import { FriendsFeedThumbnailRow } from "@/components/friends/friends-feed-thumbnail-row";
 import { useAuth } from "@/context/auth";
 import { openPostDetail, openUserProfile } from "@/lib/navigation";
 import { flattenFriendsPostsGrouped } from "@/lib/posts";
@@ -19,9 +22,35 @@ import {
 } from "@/queries/posts";
 import { useRefreshOnFocus } from "@/queries/useRefreshOnFocus";
 
+const HEADER_COLORS = {
+  light: "#000000",
+  dark: "#FFFFFF",
+} as const;
+
+type FriendsFeedHeaderItem = {
+  type: "header";
+  key: string;
+  authorId: string;
+  username: string;
+  displayName: string;
+};
+
+type FriendsFeedPostItem = {
+  type: "post";
+  key: string;
+  post: FriendsPostWithImage;
+  username: string;
+  rowIndex: number;
+  isLastInGroup: boolean;
+};
+
+type FriendsFeedListItem = FriendsFeedHeaderItem | FriendsFeedPostItem;
+
 export function FriendsFeedTab() {
   const router = useRouter();
   const { session } = useAuth();
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? "dark" : "light";
   const { width: screenWidth } = useWindowDimensions();
   const feedQuery = useFriendsPostsQuery();
 
@@ -32,6 +61,30 @@ export function FriendsFeedTab() {
     () => flattenFriendsPostsGrouped(groups ?? []),
     [groups],
   );
+
+  const listItems = useMemo((): FriendsFeedListItem[] => {
+    const items: FriendsFeedListItem[] = [];
+    for (const group of groups ?? []) {
+      items.push({
+        type: "header",
+        key: `header-${group.author_id}`,
+        authorId: group.author_id,
+        username: group.username,
+        displayName: group.display_name,
+      });
+      group.posts.forEach((post, index) => {
+        items.push({
+          type: "post",
+          key: post.id,
+          post,
+          username: group.username,
+          rowIndex: index,
+          isLastInGroup: index === group.posts.length - 1,
+        });
+      });
+    }
+    return items;
+  }, [groups]);
 
   const showLoading = feedQuery.isPending;
   const showError = !!feedQuery.error && !showLoading;
@@ -59,6 +112,48 @@ export function FriendsFeedTab() {
     [router, session?.user.id],
   );
 
+  const renderItem = useCallback(
+    ({ item }: { item: FriendsFeedListItem }) => {
+      if (item.type === "header") {
+        return (
+          <View
+            testID={`friends-feed-section-${item.username}`}
+            style={styles.sectionHeader}
+          >
+            <Pressable
+              testID={`friends-feed-section-${item.username}-name`}
+              onPress={() =>
+                handleOpenProfile({
+                  id: item.authorId,
+                  displayName: item.displayName,
+                  username: item.username,
+                })
+              }
+            >
+              <Text
+                style={[styles.sectionHeaderText, { color: HEADER_COLORS[theme] }]}
+              >
+                {item.displayName}
+              </Text>
+            </Pressable>
+          </View>
+        );
+      }
+
+      return (
+        <FriendsFeedThumbnailRow
+          post={item.post}
+          screenWidth={screenWidth}
+          testID={`friends-feed-section-${item.username}-row-${item.rowIndex}`}
+          testIDPrefix="friends-feed"
+          onPostPress={handleOpenPostDetail}
+          showRowGap={!item.isLastInGroup}
+        />
+      );
+    },
+    [handleOpenPostDetail, handleOpenProfile, screenWidth, theme],
+  );
+
   if (showLoading) {
     return (
       <ActivityIndicator style={styles.loader} testID="friends-feed-loading" />
@@ -67,11 +162,11 @@ export function FriendsFeedTab() {
 
   if (showError) {
     return (
-      <Host matchContents style={styles.message}>
-        <Text testID="friends-feed-error">
+      <View style={styles.message}>
+        <Text testID="friends-feed-error" style={{ color: HEADER_COLORS[theme] }}>
           {feedQuery.error?.message ?? "Failed to load feed"}
         </Text>
-      </Host>
+      </View>
     );
   }
 
@@ -85,55 +180,35 @@ export function FriendsFeedTab() {
     );
   }
 
-  const rowHeight = getFriendsFeedThumbnailRowHeight(screenWidth);
+  const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
 
   return (
-    <Host testID="friends-feed" useViewportSizeMeasurement style={styles.feed}>
-      <FieldGroup>
-        {groups?.map((group) => {
-          return (
-            <FieldGroup.Section
-              key={group.author_id}
-              testID={`friends-feed-section-${group.username}`}
-            >
-              <FieldGroup.SectionHeader>
-                <Text
-                  testID={`friends-feed-section-${group.username}-name`}
-                  textStyle={{ fontWeight: "600" }}
-                  onPress={() =>
-                    handleOpenProfile({
-                      id: group.author_id,
-                      displayName: group.display_name,
-                      username: group.username,
-                    })
-                  }
-                >
-                  {group.display_name}
-                </Text>
-              </FieldGroup.SectionHeader>
-              {group.posts.map((post, index) => (
-                <FriendsFeedThumbnailSlot
-                  key={post.id}
-                  post={post}
-                  screenWidth={screenWidth}
-                  rowHeight={rowHeight}
-                  isLastRow={index === group.posts.length - 1}
-                  testID={`friends-feed-section-${group.username}-row-${index}`}
-                  testIDPrefix="friends-feed"
-                  onPostPress={handleOpenPostDetail}
-                />
-              ))}
-            </FieldGroup.Section>
-          );
-        })}
-      </FieldGroup>
-    </Host>
+    <FlashList
+      testID="friends-feed"
+      data={listItems}
+      keyExtractor={(item) => item.key}
+      renderItem={renderItem}
+      getItemType={(item) => item.type}
+      style={{ flex: 1, backgroundColor: gridSeparatorColor }}
+      contentContainerStyle={styles.feedContent}
+      contentInsetAdjustmentBehavior="automatic"
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  feed: {
-    flex: 1,
+  feedContent: {
+    paddingHorizontal: 0,
+  },
+  sectionHeader: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    justifyContent: "center",
+  },
+  sectionHeaderText: {
+    fontSize: 28,
+    fontWeight: "600",
   },
   loader: {
     marginTop: 32,

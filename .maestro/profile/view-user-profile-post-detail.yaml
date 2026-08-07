@@ -14,7 +14,7 @@ env:
 - assertVisible:
     id: "friends-feed"
     label: Seeded friends feed is visible
-# Prefer bob-row-1 over row-0: row-0 often sits under the sticky section header.
+# Prefer bob-row-1 over row-0 for a reliably tappable post row.
 - scrollUntilVisible:
     element:
       id: "friends-feed-section-bob-row-0"

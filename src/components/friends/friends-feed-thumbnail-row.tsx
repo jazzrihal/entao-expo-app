@@ -9,37 +9,7 @@ import { Image } from "@/components/image";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
 import type { FriendsPostWithImage } from "@/queries/posts";
 
-/** Horizontal inset applied by FieldGroup.Section rows on web. */
-export const FRIENDS_FEED_SECTION_ROW_INSET = 16;
-
-/** Default SwiftUI Form row insets to counter on iOS via listRowInsets. */
-export const FRIENDS_FEED_IOS_LIST_ROW_BLEED = {
-  horizontal: 20,
-  vertical: 12,
-};
-
-const ANDROID_LIST_ITEM_INSET = { horizontal: 16, vertical: 8 };
-const ANDROID_LIST_ITEM_MIN_HEIGHT = 56;
-
-export function getFriendsFeedAndroidListItemOffset(rowHeight: number): {
-  x: number;
-  y: number;
-} {
-  const minHeightGap =
-    rowHeight < ANDROID_LIST_ITEM_MIN_HEIGHT
-      ? (ANDROID_LIST_ITEM_MIN_HEIGHT - rowHeight) / 2
-      : 0;
-
-  return {
-    x: -ANDROID_LIST_ITEM_INSET.horizontal,
-    y: -(ANDROID_LIST_ITEM_INSET.vertical + minHeightGap),
-  };
-}
-
 export const FRIENDS_FEED_ROW_GAP = 1;
-
-/** Clears rounded FieldGroup row corners (overflow: hidden on slot). */
-const FRIENDS_FEED_PIN_BADGE_INSET = { bottom: 10, right: 18 };
 
 /** Full-width strip height (~3:1), matching former 3-column tile size. */
 export function getFriendsFeedThumbnailRowHeight(screenWidth: number): number {
@@ -52,6 +22,7 @@ type FriendsFeedThumbnailRowProps = {
   testIDPrefix: string;
   onPostPress: (post: FriendsPostWithImage) => void;
   screenWidth?: number;
+  showRowGap?: boolean;
 };
 
 export function FriendsFeedThumbnailRow({
@@ -60,6 +31,7 @@ export function FriendsFeedThumbnailRow({
   testIDPrefix,
   onPostPress,
   screenWidth: screenWidthProp,
+  showRowGap = false,
 }: FriendsFeedThumbnailRowProps) {
   const colorScheme = useColorScheme();
   const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
@@ -75,6 +47,7 @@ export function FriendsFeedThumbnailRow({
         {
           width: screenWidth,
           height: rowHeight,
+          marginBottom: showRowGap ? FRIENDS_FEED_ROW_GAP : 0,
           backgroundColor: gridSeparatorColor,
         },
       ]}
@@ -93,9 +66,7 @@ export function FriendsFeedThumbnailRow({
           style={{ width: screenWidth, height: rowHeight }}
           contentFit="cover"
         />
-        {post.is_pinned_by_current_user ? (
-          <PinnedPostBadge style={styles.pinnedBadge} />
-        ) : null}
+        {post.is_pinned_by_current_user ? <PinnedPostBadge /> : null}
       </Pressable>
     </View>
   );
@@ -105,5 +76,4 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
   },
-  pinnedBadge: FRIENDS_FEED_PIN_BADGE_INSET,
 });
