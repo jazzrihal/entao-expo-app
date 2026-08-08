@@ -137,142 +137,145 @@ export function PostDetailContent({
         showsIndicators={false}
         style={{ width: "100%", height: pageHeight }}
       >
-        <Row alignment="center" style={{ ...styles.header, width }}>
-          <Text
-            testID={`${testIDPrefix}-detail-author`}
-            textStyle={{ fontSize: 17, fontWeight: "600" }}
-            onPress={onAuthorPress}
-          >
-            {post.display_name}
-          </Text>
-          {badges.length > 0 ? (
-            <>
-              <Spacer flexible />
-              <Row spacing={8} alignment="center">
-                {badges.map((badge) => (
-                  <Text
-                    key={badge.badge_id}
-                    testID={`${testIDPrefix}-badge-${badge.badge_id}`}
-                    style={{
-                      ...styles.badge,
-                      backgroundColor: BADGE_BACKGROUNDS[theme],
-                    }}
-                    textStyle={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: BADGE_TEXT_COLORS[theme],
-                    }}
-                  >
-                    {badge.badge_name}
-                  </Text>
-                ))}
-              </Row>
-            </>
-          ) : null}
-        </Row>
-
-        <RNHostView matchContents>
-          <View style={{ width, height: imageHeight }}>
-            <ZoomableImage
-              height={imageHeight}
-              testID={`${testIDPrefix}-detail-image`}
-              source={post.imageUrl ? { uri: post.imageUrl } : undefined}
-              style={{ width, height: imageHeight }}
-              width={width}
-            />
-            {isLocalOnly && localSyncStatus ? (
-              <LocalPostSyncBadge
-                testID={`${testIDPrefix}-detail-local-badge`}
-                syncStatus={localSyncStatus}
-              />
-            ) : null}
-          </View>
-        </RNHostView>
-
-        <Column spacing={4} style={{ ...styles.footer, width }}>
-          <Row alignment="start" style={{ width: footerInnerWidth }}>
-            <Column
-              spacing={2}
-              alignment="start"
-              style={{ width: metaTextWidth }}
+        <Column spacing={0} style={{ width }}>
+          <Row alignment="center" style={{ ...styles.header, width }}>
+            <Text
+              testID={`${testIDPrefix}-detail-author`}
+              textStyle={{ fontSize: 17, fontWeight: "600" }}
+              onPress={onAuthorPress}
             >
-              <Text
-                testID={`${testIDPrefix}-detail-date`}
-                textStyle={{ fontSize: 14 }}
-                onPress={exploreNearbyPress}
-              >
-                {formatCapturedAtAgo(post.captured_at)}
-              </Text>
-              {locationLine ? (
-                <Text
-                  testID={`${testIDPrefix}-detail-location`}
-                  textStyle={{ fontSize: 14 }}
-                  onPress={exploreNearbyPress}
-                >
-                  {locationLine}
-                </Text>
-              ) : null}
-            </Column>
-            {!isLocalOnly ? (
+              {post.display_name}
+            </Text>
+            {badges.length > 0 ? (
               <>
                 <Spacer flexible />
-                <Row spacing={25} alignment="center">
-                  <PostFeedIconButton
-                    icon={isPinned ? "pin.fill" : "pin"}
-                    accessibilityLabel={isPinned ? "Unpin" : "Pin"}
-                    disabled={actionsDisabled}
-                    onPress={onTogglePin}
-                  />
-                  <PostFeedIconButton
-                    icon={isLiked ? "heart.fill" : "heart"}
-                    accessibilityLabel={isLiked ? "Unlike" : "Like"}
-                    disabled={actionsDisabled}
-                    onPress={onToggleLike}
-                  />
+                <Row spacing={8} alignment="center">
+                  {badges.map((badge) => (
+                    <Text
+                      key={badge.badge_id}
+                      testID={`${testIDPrefix}-badge-${badge.badge_id}`}
+                      style={{
+                        ...styles.badge,
+                        backgroundColor: BADGE_BACKGROUNDS[theme],
+                      }}
+                      textStyle={{
+                        fontSize: 13,
+                        fontWeight: "600",
+                        color: BADGE_TEXT_COLORS[theme],
+                      }}
+                    >
+                      {badge.badge_name}
+                    </Text>
+                  ))}
                 </Row>
               </>
             ) : null}
           </Row>
 
-          {post.caption ? (
-            <Text
-              testID={`${testIDPrefix}-detail-caption`}
-              textStyle={{ fontSize: 17 }}
-            >
-              {post.caption}
-            </Text>
-          ) : null}
-
-          {actionError ? (
-            <Text
-              testID={`${testIDPrefix}-detail-action-error`}
-              textStyle={{ color: "#DC2626" }}
-            >
-              {actionError}
-            </Text>
-          ) : null}
-          {localPost ? (
-            <Row spacing={8} alignment="center">
-              <Text
-                testID={`${testIDPrefix}-detail-sync-status`}
-                textStyle={{
-                  color: localPost.status === "failed" ? "#DC2626" : "#6B7280",
-                }}
-              >
-                {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
-              </Text>
-              {(localPost.status === "local" ||
-                localPost.status === "failed") &&
-              onUploadToCloud ? (
-                <Button
-                  testID={`${testIDPrefix}-detail-upload-btn`}
-                  variant="outlined"
-                  label="Upload to Cloud"
-                  onPress={onUploadToCloud}
+          <RNHostView matchContents>
+            <View style={{ width, height: imageHeight }}>
+              <ZoomableImage
+                height={imageHeight}
+                testID={`${testIDPrefix}-detail-image`}
+                source={post.imageUrl ? { uri: post.imageUrl } : undefined}
+                style={{ width, height: imageHeight }}
+                width={width}
+              />
+              {isLocalOnly && localSyncStatus ? (
+                <LocalPostSyncBadge
+                  testID={`${testIDPrefix}-detail-local-badge`}
+                  syncStatus={localSyncStatus}
                 />
               ) : null}
+            </View>
+          </RNHostView>
+
+          <Column spacing={4} style={{ ...styles.footer, width }}>
+            <Row alignment="start" style={{ width: footerInnerWidth }}>
+              <Column
+                spacing={2}
+                alignment="start"
+                style={{ width: metaTextWidth }}
+              >
+                <Text
+                  testID={`${testIDPrefix}-detail-date`}
+                  textStyle={{ fontSize: 14 }}
+                  onPress={exploreNearbyPress}
+                >
+                  {formatCapturedAtAgo(post.captured_at)}
+                </Text>
+                {locationLine ? (
+                  <Text
+                    testID={`${testIDPrefix}-detail-location`}
+                    textStyle={{ fontSize: 14 }}
+                    onPress={exploreNearbyPress}
+                  >
+                    {locationLine}
+                  </Text>
+                ) : null}
+              </Column>
+              {!isLocalOnly ? (
+                <>
+                  <Spacer flexible />
+                  <Row spacing={25} alignment="center">
+                    <PostFeedIconButton
+                      icon={isPinned ? "pin.fill" : "pin"}
+                      accessibilityLabel={isPinned ? "Unpin" : "Pin"}
+                      disabled={actionsDisabled}
+                      onPress={onTogglePin}
+                    />
+                    <PostFeedIconButton
+                      icon={isLiked ? "heart.fill" : "heart"}
+                      accessibilityLabel={isLiked ? "Unlike" : "Like"}
+                      disabled={actionsDisabled}
+                      onPress={onToggleLike}
+                    />
+                  </Row>
+                </>
+              ) : null}
             </Row>
-          ) : null}
+
+            {post.caption ? (
+              <Text
+                testID={`${testIDPrefix}-detail-caption`}
+                textStyle={{ fontSize: 17 }}
+              >
+                {post.caption}
+              </Text>
+            ) : null}
+
+            {actionError ? (
+              <Text
+                testID={`${testIDPrefix}-detail-action-error`}
+                textStyle={{ color: "#DC2626" }}
+              >
+                {actionError}
+              </Text>
+            ) : null}
+            {localPost ? (
+              <Row spacing={8} alignment="center">
+                <Text
+                  testID={`${testIDPrefix}-detail-sync-status`}
+                  textStyle={{
+                    color:
+                      localPost.status === "failed" ? "#DC2626" : "#6B7280",
+                  }}
+                >
+                  {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
+                </Text>
+                {(localPost.status === "local" ||
+                  localPost.status === "failed") &&
+                onUploadToCloud ? (
+                  <Button
+                    testID={`${testIDPrefix}-detail-upload-btn`}
+                    variant="outlined"
+                    label="Upload to Cloud"
+                    onPress={onUploadToCloud}
+                  />
+                ) : null}
+              </Row>
+            ) : null}
+          </Column>
         </Column>
       </ScrollView>
     </Host>
@@ -282,10 +285,8 @@ export function PostDetailContent({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 12,
-    paddingTop: 8,
-    paddingBottom: 8,
-    minHeight: FEED_HEADER_HEIGHT,
-    justifyContent: "center",
+    // UniversalStyle supports height (not minHeight/justifyContent).
+    height: FEED_HEADER_HEIGHT,
   },
   badge: {
     paddingHorizontal: 8,
