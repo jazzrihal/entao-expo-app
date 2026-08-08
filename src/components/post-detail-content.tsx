@@ -1,4 +1,9 @@
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  StyleSheet,
+  useColorScheme,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import {
   Button,
   Column,
@@ -15,6 +20,7 @@ import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
+import { parsePostBadges } from "@/lib/posts";
 import type { PostDetailWithImage } from "@/queries/posts";
 import type { LocalPost } from "@/lib/post-manager";
 
@@ -53,6 +59,16 @@ const FEED_HEADER_HEIGHT = 44;
 /** Date + location (wrapping) opposite pin/like. */
 const FEED_FOOTER_META_HEIGHT = 58;
 const FOOTER_HORIZONTAL_PADDING = 12;
+
+const BADGE_BACKGROUNDS = {
+  light: "#F2F2F7",
+  dark: "#3A3A3C",
+} as const;
+
+const BADGE_TEXT_COLORS = {
+  light: "#3A3A3C",
+  dark: "#F2F2F7",
+} as const;
 /**
  * Reserve for pin + like text buttons (SF Symbol hit targets are wider than
  * the glyphs). Under-reserving inflates SwiftUI ScrollView content width and
@@ -80,7 +96,10 @@ export function PostDetailContent({
   exploreNearbyDisabled = false,
 }: PostDetailContentProps) {
   const { width } = useWindowDimensions();
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? "dark" : "light";
 
+  const badges = parsePostBadges(post.badges);
   const locationLine = buildLocationLine({
     address: post.address,
     city: post.city,
@@ -118,7 +137,7 @@ export function PostDetailContent({
         showsIndicators={false}
         style={{ width: "100%", height: pageHeight }}
       >
-        <Column style={{ ...styles.header, width }}>
+        <Row alignment="center" style={{ ...styles.header, width }}>
           <Text
             testID={`${testIDPrefix}-detail-author`}
             textStyle={{ fontSize: 17, fontWeight: "600" }}
@@ -126,7 +145,31 @@ export function PostDetailContent({
           >
             {post.display_name}
           </Text>
-        </Column>
+          {badges.length > 0 ? (
+            <>
+              <Spacer flexible />
+              <Row spacing={8} alignment="center">
+                {badges.map((badge) => (
+                  <Text
+                    key={badge.badge_id}
+                    testID={`${testIDPrefix}-badge-${badge.badge_id}`}
+                    style={{
+                      ...styles.badge,
+                      backgroundColor: BADGE_BACKGROUNDS[theme],
+                    }}
+                    textStyle={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: BADGE_TEXT_COLORS[theme],
+                    }}
+                  >
+                    {badge.badge_name}
+                  </Text>
+                ))}
+              </Row>
+            </>
+          ) : null}
+        </Row>
 
         <RNHostView matchContents>
           <View style={{ width, height: imageHeight }}>
@@ -243,6 +286,11 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     minHeight: FEED_HEADER_HEIGHT,
     justifyContent: "center",
+  },
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   footer: {
     paddingHorizontal: FOOTER_HORIZONTAL_PADDING,
