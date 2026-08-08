@@ -1,9 +1,4 @@
-import {
-  StyleSheet,
-  Text as RNText,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { StyleSheet, useWindowDimensions, View } from "react-native";
 import {
   Button,
   Column,
@@ -20,7 +15,6 @@ import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
-import { parsePostBadges } from "@/lib/posts";
 import type { PostDetailWithImage } from "@/queries/posts";
 import type { LocalPost } from "@/lib/post-manager";
 
@@ -93,11 +87,9 @@ export function PostDetailContent({
     region: post.region,
   });
 
-  const badges = parsePostBadges(post.badges);
   const exploreNearbyPress =
     onExploreNearby && !exploreNearbyDisabled ? onExploreNearby : undefined;
-  const showCaptionRow = badges.length > 0 || Boolean(post.caption);
-  const captionReserve = showCaptionRow ? FEED_CAPTION_VISIBLE : 0;
+  const captionReserve = post.caption ? FEED_CAPTION_VISIBLE : 0;
   const footerInnerWidth = width - FOOTER_HORIZONTAL_PADDING * 2;
   // Spacer (not Row spacing) separates meta and actions so trailing icons stay
   // pinned to the right when the reserved action width is larger than reality.
@@ -199,23 +191,13 @@ export function PostDetailContent({
             ) : null}
           </Row>
 
-          {showCaptionRow ? (
-            <RNHostView matchContents>
-              <RNText style={[styles.captionLine, { width: footerInnerWidth }]}>
-                {badges.map((badge, index) => (
-                  <RNText key={badge.badge_id} style={styles.badgeName}>
-                    {index < badges.length - 1 || post.caption
-                      ? `${badge.badge_name} `
-                      : badge.badge_name}
-                  </RNText>
-                ))}
-                {post.caption ? (
-                  <RNText testID={`${testIDPrefix}-detail-caption`}>
-                    {post.caption}
-                  </RNText>
-                ) : null}
-              </RNText>
-            </RNHostView>
+          {post.caption ? (
+            <Text
+              testID={`${testIDPrefix}-detail-caption`}
+              textStyle={{ fontSize: 17 }}
+            >
+              {post.caption}
+            </Text>
           ) : null}
 
           {actionError ? (
@@ -266,12 +248,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: FOOTER_HORIZONTAL_PADDING,
     paddingTop: 8,
     paddingBottom: 8,
-  },
-  captionLine: {
-    fontSize: 17,
-    lineHeight: CAPTION_LINE_HEIGHT,
-  },
-  badgeName: {
-    fontWeight: "600",
   },
 });
