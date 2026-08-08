@@ -32,6 +32,58 @@ export type PostPrivacyScope =
 
 export const DEFAULT_POST_PRIVACY_SCOPE: PostPrivacyScope = "friends_only";
 
+export type PostBadge = {
+  badge_id: string;
+  badge_name: string;
+  description: string;
+  award_number: number;
+  total_awarded: number;
+  awarded_at: string;
+};
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.length > 0;
+}
+
+function coerceNumber(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+export function parsePostBadges(badges: unknown): PostBadge[] {
+  if (!Array.isArray(badges)) {
+    return [];
+  }
+
+  const parsed: PostBadge[] = [];
+
+  for (const item of badges) {
+    if (item == null || typeof item !== "object") {
+      continue;
+    }
+
+    const record = item as Record<string, unknown>;
+    if (
+      !isNonEmptyString(record.badge_id) ||
+      !isNonEmptyString(record.badge_name) ||
+      !isNonEmptyString(record.description)
+    ) {
+      continue;
+    }
+
+    parsed.push({
+      badge_id: record.badge_id,
+      badge_name: record.badge_name,
+      description: record.description,
+      award_number: coerceNumber(record.award_number),
+      total_awarded: coerceNumber(record.total_awarded),
+      awarded_at:
+        typeof record.awarded_at === "string" ? record.awarded_at : "",
+    });
+  }
+
+  return parsed;
+}
+
 export type PostViewerEngagementSource = Pick<
   FeedPost | PostDetail | ProfileFeedPost | FriendsPost,
   "user_reaction" | "is_pinned_by_current_user"

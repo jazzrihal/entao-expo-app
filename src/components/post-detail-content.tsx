@@ -11,10 +11,12 @@ import {
 } from "@expo/ui";
 import { ZoomableImage } from "@/components/zoomable-image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
+import { PostBadgesOverlay } from "@/components/post-badges-overlay";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
+import { parsePostBadges } from "@/lib/posts";
 import type { PostDetailWithImage } from "@/queries/posts";
 import type { LocalPost } from "@/lib/post-manager";
 
@@ -176,6 +178,10 @@ export function PostDetailContent({
               source={post.imageUrl ? { uri: post.imageUrl } : undefined}
               style={{ width, height: imageHeight }}
               width={width}
+            />
+            <PostBadgesOverlay
+              badges={parsePostBadges(post.badges)}
+              testIDPrefix={`${testIDPrefix}-detail`}
             />
             {isLocalOnly && localSyncStatus ? (
               <LocalPostSyncBadge
