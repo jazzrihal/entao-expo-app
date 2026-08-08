@@ -69,6 +69,12 @@ const BADGE_TEXT_COLORS = {
   light: "#3A3A3C",
   dark: "#F2F2F7",
 } as const;
+
+/** Slightly softer than primary label so date/location sit behind the caption. */
+const META_TEXT_COLORS = {
+  light: "#8E8E93",
+  dark: "#C7C7CC",
+} as const;
 /**
  * Reserve for pin + like text buttons (SF Symbol hit targets are wider than
  * the glyphs). Under-reserving inflates SwiftUI ScrollView content width and
@@ -199,7 +205,7 @@ export function PostDetailContent({
               >
                 <Text
                   testID={`${testIDPrefix}-detail-date`}
-                  textStyle={{ fontSize: 14 }}
+                  textStyle={{ fontSize: 14, color: META_TEXT_COLORS[theme] }}
                   onPress={exploreNearbyPress}
                 >
                   {formatCapturedAtAgo(post.captured_at)}
@@ -207,7 +213,7 @@ export function PostDetailContent({
                 {locationLine ? (
                   <Text
                     testID={`${testIDPrefix}-detail-location`}
-                    textStyle={{ fontSize: 14 }}
+                    textStyle={{ fontSize: 14, color: META_TEXT_COLORS[theme] }}
                     onPress={exploreNearbyPress}
                   >
                     {locationLine}
