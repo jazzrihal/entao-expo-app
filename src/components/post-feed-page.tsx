@@ -1,4 +1,5 @@
 import { memo, useCallback, useMemo, useRef } from "react";
+import { StyleSheet, View } from "react-native";
 import { useRouter } from "expo-router";
 import { PostDetailContent } from "@/components/post-detail-content";
 import { useAuth } from "@/context/auth";
@@ -139,22 +140,34 @@ export const PostFeedPage = memo(function PostFeedPage({
   }, [canExploreNearby, post, router]);
 
   return (
-    <PostDetailContent
-      post={post}
-      testIDPrefix={testIDPrefix}
-      pageHeight={pageHeight}
-      bottomInset={bottomInset}
-      onAuthorPress={openAuthorProfile}
-      onToggleLike={handleToggleLike}
-      onTogglePin={handleTogglePin}
-      isLiked={postEngagement.isLiked}
-      isPinned={postEngagement.isPinned}
-      actionsDisabled={actionsDisabled}
-      actionError={actionError}
-      isLocalOnly={isLocalOnly}
-      localSyncStatus={localSyncStatus}
-      onExploreNearby={handleExploreNearby}
-      exploreNearbyDisabled={!canExploreNearby}
-    />
+    // Fixed cell height so FlatList snap matches layout. `@expo/ui` Host height
+    // alone does not always size the list item, which left a bottom gap (next
+    // post peek) and offset snaps that clipped the author.
+    <View style={[styles.page, { height: pageHeight }]}>
+      <PostDetailContent
+        post={post}
+        testIDPrefix={testIDPrefix}
+        pageHeight={pageHeight}
+        bottomInset={bottomInset}
+        onAuthorPress={openAuthorProfile}
+        onToggleLike={handleToggleLike}
+        onTogglePin={handleTogglePin}
+        isLiked={postEngagement.isLiked}
+        isPinned={postEngagement.isPinned}
+        actionsDisabled={actionsDisabled}
+        actionError={actionError}
+        isLocalOnly={isLocalOnly}
+        localSyncStatus={localSyncStatus}
+        onExploreNearby={handleExploreNearby}
+        exploreNearbyDisabled={!canExploreNearby}
+      />
+    </View>
   );
+});
+
+const styles = StyleSheet.create({
+  page: {
+    overflow: "hidden",
+    width: "100%",
+  },
 });

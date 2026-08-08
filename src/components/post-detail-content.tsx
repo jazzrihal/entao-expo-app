@@ -1,4 +1,9 @@
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import {
+  StyleSheet,
+  Text as RNText,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import {
   Button,
   Column,
@@ -11,7 +16,6 @@ import {
 } from "@expo/ui";
 import { ZoomableImage } from "@/components/zoomable-image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
-import { PostBadgesRibbon } from "@/components/post-badges-ribbon";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
@@ -51,8 +55,16 @@ type PostDetailContentProps = {
 
 const CAPTION_LINE_HEIGHT = 22;
 const FEED_CAPTION_VISIBLE = 2 * CAPTION_LINE_HEIGHT;
-const FEED_METADATA_HEIGHT = 88;
-const FEED_BADGE_RIBBON_HEIGHT = 40;
+const FEED_HEADER_HEIGHT = 44;
+/** Date + location (wrapping) opposite pin/like. */
+const FEED_FOOTER_META_HEIGHT = 58;
+const FOOTER_HORIZONTAL_PADDING = 12;
+/**
+ * Reserve for pin + like text buttons (SF Symbol hit targets are wider than
+ * the glyphs). Under-reserving inflates SwiftUI ScrollView content width and
+ * centers the page with a visible right gutter.
+ */
+const FEED_ACTIONS_WIDTH = 120;
 
 export function PostDetailContent({
   post,
@@ -82,102 +94,48 @@ export function PostDetailContent({
   });
 
   const badges = parsePostBadges(post.badges);
-  const badgeRibbonHeight = badges.length > 0 ? FEED_BADGE_RIBBON_HEIGHT : 0;
+  const exploreNearbyPress =
+    onExploreNearby && !exploreNearbyDisabled ? onExploreNearby : undefined;
+  const showCaptionRow = badges.length > 0 || Boolean(post.caption);
+  const captionReserve = showCaptionRow ? FEED_CAPTION_VISIBLE : 0;
+  const footerInnerWidth = width - FOOTER_HORIZONTAL_PADDING * 2;
+  // Spacer (not Row spacing) separates meta and actions so trailing icons stay
+  // pinned to the right when the reserved action width is larger than reality.
+  const metaTextWidth = isLocalOnly
+    ? footerInnerWidth
+    : footerInnerWidth - FEED_ACTIONS_WIDTH;
 
   const imageHeight = Math.max(
     pageHeight -
-      FEED_METADATA_HEIGHT -
-      FEED_CAPTION_VISIBLE -
-      badgeRibbonHeight -
+      FEED_HEADER_HEIGHT -
+      FEED_FOOTER_META_HEIGHT -
+      captionReserve -
       bottomInset,
     120,
   );
 
-  const metadataBlock = (
-    <Column spacing={4} style={styles.metadata}>
-      <Row spacing={8} alignment="center">
-        <Text
-          testID={`${testIDPrefix}-detail-author`}
-          textStyle={{ fontWeight: "600" }}
-          onPress={onAuthorPress}
-        >
-          {post.display_name}
-        </Text>
-        <Spacer flexible />
-        <Row spacing={25} alignment="center">
-          {!isLocalOnly ? (
-            <PostFeedIconButton
-              icon={isPinned ? "pin.fill" : "pin"}
-              accessibilityLabel={isPinned ? "Unpin" : "Pin"}
-              disabled={actionsDisabled}
-              onPress={onTogglePin}
-            />
-          ) : null}
-          {!isLocalOnly ? (
-            <PostFeedIconButton
-              icon={isLiked ? "heart.fill" : "heart"}
-              accessibilityLabel={isLiked ? "Unlike" : "Like"}
-              disabled={actionsDisabled}
-              onPress={onToggleLike}
-            />
-          ) : null}
-        </Row>
-      </Row>
-      <Column
-        spacing={2}
-        onPress={onExploreNearby}
-        disabled={!onExploreNearby || exploreNearbyDisabled}
-      >
-        <Text
-          testID={`${testIDPrefix}-detail-date`}
-          textStyle={{ fontSize: 14 }}
-        >
-          {formatCapturedAtAgo(post.captured_at)}
-        </Text>
-        {locationLine ? (
-          <Text
-            testID={`${testIDPrefix}-detail-location`}
-            textStyle={{ fontSize: 14 }}
-          >
-            {locationLine}
-          </Text>
-        ) : null}
-      </Column>
-      {actionError ? (
-        <Text
-          testID={`${testIDPrefix}-detail-action-error`}
-          textStyle={{ color: "#DC2626" }}
-        >
-          {actionError}
-        </Text>
-      ) : null}
-      {localPost ? (
-        <Row spacing={8} alignment="center">
-          <Text
-            testID={`${testIDPrefix}-detail-sync-status`}
-            textStyle={{
-              color: localPost.status === "failed" ? "#DC2626" : "#6B7280",
-            }}
-          >
-            {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
-          </Text>
-          {(localPost.status === "local" || localPost.status === "failed") &&
-          onUploadToCloud ? (
-            <Button
-              testID={`${testIDPrefix}-detail-upload-btn`}
-              variant="outlined"
-              label="Upload to Cloud"
-              onPress={onUploadToCloud}
-            />
-          ) : null}
-        </Row>
-      ) : null}
-    </Column>
-  );
-
   return (
-    <Host testID={`${testIDPrefix}-detail`} style={{ height: pageHeight }}>
-      <ScrollView showsIndicators={false} style={{ height: pageHeight }}>
+    <Host
+      testID={`${testIDPrefix}-detail`}
+      // Host sits below the stack header; without this, UIHostingController
+      // still applies screen safe-area and draws content above the RN frame.
+      ignoreSafeArea="all"
+      style={{ width: "100%", height: pageHeight }}
+    >
+      <ScrollView
+        showsIndicators={false}
+        style={{ width: "100%", height: pageHeight }}
+      >
+        <Column style={{ ...styles.header, width }}>
+          <Text
+            testID={`${testIDPrefix}-detail-author`}
+            textStyle={{ fontSize: 17, fontWeight: "600" }}
+            onPress={onAuthorPress}
+          >
+            {post.display_name}
+          </Text>
+        </Column>
+
         <RNHostView matchContents>
           <View style={{ width, height: imageHeight }}>
             <ZoomableImage
@@ -195,35 +153,125 @@ export function PostDetailContent({
             ) : null}
           </View>
         </RNHostView>
-        {badges.length > 0 ? (
-          <RNHostView matchContents>
-            <PostBadgesRibbon
-              badges={badges}
-              testIDPrefix={`${testIDPrefix}-detail`}
-            />
-          </RNHostView>
-        ) : null}
-        {metadataBlock}
-        {post.caption ? (
-          <Column style={styles.feedCaption}>
-            <Text testID={`${testIDPrefix}-detail-caption`}>
-              {post.caption}
+
+        <Column spacing={4} style={{ ...styles.footer, width }}>
+          <Row alignment="start" style={{ width: footerInnerWidth }}>
+            <Column
+              spacing={2}
+              alignment="start"
+              style={{ width: metaTextWidth }}
+            >
+              <Text
+                testID={`${testIDPrefix}-detail-date`}
+                textStyle={{ fontSize: 14 }}
+                onPress={exploreNearbyPress}
+              >
+                {formatCapturedAtAgo(post.captured_at)}
+              </Text>
+              {locationLine ? (
+                <Text
+                  testID={`${testIDPrefix}-detail-location`}
+                  textStyle={{ fontSize: 14 }}
+                  onPress={exploreNearbyPress}
+                >
+                  {locationLine}
+                </Text>
+              ) : null}
+            </Column>
+            {!isLocalOnly ? (
+              <>
+                <Spacer flexible />
+                <Row spacing={25} alignment="center">
+                  <PostFeedIconButton
+                    icon={isPinned ? "pin.fill" : "pin"}
+                    accessibilityLabel={isPinned ? "Unpin" : "Pin"}
+                    disabled={actionsDisabled}
+                    onPress={onTogglePin}
+                  />
+                  <PostFeedIconButton
+                    icon={isLiked ? "heart.fill" : "heart"}
+                    accessibilityLabel={isLiked ? "Unlike" : "Like"}
+                    disabled={actionsDisabled}
+                    onPress={onToggleLike}
+                  />
+                </Row>
+              </>
+            ) : null}
+          </Row>
+
+          {showCaptionRow ? (
+            <RNHostView matchContents>
+              <RNText style={[styles.captionLine, { width: footerInnerWidth }]}>
+                {badges.map((badge, index) => (
+                  <RNText key={badge.badge_id} style={styles.badgeName}>
+                    {index < badges.length - 1 || post.caption
+                      ? `${badge.badge_name} `
+                      : badge.badge_name}
+                  </RNText>
+                ))}
+                {post.caption ? (
+                  <RNText testID={`${testIDPrefix}-detail-caption`}>
+                    {post.caption}
+                  </RNText>
+                ) : null}
+              </RNText>
+            </RNHostView>
+          ) : null}
+
+          {actionError ? (
+            <Text
+              testID={`${testIDPrefix}-detail-action-error`}
+              textStyle={{ color: "#DC2626" }}
+            >
+              {actionError}
             </Text>
-          </Column>
-        ) : null}
+          ) : null}
+          {localPost ? (
+            <Row spacing={8} alignment="center">
+              <Text
+                testID={`${testIDPrefix}-detail-sync-status`}
+                textStyle={{
+                  color: localPost.status === "failed" ? "#DC2626" : "#6B7280",
+                }}
+              >
+                {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
+              </Text>
+              {(localPost.status === "local" ||
+                localPost.status === "failed") &&
+              onUploadToCloud ? (
+                <Button
+                  testID={`${testIDPrefix}-detail-upload-btn`}
+                  variant="outlined"
+                  label="Upload to Cloud"
+                  onPress={onUploadToCloud}
+                />
+              ) : null}
+            </Row>
+          ) : null}
+        </Column>
       </ScrollView>
     </Host>
   );
 }
 
 const styles = StyleSheet.create({
-  metadata: {
+  header: {
     paddingHorizontal: 12,
     paddingTop: 8,
     paddingBottom: 8,
+    minHeight: FEED_HEADER_HEIGHT,
+    justifyContent: "center",
   },
-  feedCaption: {
-    paddingHorizontal: 12,
+  footer: {
+    paddingHorizontal: FOOTER_HORIZONTAL_PADDING,
+    paddingTop: 8,
     paddingBottom: 8,
+  },
+  captionLine: {
+    fontSize: 17,
+    lineHeight: CAPTION_LINE_HEIGHT,
+  },
+  badgeName: {
+    fontWeight: "600",
   },
 });
