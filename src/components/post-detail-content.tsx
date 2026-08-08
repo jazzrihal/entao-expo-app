@@ -11,7 +11,7 @@ import {
 } from "@expo/ui";
 import { ZoomableImage } from "@/components/zoomable-image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
-import { PostBadgesOverlay } from "@/components/post-badges-overlay";
+import { PostBadgesRibbon } from "@/components/post-badges-ribbon";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
@@ -52,6 +52,7 @@ type PostDetailContentProps = {
 const CAPTION_LINE_HEIGHT = 22;
 const FEED_CAPTION_VISIBLE = 2 * CAPTION_LINE_HEIGHT;
 const FEED_METADATA_HEIGHT = 88;
+const FEED_BADGE_RIBBON_HEIGHT = 40;
 
 export function PostDetailContent({
   post,
@@ -80,8 +81,15 @@ export function PostDetailContent({
     region: post.region,
   });
 
+  const badges = parsePostBadges(post.badges);
+  const badgeRibbonHeight = badges.length > 0 ? FEED_BADGE_RIBBON_HEIGHT : 0;
+
   const imageHeight = Math.max(
-    pageHeight - FEED_METADATA_HEIGHT - FEED_CAPTION_VISIBLE - bottomInset,
+    pageHeight -
+      FEED_METADATA_HEIGHT -
+      FEED_CAPTION_VISIBLE -
+      badgeRibbonHeight -
+      bottomInset,
     120,
   );
 
@@ -179,10 +187,6 @@ export function PostDetailContent({
               style={{ width, height: imageHeight }}
               width={width}
             />
-            <PostBadgesOverlay
-              badges={parsePostBadges(post.badges)}
-              testIDPrefix={`${testIDPrefix}-detail`}
-            />
             {isLocalOnly && localSyncStatus ? (
               <LocalPostSyncBadge
                 testID={`${testIDPrefix}-detail-local-badge`}
@@ -191,6 +195,14 @@ export function PostDetailContent({
             ) : null}
           </View>
         </RNHostView>
+        {badges.length > 0 ? (
+          <RNHostView matchContents>
+            <PostBadgesRibbon
+              badges={badges}
+              testIDPrefix={`${testIDPrefix}-detail`}
+            />
+          </RNHostView>
+        ) : null}
         {metadataBlock}
         {post.caption ? (
           <Column style={styles.feedCaption}>
