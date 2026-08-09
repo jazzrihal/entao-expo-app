@@ -33,4 +33,5 @@ executionOrder:
     - view-post-detail
     - open-post-deep-link
     - save-post-locally
+    - delete-own-post
     - swipe-unfriend

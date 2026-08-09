@@ -9,7 +9,7 @@ appId: com.jazzrihal.entao
     file: ../auth/sign-in.yaml
     env:
       E2E_EMAIL: "eve@example.com"
-      E2E_PASSWORD: "fotuu-local-dev"
+      E2E_PASSWORD: "entao-local-dev"
 - tapOn: "Friends"
 - tapOn:
     id: "friends-list-button"

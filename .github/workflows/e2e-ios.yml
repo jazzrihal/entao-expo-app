@@ -84,8 +84,8 @@ jobs:
       CI: "true"
       MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000"
       E2E_EMAIL: "alice@example.com"
-      E2E_PASSWORD: "fotuu-local-dev"
-      E2E_SIGN_UP_EMAIL: "e2e-new@fotuu.com"
+      E2E_PASSWORD: "entao-local-dev"
+      E2E_SIGN_UP_EMAIL: "e2e-new@entao.app"
       E2E_SIGN_UP_PASSWORD: "Password123!"
 
     steps:
@@ -182,6 +182,12 @@ jobs:
           echo "SIMULATOR_UDID=${SIMULATOR_UDID}" >> "${GITHUB_ENV}"
           xcrun simctl boot "${SIMULATOR_UDID}"
           xcrun simctl bootstatus "${SIMULATOR_UDID}" -b
+          # Suppress QuickPath / continuous-path keyboard coaching on a fresh
+          # simulator (otherwise Maestro taps land on "Continue" / wrong fields).
+          xcrun simctl spawn "${SIMULATOR_UDID}" defaults write \
+            com.apple.keyboard.preferences DidShowContinuousPathIntroduction -bool true
+          xcrun simctl spawn "${SIMULATOR_UDID}" defaults write \
+            com.apple.keyboard.preferences DidShowGestureKeyboardIntroduction -bool true || true
 
       - name: Install app on simulator
         run: |

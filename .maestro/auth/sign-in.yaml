@@ -6,7 +6,7 @@ appId: com.jazzrihal.entao
 # Home can still be resolving location). Consumers must navigate to Home/Friends.
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
-  E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
 ---
 - launchApp:
     clearState: true
@@ -19,6 +19,8 @@ env:
     permissions:
       location: inuse
       camera: allow
+      # Avoid the push permission sheet racing Profile after first sign-in.
+      notifications: deny
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
 # the "Grant access to your location?" fallback sheet blocking navigation below.
@@ -38,10 +40,42 @@ env:
     id: "auth-apple-button"
 - tapOn:
     id: "sign-in-email"
+- eraseText
 - inputText: ${E2E_EMAIL}
+- waitForAnimationToEnd
+# Fresh CI simulators can show QuickPath keyboard coaching after the first
+# focus; it steals the next tap so the password lands in the email field.
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+# After email focus the keyboard + Passwords autofill bar sit over the password
+# field (field y≈569 overlaps Passwords bar y≈539). Tapping sign-in-password
+# then hits Passwords / leaves email focused, so password lands in the email field.
+# Dismiss first by tapping the title well above the keyboard (hideKeyboard is flaky
+# on iOS). Do NOT tap near the keyboard top to dismiss.
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
 - tapOn:
     id: "sign-in-password"
+- eraseText
 - inputText: ${E2E_PASSWORD}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+# Dismiss again so sign-in-button is above the keyboard and hittable.
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-button"
+    timeout: 15000
 - tapOn:
     id: "sign-in-button"
 # "Save Password?" / ATT "Not Now" can appear after auth settles — dismiss while
@@ -51,6 +85,12 @@ env:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+# Push permission (if not pre-denied) blocks Profile the same way.
+- runFlow:
+    when:
+      visible: ".*Would Like to Send You Notifications.*"
+    commands:
+      - tapOn: "Don’t Allow"
 # With a mocked GPS fix above, location resolves without the "Grant access to your
 # location?" fallback sheet — but guard defensively in case it still races in.
 - runFlow:
@@ -63,12 +103,17 @@ env:
 - extendedWaitUntil:
     visible: "Profile"
     timeout: 30000
-# Password sheet can still race in after tabs appear.
+# Password / notification sheets can still race in after tabs appear.
 - repeat:
     while:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+- runFlow:
+    when:
+      visible: ".*Would Like to Send You Notifications.*"
+    commands:
+      - tapOn: "Don’t Allow"
 - tapOn: "Profile"
 - repeat:
     while:

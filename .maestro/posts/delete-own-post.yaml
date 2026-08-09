@@ -1,7 +1,7 @@
 appId: com.jazzrihal.entao
 env:
   E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
-  E2E_PASSWORD: ${E2E_PASSWORD || "fotuu-local-dev"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
   E2E_POST_CAPTION: ${E2E_POST_CAPTION || "Maestro delete-own-post caption"}
 ---
 - runFlow:
