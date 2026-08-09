@@ -18,25 +18,31 @@ Notifications.setNotificationHandler({
 /** Cold-start / remount guard so the same tap is not routed twice. */
 const handledResponseIds = new Set<string>();
 
-function routeFromNotification(notification: Notifications.Notification): void {
-  const href = getNotificationHref(notification.request.content.data);
+function routeFromNotification(
+  notification: Notifications.Notification,
+  sessionUserId: string,
+): void {
+  const href = getNotificationHref(notification.request.content.data, {
+    sessionUserId,
+  });
   if (!href) return;
   router.push(href as Href);
 }
 
 function handleNotificationResponse(
   response: Notifications.NotificationResponse | null | undefined,
+  sessionUserId: string,
 ): void {
   if (!response) return;
   const id = response.notification.request.identifier;
   if (handledResponseIds.has(id)) return;
   handledResponseIds.add(id);
-  routeFromNotification(response.notification);
+  routeFromNotification(response.notification, sessionUserId);
 }
 
 /**
  * Registers push tokens for the signed-in user and routes notification taps
- * via `getNotificationHref` (`url`, `post_id`, or `friendship_request_id`).
+ * via `getNotificationHref` (url, post, friend request, or actor profile).
  * Mount once inside the authenticated app shell (iOS only).
  */
 export function usePushNotifications(): void {
@@ -58,11 +64,14 @@ export function usePushNotifications(): void {
       void registerPushToken(userId);
     });
 
-    handleNotificationResponse(Notifications.getLastNotificationResponse());
+    handleNotificationResponse(
+      Notifications.getLastNotificationResponse(),
+      userId,
+    );
 
     const responseSub = Notifications.addNotificationResponseReceivedListener(
       (response) => {
-        handleNotificationResponse(response);
+        handleNotificationResponse(response, userId);
       },
     );
 
