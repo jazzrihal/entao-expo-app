@@ -36,7 +36,8 @@ function handleNotificationResponse(
 
 /**
  * Registers push tokens for the signed-in user and routes notification taps
- * via `data.url`. Mount once inside the authenticated app shell (iOS only).
+ * via `getNotificationHref` (`url`, `post_id`, or `friendship_request_id`).
+ * Mount once inside the authenticated app shell (iOS only).
  */
 export function usePushNotifications(): void {
   const { session } = useAuth();
