@@ -3,6 +3,9 @@ import {
   buildPostShareMessage,
   getPostIdFromReturnPath,
   POST_LINK_ORIGIN,
+  postPathFromLinkingUrl,
+  rememberPostReturnPath,
+  consumePostReturnPath,
   validatePostReturnPath,
 } from "../post-sharing";
 
@@ -29,5 +32,25 @@ describe("post sharing", () => {
     expect(validatePostReturnPath("/post/abc/other")).toBeNull();
     expect(validatePostReturnPath("/settings")).toBeNull();
     expect(getPostIdFromReturnPath("/post/%2E%2E")).toBeNull();
+  });
+
+  it("maps custom-scheme and https linking URLs to post return paths", () => {
+    expect(
+      postPathFromLinkingUrl("entao://post/abc-123"),
+    ).toBe("/post/abc-123");
+    expect(postPathFromLinkingUrl("entao:///post/abc-123")).toBe(
+      "/post/abc-123",
+    );
+    expect(postPathFromLinkingUrl(`${POST_LINK_ORIGIN}/post/abc-123`)).toBe(
+      "/post/abc-123",
+    );
+    expect(postPathFromLinkingUrl("entao://post/abc/other")).toBeNull();
+  });
+
+  it("remembers and consumes a pending post return path", () => {
+    consumePostReturnPath();
+    expect(rememberPostReturnPath("entao://post/abc-123")).toBe("/post/abc-123");
+    expect(consumePostReturnPath()).toBe("/post/abc-123");
+    expect(consumePostReturnPath()).toBeNull();
   });
 });

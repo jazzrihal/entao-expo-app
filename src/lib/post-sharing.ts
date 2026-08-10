@@ -44,6 +44,76 @@ export function getPostIdFromReturnPath(value: unknown): string | null {
   return decodeURIComponent(validatedPath.slice("/post/".length));
 }
 
+/**
+ * Map a cold-start / openURL linking URL to an internal post return path.
+ * Custom schemes parse as `entao://post/{id}` (hostname `post`).
+ */
+export function postPathFromLinkingUrl(url: unknown): string | null {
+  if (typeof url !== "string" || url.length === 0) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === "post") {
+      const postId = parsed.pathname.replace(/^\//, "");
+      return validatePostReturnPath(`/post/${postId}`);
+    }
+    return validatePostReturnPath(parsed.pathname);
+  } catch {
+    return null;
+  }
+}
+
+/** Survives auth loading / redirects that clear the deep-link pathname. */
+let pendingPostReturnPath: string | null = null;
+let initialLinkResolved = false;
+const initialLinkListeners = new Set<() => void>();
+
+export function rememberPostReturnPath(value: unknown): string | null {
+  const validatedPath =
+    validatePostReturnPath(value) ?? postPathFromLinkingUrl(value);
+  if (validatedPath) {
+    pendingPostReturnPath = validatedPath;
+  }
+  return pendingPostReturnPath;
+}
+
+export function peekPostReturnPath(): string | null {
+  return pendingPostReturnPath;
+}
+
+export function consumePostReturnPath(): string | null {
+  const validatedPath = pendingPostReturnPath;
+  pendingPostReturnPath = null;
+  return validatedPath;
+}
+
+export function markInitialPostLinkResolved(): void {
+  if (initialLinkResolved) {
+    return;
+  }
+  initialLinkResolved = true;
+  for (const listener of initialLinkListeners) {
+    listener();
+  }
+}
+
+export function isInitialPostLinkResolved(): boolean {
+  return initialLinkResolved;
+}
+
+export function subscribeInitialPostLinkResolved(listener: () => void): () => void {
+  if (initialLinkResolved) {
+    listener();
+    return () => {};
+  }
+  initialLinkListeners.add(listener);
+  return () => {
+    initialLinkListeners.delete(listener);
+  };
+}
+
 function encodePostId(postId: string): string {
   if (typeof postId !== "string" || postId.length === 0) {
     throw new Error("Invalid post ID");

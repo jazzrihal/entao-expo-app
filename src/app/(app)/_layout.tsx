@@ -4,7 +4,11 @@ import { Stack } from "expo-router/stack";
 import { useAuth } from "@/context/auth";
 import { PostManagerProvider } from "@/context/post-manager";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { validatePostReturnPath } from "@/lib/post-sharing";
+import { useInitialPostLinkReady } from "@/hooks/use-pending-post-return";
+import {
+  peekPostReturnPath,
+  rememberPostReturnPath,
+} from "@/lib/post-sharing";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -18,9 +22,15 @@ function AuthenticatedShell({ children }: { children: ReactNode }) {
 
 export default function AppLayout() {
   const { session, loading } = useAuth();
-  const returnTo = validatePostReturnPath(usePathname());
+  const initialLinkReady = useInitialPostLinkReady();
+  const pathname = usePathname();
+  // Auth loading / Redirect can clear the deep-link pathname before we redirect
+  // to sign-in — remember the first valid post path from the route.
+  rememberPostReturnPath(pathname);
+  const returnTo = peekPostReturnPath();
 
   if (loading) return null;
+  if (!session && !returnTo && !initialLinkReady) return null;
 
   if (!session) {
     return (
