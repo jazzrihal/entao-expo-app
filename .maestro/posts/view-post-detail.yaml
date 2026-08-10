@@ -34,7 +34,7 @@ env:
     id: "home-post-detail-author"
 - assertVisible: "Share"
 - tapOn: "Share"
-- assertVisible: "então.com"
+- assertVisible: "entao.link"
 # This iOS version's compact share sheet has no "Cancel" button; swipe it down to dismiss.
 - swipe:
     start: "50%,70%"

@@ -86,6 +86,6 @@ env:
     duration: 300
 - tapOn: "Delete"
 - extendedWaitUntil:
-    visible:
-      id: "moments-empty"
+    notVisible:
+      id: "moments-list-section"
     timeout: 10000

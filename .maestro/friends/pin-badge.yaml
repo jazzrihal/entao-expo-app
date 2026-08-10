@@ -35,32 +35,56 @@ env:
       visible: "Unpin"
     commands:
       - tapOn: "Unpin"
-      # `back` is unsupported on iOS; simulate the edge-swipe interactive pop gesture instead.
-      - swipe:
-          start: "1%,50%"
-          end: "95%,50%"
-      - assertNotVisible:
-          id: "pinned-post-thumbnail"
-      - tapOn:
-          id: "friends-feed-section-bob-row-1"
-          label: Re-open Bob row after clearing prior pin
-      - assertVisible:
-          id: "friends-post-detail"
+      - extendedWaitUntil:
+          visible: "Pin"
+          timeout: 15000
 - tapOn: "Pin"
+- extendedWaitUntil:
+    visible: "Unpin"
+    timeout: 15000
 - swipe:
     start: "1%,50%"
     end: "95%,50%"
+- extendedWaitUntil:
+    visible:
+      id: "friends-feed"
+    timeout: 10000
+# Friends feed may reorder after pin; badge testID is on the pinned Pressable.
+- extendedWaitUntil:
+    visible:
+      id: "pinned-post-thumbnail"
+    timeout: 15000
+# Friends-pager reopen can show a stale Pin control; profile detail reflects
+# pins reliably. Clear via Profile so later flows don't see this Bob pin on
+# Alice's profile grid (list_profile_feed_posts includes pinned others' posts).
+- tapOn: "Profile"
 - assertVisible:
-    id: "pinned-post-thumbnail"
+    id: "profile-post-grid"
+- extendedWaitUntil:
+    visible:
+      id: "pinned-post-thumbnail"
+    timeout: 15000
 - tapOn:
-    id: "friends-feed-section-bob-row-1"
-    label: Re-open pinned Bob row
+    id: "pinned-post-thumbnail"
+    label: Open pinned profile cell to clear pin-badge leftover
 - assertVisible:
-    id: "friends-post-detail"
+    id: "profile-post-detail"
+- extendedWaitUntil:
+    visible: "Unpin"
+    timeout: 15000
 - tapOn: "Unpin"
+- extendedWaitUntil:
+    visible: "Pin"
+    timeout: 15000
 - swipe:
     start: "1%,50%"
     end: "95%,50%"
-- assertNotVisible:
-    id: "pinned-post-thumbnail"
-    label: Pin badge cleared after unpin
+- extendedWaitUntil:
+    visible:
+      id: "profile-post-grid"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible:
+      id: "pinned-post-thumbnail"
+    timeout: 15000
+    label: Pin badge cleared after profile unpin

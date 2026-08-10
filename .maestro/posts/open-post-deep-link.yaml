@@ -32,11 +32,12 @@ env:
 - openLink:
     link: ${"entao://post/" + output.postId}
     label: Open post deep link while signed in
+# iOS may show a confirmation sheet; the title uses curly quotes (“ ”), not ASCII.
 - runFlow:
     when:
-      visible: 'Open in "Então"'
+      visible: "Open in .*Então.*"
     commands:
-      - tapOn: Open
+      - tapOn: "Open"
 - extendedWaitUntil:
     visible:
       id: "post-detail"
@@ -51,34 +52,53 @@ env:
     end: "95%,50%"
 - assertVisible:
     id: "home-feed-grid"
-# Cold / signed-out path: wipe session, relaunch, openLink, sign in with returnTo.
+# Cold / signed-out path: wipe session, then openLink so the first route is the
+# post (returnTo). Launching to sign-in first can drop the deep link.
 - launchApp:
     clearState: true
     clearKeychain: true
     permissions:
       location: inuse
       camera: allow
+      notifications: deny
 - setLocation:
     latitude: 35.6762
     longitude: 139.6503
+- stopApp
 - openLink:
     link: ${"entao://post/" + output.postId}
     label: Open post deep link while signed out
 - runFlow:
     when:
-      visible: 'Open in "Então"'
+      visible: "Open in .*Então.*"
     commands:
-      - tapOn: Open
+      - tapOn: "Open"
 - extendedWaitUntil:
     visible:
       id: "sign-in-email"
     timeout: 60000
+# Same Passwords-bar / keyboard dismiss as sign-in.yaml — without it the
+# password is typed into the email field and returnTo never resolves.
 - tapOn:
     id: "sign-in-email"
+- eraseText
 - inputText: ${E2E_EMAIL}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
 - tapOn:
     id: "sign-in-password"
+- eraseText
 - inputText: ${E2E_PASSWORD}
+- waitForAnimationToEnd
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
 - tapOn:
     id: "sign-in-button"
 - repeat:
@@ -86,6 +106,11 @@ env:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+- runFlow:
+    when:
+      visible: ".*Would Like to Send You Notifications.*"
+    commands:
+      - tapOn: "Don’t Allow"
 - runFlow:
     when:
       visible:

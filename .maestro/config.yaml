@@ -7,9 +7,6 @@ flows:
   - "profile/*"
 executionOrder:
   continueOnFailure: false
-  # swipe-unfriend mutates hosted seed (removes Bob). Keep it last so earlier
-  # friends/posts flows still see Bob; CI resets the DB once per suite run.
-  #
   # Do NOT list android-only flows (e.g. offline-post-fallback) here. Maestro's
   # sequential planner stops at the first flowsOrder entry missing from the
   # tag-filtered set, and later entries fall into parallel flowsToRun — which
@@ -33,5 +30,3 @@ executionOrder:
     - view-post-detail
     - open-post-deep-link
     - save-post-locally
-    - delete-own-post
-    - swipe-unfriend

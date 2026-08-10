@@ -21,6 +21,13 @@ env:
       camera: allow
       # Avoid the push permission sheet racing Profile after first sign-in.
       notifications: deny
+# A prior deep-link flow can leave the system "Open in Então?" sheet up; it sits
+# above the sign-in form and blocks sign-in-email. Curly quotes on the title.
+- runFlow:
+    when:
+      visible: "Open in .*Então.*"
+    commands:
+      - tapOn: "Cancel"
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
 # the "Grant access to your location?" fallback sheet blocking navigation below.

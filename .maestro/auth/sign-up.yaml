@@ -5,6 +5,9 @@ env:
 ---
 - launchApp:
     clearState: true
+    # Avoid iOS Password AutoFill / Save Password sheet racing post-auth
+    # (same rationale as sign-in.yaml).
+    clearKeychain: true
 - extendedWaitUntil:
     visible:
       id: "sign-in-email"
@@ -17,32 +20,67 @@ env:
     timeout: 15000
 - tapOn:
     id: "sign-up-email"
+- eraseText
 - inputText: ${NEW_EMAIL}
-# iOS Strong Password dialog blocks all but the first character; dismiss via confirm field.
-- runFlow:
-    when:
-      platform: iOS
+- waitForAnimationToEnd
+# Fresh simulators can show QuickPath keyboard coaching after the first focus;
+# it steals the next tap so the password lands in the email field.
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
     commands:
-      - tapOn:
-          id: "sign-up-password"
-      - inputText: "x"
-      - tapOn:
-          id: "sign-up-confirm-password"
-      - inputText: ${NEW_PASSWORD}
-      - tapOn:
-          id: "sign-up-password"
-      - eraseText: 1
-      - inputText: ${NEW_PASSWORD}
-- runFlow:
-    when:
-      platform: Android
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+# After email focus the keyboard + Passwords autofill bar sit over the password
+# fields. Dismiss by tapping the title well above the keyboard (hideKeyboard is
+# flaky on iOS). Same pattern as sign-in's "Welcome back" dismiss.
+# index: 0 — title and submit button share the label "Create account".
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+# `autoComplete="new-password"` triggers iOS "Use Strong Password?" which is NOT
+# in the XCUITest hierarchy (can't assert/tap its Close). Typing a single char
+# raises the sheet; tapping the title above it dismisses it so a full password
+# can be entered afterward. Confirm-field dismiss is unreliable — the sheet
+# covers that field and intercepts the tap.
+- tapOn:
+    id: "sign-up-password"
+- inputText: "x"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-password"
+- eraseText
+- inputText: ${NEW_PASSWORD}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
     commands:
-      - tapOn:
-          id: "sign-up-password"
-      - inputText: ${NEW_PASSWORD}
-      - tapOn:
-          id: "sign-up-confirm-password"
-      - inputText: ${NEW_PASSWORD}
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-confirm-password"
+- eraseText
+- inputText: ${NEW_PASSWORD}
+- waitForAnimationToEnd
+# Dismiss so sign-up-button is above the keyboard and hittable.
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- extendedWaitUntil:
+    visible:
+      id: "sign-up-button"
+    timeout: 15000
 - tapOn:
     id: "sign-up-button"
 - runFlow:
