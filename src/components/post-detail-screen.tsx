@@ -226,11 +226,29 @@ export function PostDetailScreen() {
     }
 
     if (feedQuery.posts.length > 0 && initialIndex >= 0) {
+      // Prefer the navigation snapshot's engagement flags when the live feed
+      // cache was clobbered by a focus refetch (see useTogglePinMutation
+      // onSettled). Otherwise reopening a just-pinned cell can show Pin again.
+      const posts = parsedPost
+        ? feedQuery.posts.map((post) =>
+            post.id === parsedPost.id
+              ? {
+                  ...post,
+                  is_pinned_by_current_user:
+                    post.is_pinned_by_current_user ||
+                    parsedPost.is_pinned_by_current_user,
+                  user_reaction:
+                    post.user_reaction ?? parsedPost.user_reaction,
+                }
+              : post,
+          )
+        : feedQuery.posts;
+
       return (
         <>
           {screenOptions}
           <PostFeedPager
-            posts={feedQuery.posts}
+            posts={posts}
             testIDPrefix={testIDPrefix}
             testID={`${testIDPrefix}-feed-pager`}
             initialIndex={initialIndex}

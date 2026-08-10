@@ -65,10 +65,18 @@ export function PostFeedGrid<T extends PostGridItem>({
 
       return (
         <Pressable
-          testID={`${testIDPrefix}-post-${item.id}`}
+          // When pinned, expose the shared badge testID on the Pressable — nested
+          // accessible children are flattened into the Pressable on iOS, so a
+          // badge View testID never appears in the XCUITest hierarchy.
+          testID={
+            item.isPinned
+              ? "pinned-post-thumbnail"
+              : `${testIDPrefix}-post-${item.id}`
+          }
           // Dev / E2E builds only: expose the post id as the accessibility label
           // so Maestro can `copyTextFrom` it for deep-link flows. Production
-          // VoiceOver is unchanged (label stays unset).
+          // VoiceOver is unchanged (label stays unset). Keep the id even when
+          // pinned — pin state is exposed via testID `pinned-post-thumbnail`.
           accessibilityLabel={
             __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local"
               ? item.id

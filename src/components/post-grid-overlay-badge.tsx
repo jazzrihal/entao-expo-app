@@ -17,13 +17,22 @@ export function PostGridOverlayBadge({
   style,
 }: PostGridOverlayBadgeProps) {
   return (
-    <View testID={testID} style={[styles.badge, style]} pointerEvents="none">
+    // Keep testID + accessibilityLabel on the same accessible node so XCUITest
+    // / Maestro expose `resource-id` (SymbolView as the accessible child was
+    // swallowing the parent testID).
+    <View
+      testID={testID}
+      accessible
+      accessibilityLabel={accessibilityLabel}
+      style={[styles.badge, style]}
+      pointerEvents="none"
+    >
       <SymbolView
         name={symbolName}
         tintColor="#FFFFFF"
         resizeMode="scaleAspectFit"
         style={styles.symbol}
-        accessibilityLabel={accessibilityLabel}
+        accessible={false}
       />
     </View>
   );

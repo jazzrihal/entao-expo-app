@@ -53,7 +53,17 @@ export function FriendsFeedThumbnailRow({
       ]}
     >
       <Pressable
-        testID={`${testIDPrefix}-post-${post.id}`}
+        // When pinned, expose the shared badge testID on the Pressable — nested
+        // accessible children are flattened into the Pressable on iOS, so a
+        // badge View testID never appears in the XCUITest hierarchy.
+        testID={
+          post.is_pinned_by_current_user
+            ? "pinned-post-thumbnail"
+            : `${testIDPrefix}-post-${post.id}`
+        }
+        accessibilityLabel={
+          post.is_pinned_by_current_user ? "Pinned" : undefined
+        }
         onPress={() => onPostPress(post)}
         style={{
           width: screenWidth,

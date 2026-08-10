@@ -40,7 +40,8 @@ export const PostFeedPage = memo(function PostFeedPage({
   const pinMutation = useTogglePinMutation(isLocalOnly ? null : post.id);
 
   const { data: cachedPost } = usePostQuery(isLocalOnly ? null : post.id, {
-    enabled: false,
+    // Fetch on open so a focus-refetch that clobbered the friends-list cache
+    // cannot leave this screen showing a stale unpinned control.
     placeholderData: post,
   });
 
