@@ -15,6 +15,7 @@ import { FriendsFeedThumbnailRow } from "@/components/friends/friends-feed-thumb
 import { useAuth } from "@/context/auth";
 import { openPostDetail, openUserProfile } from "@/lib/navigation";
 import { flattenFriendsPostsGrouped } from "@/lib/posts";
+import { ELEVATED_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 import { queryKeys } from "@/queries/keys";
 import {
   useFriendsPostsQuery,
@@ -49,8 +50,7 @@ type FriendsFeedListItem = FriendsFeedHeaderItem | FriendsFeedPostItem;
 export function FriendsFeedTab() {
   const router = useRouter();
   const { session } = useAuth();
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? "dark" : "light";
+  const theme = resolveColorScheme(useColorScheme());
   const { width: screenWidth } = useWindowDimensions();
   const feedQuery = useFriendsPostsQuery();
 
@@ -118,7 +118,10 @@ export function FriendsFeedTab() {
         return (
           <View
             testID={`friends-feed-section-${item.username}`}
-            style={styles.sectionHeader}
+            style={[
+              styles.sectionHeader,
+              { backgroundColor: ELEVATED_BACKGROUND[theme] },
+            ]}
           >
             <Pressable
               testID={`friends-feed-section-${item.username}-name`}
@@ -180,7 +183,7 @@ export function FriendsFeedTab() {
     );
   }
 
-  const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
+  const gridSeparatorColor = theme === "dark" ? "#000" : "#fff";
 
   return (
     <FlashList
