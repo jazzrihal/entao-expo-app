@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Image } from "@/components/image";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
+import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 import type { FriendsPostWithImage } from "@/queries/posts";
 
 export const FRIENDS_FEED_ROW_GAP = 1;
@@ -33,8 +34,8 @@ export function FriendsFeedThumbnailRow({
   screenWidth: screenWidthProp,
   showRowGap = false,
 }: FriendsFeedThumbnailRowProps) {
-  const colorScheme = useColorScheme();
-  const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
+  const gridSeparatorColor =
+    BASE_BACKGROUND[resolveColorScheme(useColorScheme())];
   const { width: windowWidth } = useWindowDimensions();
   const screenWidth = screenWidthProp ?? windowWidth;
   const rowHeight = getFriendsFeedThumbnailRowHeight(screenWidth);

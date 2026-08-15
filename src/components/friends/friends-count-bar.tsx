@@ -1,10 +1,11 @@
 import { StyleSheet, Text, useColorScheme, View } from "react-native";
 import { MAX_FRIENDS } from "@/lib/friends";
-
-const SECONDARY_COLORS = {
-  light: "#6C6C70",
-  dark: "#8E8E93",
-} as const;
+import {
+  ELEVATED_BACKGROUND,
+  resolveColorScheme,
+  SECONDARY_LABEL,
+  SEPARATOR_COLOR,
+} from "@/lib/theme-colors";
 
 const TRACK_COLORS = {
   light: "#E5E5EA",
@@ -16,23 +17,12 @@ const FILL_COLORS = {
   dark: "#0A84FF",
 } as const;
 
-const SECTION_BACKGROUNDS = {
-  light: "#FFFFFF",
-  dark: "#1C1C1E",
-} as const;
-
-const SEPARATOR_COLORS = {
-  light: "#C6C6C8",
-  dark: "#38383A",
-} as const;
-
 type FriendsCountBarProps = {
   count: number;
 };
 
 export function FriendsCountBar({ count }: FriendsCountBarProps) {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? "dark" : "light";
+  const theme = resolveColorScheme(useColorScheme());
   const clampedCount = Math.min(Math.max(count, 0), MAX_FRIENDS);
   const progress = clampedCount / MAX_FRIENDS;
 
@@ -41,15 +31,15 @@ export function FriendsCountBar({ count }: FriendsCountBarProps) {
       style={[
         styles.container,
         {
-          backgroundColor: SECTION_BACKGROUNDS[theme],
-          borderBottomColor: SEPARATOR_COLORS[theme],
+          backgroundColor: ELEVATED_BACKGROUND[theme],
+          borderBottomColor: SEPARATOR_COLOR[theme],
         },
       ]}
       testID="friends-count-bar"
     >
       <Text
         testID="friends-count-label"
-        style={[styles.label, { color: SECONDARY_COLORS[theme] }]}
+        style={[styles.label, { color: SECONDARY_LABEL[theme] }]}
       >
         {`${clampedCount} of ${MAX_FRIENDS} friends`}
       </Text>

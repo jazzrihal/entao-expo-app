@@ -5,6 +5,7 @@ import {
   StyleSheet,
   Text as RNText,
   TouchableOpacity,
+  useColorScheme,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -46,6 +47,7 @@ import { profileDisplayName } from "@/lib/profile-display";
 import { saveLocalPost, queuePostForUpload } from "@/lib/post-manager";
 import { runSync } from "@/lib/sync-manager";
 import { useCreatePostMutation } from "@/queries/posts";
+import { META_TEXT_COLOR, resolveColorScheme } from "@/lib/theme-colors";
 import { useUserProfileQuery } from "@/queries/profile";
 
 const CAPTION_MAX_LENGTH = 500;
@@ -59,6 +61,7 @@ export default function NewPostScreen() {
   const { session } = useAuth();
   const { width, height } = useWindowDimensions();
   const { colors, dark } = useTheme();
+  const theme = resolveColorScheme(useColorScheme());
   const cameraRef = useRef<CameraView>(null);
   const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
   const captionRef = useRef<TextInputRef>(null);
@@ -625,7 +628,7 @@ export default function NewPostScreen() {
                   textStyle={
                     locationLine
                       ? undefined
-                      : { fontSize: 14, color: "#8E8E93" }
+                      : { fontSize: 14, color: META_TEXT_COLOR[theme] }
                   }
                 >
                   {resolvingLocation
@@ -647,7 +650,9 @@ export default function NewPostScreen() {
               </Row>
               <Row spacing={8}>
                 <Icon name="mappin.and.ellipse" size={16} />
-                <Text textStyle={{ fontSize: 14, color: "#8E8E93" }}>
+                <Text
+                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
+                >
                   {resolvingLocation
                     ? "Getting user location…"
                     : latitude != null && longitude != null
@@ -669,7 +674,9 @@ export default function NewPostScreen() {
                 multiline
               />
               <FieldGroup.SectionFooter>
-                <Text textStyle={{ fontSize: 14, color: "#8E8E93" }}>
+                <Text
+                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
+                >
                   {`${caption.length} / ${CAPTION_MAX_LENGTH}`}
                 </Text>
               </FieldGroup.SectionFooter>

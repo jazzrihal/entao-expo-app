@@ -1,6 +1,7 @@
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, useColorScheme, View } from "react-native";
 import CommunityDateTimePicker from "@expo/ui/community/datetime-picker";
 import { Host, Button } from "@expo/ui";
+import { ELEVATED_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 
 type HomeFeedHeaderProps = {
   selectedDate: Date;
@@ -15,8 +16,15 @@ export function HomeFeedHeader({
   locationLabel,
   onLocationPress,
 }: HomeFeedHeaderProps) {
+  const theme = resolveColorScheme(useColorScheme());
+
   return (
-    <View style={styles.headerRow}>
+    <View
+      style={[
+        styles.headerRow,
+        { backgroundColor: ELEVATED_BACKGROUND[theme] },
+      ]}
+    >
       <Host matchContents>
         <Button
           testID="home-feed-location"

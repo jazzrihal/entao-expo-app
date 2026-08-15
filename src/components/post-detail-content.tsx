@@ -21,6 +21,13 @@ import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
 import { parsePostBadges } from "@/lib/posts";
+import {
+  BADGE_BACKGROUND,
+  BADGE_TEXT_COLOR,
+  ELEVATED_BACKGROUND,
+  META_TEXT_COLOR,
+  resolveColorScheme,
+} from "@/lib/theme-colors";
 import type { PostDetailWithImage } from "@/queries/posts";
 import type { LocalPost } from "@/lib/post-manager";
 
@@ -60,21 +67,6 @@ const FEED_HEADER_HEIGHT = 44;
 const FEED_FOOTER_META_HEIGHT = 58;
 const FOOTER_HORIZONTAL_PADDING = 12;
 
-const BADGE_BACKGROUNDS = {
-  light: "#F2F2F7",
-  dark: "#3A3A3C",
-} as const;
-
-const BADGE_TEXT_COLORS = {
-  light: "#3A3A3C",
-  dark: "#F2F2F7",
-} as const;
-
-/** Slightly softer than primary label so date/location sit behind the caption. */
-const META_TEXT_COLORS = {
-  light: "#8E8E93",
-  dark: "#C7C7CC",
-} as const;
 /**
  * Reserve for pin + like text buttons (SF Symbol hit targets are wider than
  * the glyphs). Under-reserving inflates SwiftUI ScrollView content width and
@@ -102,8 +94,7 @@ export function PostDetailContent({
   exploreNearbyDisabled = false,
 }: PostDetailContentProps) {
   const { width } = useWindowDimensions();
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? "dark" : "light";
+  const theme = resolveColorScheme(useColorScheme());
 
   const badges = parsePostBadges(post.badges);
   const locationLine = buildLocationLine({
@@ -114,7 +105,6 @@ export function PostDetailContent({
 
   const exploreNearbyPress =
     onExploreNearby && !exploreNearbyDisabled ? onExploreNearby : undefined;
-  const captionReserve = post.caption ? FEED_CAPTION_VISIBLE : 0;
   const footerInnerWidth = width - FOOTER_HORIZONTAL_PADDING * 2;
   // Spacer (not Row spacing) separates meta and actions so trailing icons stay
   // pinned to the right when the reserved action width is larger than reality.
@@ -122,13 +112,18 @@ export function PostDetailContent({
     ? footerInnerWidth
     : footerInnerWidth - FEED_ACTIONS_WIDTH;
 
+  // Always reserve caption chrome so image and footer heights are stable.
   const imageHeight = Math.max(
     pageHeight -
       FEED_HEADER_HEIGHT -
       FEED_FOOTER_META_HEIGHT -
-      captionReserve -
+      FEED_CAPTION_VISIBLE -
       bottomInset,
     120,
+  );
+  const footerHeight = Math.max(
+    pageHeight - FEED_HEADER_HEIGHT - imageHeight,
+    0,
   );
 
   return (
@@ -144,7 +139,14 @@ export function PostDetailContent({
         style={{ width: "100%", height: pageHeight }}
       >
         <Column spacing={0} style={{ width }}>
-          <Row alignment="center" style={{ ...styles.header, width }}>
+          <Row
+            alignment="center"
+            style={{
+              ...styles.header,
+              width,
+              backgroundColor: ELEVATED_BACKGROUND[theme],
+            }}
+          >
             <Text
               testID={`${testIDPrefix}-detail-author`}
               textStyle={{ fontSize: 17, fontWeight: "600" }}
@@ -162,12 +164,12 @@ export function PostDetailContent({
                       testID={`${testIDPrefix}-badge-${badge.badge_id}`}
                       style={{
                         ...styles.badge,
-                        backgroundColor: BADGE_BACKGROUNDS[theme],
+                        backgroundColor: BADGE_BACKGROUND[theme],
                       }}
                       textStyle={{
                         fontSize: 13,
                         fontWeight: "600",
-                        color: BADGE_TEXT_COLORS[theme],
+                        color: BADGE_TEXT_COLOR[theme],
                       }}
                     >
                       {badge.badge_name}
@@ -196,7 +198,17 @@ export function PostDetailContent({
             </View>
           </RNHostView>
 
-          <Column spacing={4} style={{ ...styles.footer, width }}>
+          <Column
+            spacing={4}
+            alignment="start"
+            style={{
+              ...styles.footer,
+              width,
+              height: footerHeight,
+              paddingBottom: 8 + bottomInset,
+              backgroundColor: ELEVATED_BACKGROUND[theme],
+            }}
+          >
             <Row alignment="start" style={{ width: footerInnerWidth }}>
               <Column
                 spacing={2}
@@ -205,7 +217,7 @@ export function PostDetailContent({
               >
                 <Text
                   testID={`${testIDPrefix}-detail-date`}
-                  textStyle={{ fontSize: 14, color: META_TEXT_COLORS[theme] }}
+                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
                   onPress={exploreNearbyPress}
                 >
                   {formatCapturedAtAgo(post.captured_at)}
@@ -213,7 +225,7 @@ export function PostDetailContent({
                 {locationLine ? (
                   <Text
                     testID={`${testIDPrefix}-detail-location`}
-                    textStyle={{ fontSize: 14, color: META_TEXT_COLORS[theme] }}
+                    textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
                     onPress={exploreNearbyPress}
                   >
                     {locationLine}

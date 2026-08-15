@@ -1,10 +1,6 @@
 import { useColorScheme } from "react-native";
 import { Column, Host, Spacer, Text } from "@expo/ui";
-
-const SECONDARY_COLORS = {
-  light: "#6C6C70",
-  dark: "#8E8E93",
-} as const;
+import { resolveColorScheme, SECONDARY_LABEL } from "@/lib/theme-colors";
 
 type EmptyProps = {
   title: string;
@@ -13,9 +9,7 @@ type EmptyProps = {
 };
 
 export function Empty({ title, description, testID }: EmptyProps) {
-  const colorScheme = useColorScheme();
-  const secondaryColor =
-    SECONDARY_COLORS[colorScheme === "dark" ? "dark" : "light"];
+  const secondaryColor = SECONDARY_LABEL[resolveColorScheme(useColorScheme())];
 
   return (
     <Host style={{ flex: 1 }} testID={testID}>

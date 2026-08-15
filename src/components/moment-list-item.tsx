@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { useColorScheme } from "react-native";
 import { Column, Icon, ListItem, Row, Text } from "@expo/ui";
+import { META_TEXT_COLOR, resolveColorScheme } from "@/lib/theme-colors";
 import {
   formatMomentDate,
   formatMomentLocation,
@@ -34,8 +36,6 @@ type MomentListLabelsProps = {
   testID?: string;
 };
 
-const LOCATION_COLOR = "#8E8E93";
-
 export function MomentOccurredLabels({
   occurredAt,
   onPress,
@@ -60,6 +60,8 @@ export function MomentListLabels({
   onPress,
   testID,
 }: MomentListLabelsProps) {
+  const theme = resolveColorScheme(useColorScheme());
+
   return (
     <Column spacing={6} alignment="start">
       <MomentOccurredLabels
@@ -67,7 +69,7 @@ export function MomentListLabels({
         onPress={onPress}
         testID={testID}
       />
-      <Text textStyle={{ color: LOCATION_COLOR }}>
+      <Text textStyle={{ color: META_TEXT_COLOR[theme] }}>
         {formatMomentLocation(location)}
       </Text>
     </Column>

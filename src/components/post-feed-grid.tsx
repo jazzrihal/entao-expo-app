@@ -10,6 +10,7 @@ import { Image } from "@/components/image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
 import type { LocalPostStatus } from "@/lib/post-db";
+import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 
 const GRID_COLUMNS = 3;
 const GRID_GAP = 1;
@@ -43,8 +44,8 @@ export function PostFeedGrid<T extends PostGridItem>({
   onRefresh,
   contentInsetAdjustmentBehavior = "never",
 }: PostFeedGridProps<T>) {
-  const colorScheme = useColorScheme();
-  const gridSeparatorColor = colorScheme === "dark" ? "#000" : "#fff";
+  const gridSeparatorColor =
+    BASE_BACKGROUND[resolveColorScheme(useColorScheme())];
   const { width: screenWidth } = useWindowDimensions();
   const { tileSize, lastColumnWidth } = useMemo(() => {
     const baseTileSize = Math.floor(

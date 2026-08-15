@@ -5,9 +5,8 @@ import {
   type ImageProps,
 } from "expo-image";
 import { useCallback, useState, type ComponentType } from "react";
-import { Pressable, StyleSheet } from "react-native";
-
-const DEV_BACKGROUND = "grey";
+import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 
 type EntaoImageProps = Omit<ImageProps, "onPress"> & {
   resizeOnTap?: boolean;
@@ -30,12 +29,17 @@ function ImageComponent({
   testID,
   ...props
 }: EntaoImageProps) {
+  const theme = resolveColorScheme(useColorScheme());
   const [activeContentFit, setActiveContentFit] =
     useState<ImageContentFit>(contentFit);
   const resolvedContentFit = resizeOnTap ? activeContentFit : contentFit;
 
   const flattenedStyle = StyleSheet.flatten([
-    __DEV__ ? { backgroundColor: DEV_BACKGROUND } : undefined,
+    {
+      backgroundColor: __DEV__
+        ? BASE_BACKGROUND[theme === "dark" ? "light" : "dark"]
+        : BASE_BACKGROUND[theme],
+    },
     style,
   ]);
 
