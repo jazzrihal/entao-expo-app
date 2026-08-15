@@ -43,3 +43,6 @@ example
 /android
 /coverage
 credentials.json
+
+# App Store screenshot captures (Maestro writes PNGs locally)
+store/screenshots/ios/**/*.png

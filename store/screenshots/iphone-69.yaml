@@ -1,0 +1,56 @@
+appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+# Store screenshots only — keep this flow outside .maestro/ so CI does not run it.
+# auth/sign-in.yaml ends on Profile; go Home before the first shot.
+- runFlow:
+    file: ../../.maestro/auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Home"
+    label: Open Home tab
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-grid"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: store/screenshots/ios/6.9/01-home-grid
+- tapOn:
+    id: "home-feed-post-.*"
+    index: 0
+    label: Open first seeded home grid cell
+- extendedWaitUntil:
+    visible:
+      id: "home-post-detail"
+    timeout: 15000
+- waitForAnimationToEnd
+- takeScreenshot: store/screenshots/ios/6.9/02-home-post
+- swipe:
+    start: "1%,50%"
+    end: "95%,50%"
+- extendedWaitUntil:
+    visible:
+      id: "home-feed-grid"
+    timeout: 15000
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- extendedWaitUntil:
+    visible:
+      id: "friends-feed"
+    timeout: 30000
+- waitForAnimationToEnd
+- takeScreenshot: store/screenshots/ios/6.9/03-friends-feed
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
+- extendedWaitUntil:
+    visible:
+      id: "profile-post-grid"
+    timeout: 15000
+- waitForAnimationToEnd
+- takeScreenshot: store/screenshots/ios/6.9/04-profile
