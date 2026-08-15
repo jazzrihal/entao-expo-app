@@ -1,0 +1,95 @@
+appId: com.jazzrihal.entao
+# Opens a seeded friend profile via the custom scheme (`entao://user/{username}`).
+# Seed usernames are stable (Bob is `bob`); no need to copy a random UUID.
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+# Authenticated path: custom-scheme deep link → other user profile.
+- openLink:
+    link: "entao://user/bob"
+    label: Open profile deep link while signed in
+- runFlow:
+    when:
+      visible: "Open in .*Então.*"
+    commands:
+      - tapOn: "Open"
+- extendedWaitUntil:
+    visible:
+      id: "user-profile"
+    timeout: 30000
+# Cold / signed-out path: wipe session, then openLink so the first route is the
+# profile (returnTo). Launching to sign-in first can drop the deep link.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    permissions:
+      location: inuse
+      camera: allow
+      notifications: deny
+- setLocation:
+    latitude: 35.6762
+    longitude: 139.6503
+- stopApp
+- openLink:
+    link: "entao://user/bob"
+    label: Open profile deep link while signed out
+- runFlow:
+    when:
+      visible: "Open in .*Então.*"
+    commands:
+      - tapOn: "Open"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
+# Same Passwords-bar / keyboard dismiss as sign-in.yaml — without it the
+# password is typed into the email field and returnTo never resolves.
+- tapOn:
+    id: "sign-in-email"
+- eraseText
+- inputText: ${E2E_EMAIL}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-in-password"
+- eraseText
+- inputText: ${E2E_PASSWORD}
+- waitForAnimationToEnd
+- tapOn: "Welcome back"
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-in-button"
+- repeat:
+    while:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+- runFlow:
+    when:
+      visible: ".*Would Like to Send You Notifications.*"
+    commands:
+      - tapOn: "Don’t Allow"
+- runFlow:
+    when:
+      visible:
+        id: "home-feed-location-actions"
+    commands:
+      - tapOn: "Reject"
+# Auth layout redirects to /(app)/user/[id] when returnTo was preserved.
+- extendedWaitUntil:
+    visible:
+      id: "user-profile"
+    timeout: 30000

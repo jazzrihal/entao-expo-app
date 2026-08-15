@@ -8,6 +8,8 @@ import { PostFeedGrid } from "@/components/post-feed-grid";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { profileDisplayName } from "@/lib/profile-display";
+import { isProfileUserId } from "@/lib/profile";
+import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import { openPostDetail } from "@/lib/navigation";
 import {
   parseRelationshipStatus,
@@ -25,7 +27,10 @@ import {
   useProfileFeedQuery,
   type ProfileFeedPostWithImage,
 } from "@/queries/posts";
-import { useUserProfileQuery } from "@/queries/profile";
+import {
+  useUserProfileByUsernameQuery,
+  useUserProfileQuery,
+} from "@/queries/profile";
 
 export default function UserProfileScreen() {
   const router = useRouter();
@@ -39,21 +44,41 @@ export default function UserProfileScreen() {
     displayName?: string;
     username?: string;
   }>();
-  const userId = typeof id === "string" ? id : undefined;
+  const routeParam = typeof id === "string" ? id : undefined;
+  const routeIsUserId = !!routeParam && isProfileUserId(routeParam);
   const routeDisplayName =
     typeof paramDisplayName === "string" && paramDisplayName.length > 0
       ? paramDisplayName
       : undefined;
-  const routeUsername =
+  const routeUsernameFromParams =
     typeof paramUsername === "string" && paramUsername.length > 0
       ? paramUsername
       : undefined;
-  const isSelf = !!userId && session?.user.id === userId;
+  const routeUsername =
+    routeUsernameFromParams ?? (!routeIsUserId ? routeParam : undefined);
+  const hasRouteProfileHint = !!routeDisplayName || !!routeUsernameFromParams;
+  const isSelfById =
+    routeIsUserId && !!session?.user.id && session.user.id === routeParam;
 
-  const profileQuery = useUserProfileQuery(userId, { enabled: !isSelf });
-  const feedQuery = useProfileFeedQuery(userId, { enabled: !isSelf });
+  const profileByIdQuery = useUserProfileQuery(routeParam, {
+    enabled: routeIsUserId && !isSelfById,
+  });
+  const profileByUsernameQuery = useUserProfileByUsernameQuery(routeUsername, {
+    enabled: !routeIsUserId,
+  });
+  const profileQuery = routeIsUserId
+    ? profileByIdQuery
+    : profileByUsernameQuery;
+  const userId = routeIsUserId ? routeParam : profileByUsernameQuery.data?.id;
+  const isSelf =
+    isSelfById ||
+    (!!userId && !!session?.user.id && session.user.id === userId);
+
+  const feedQuery = useProfileFeedQuery(userId, {
+    enabled: !isSelf && !!userId,
+  });
   const relationshipQuery = useRelationshipStatusQuery(userId, {
-    enabled: !isSelf,
+    enabled: !isSelf && !!userId,
   });
   const incomingQuery = useIncomingRequestsQuery();
   const outgoingQuery = useOutgoingRequestsQuery();
@@ -78,9 +103,8 @@ export default function UserProfileScreen() {
 
   const displayName =
     profileDisplayName(profileQuery.data, undefined) || routeDisplayName || "";
-  const username = profileQuery.data?.username ?? routeUsername;
+  const username = profileQuery.data?.username ?? routeUsername ?? undefined;
   const headerTitle = displayName || username || "Profile";
-  const hasRouteProfileHint = !!routeDisplayName || !!routeUsername;
 
   const posts = feedQuery.data ?? [];
   const gridPosts = useMemo(
@@ -91,7 +115,7 @@ export default function UserProfileScreen() {
       })),
     [feedQuery.data],
   );
-  const showFeedLoading = feedQuery.isPending;
+  const showFeedLoading = !!userId && feedQuery.isPending;
   const showFeedError = !!feedQuery.error && !showFeedLoading;
   const showFeedEmpty =
     !showFeedLoading && !feedQuery.error && posts.length === 0;
@@ -206,6 +230,7 @@ export default function UserProfileScreen() {
     return (
       <>
         <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Toolbar placement="left" />
         <ActivityIndicator style={styles.loader} />
       </>
     );
@@ -215,6 +240,7 @@ export default function UserProfileScreen() {
     return (
       <>
         <Stack.Screen options={{ title: headerTitle }} />
+        <Stack.Toolbar placement="left" />
         <Empty
           testID="user-profile-not-found"
           title="Profile not found"
@@ -229,7 +255,17 @@ export default function UserProfileScreen() {
   return (
     <>
       <Stack.Screen options={{ title: headerTitle }} />
-      <View testID="user-profile" style={styles.screen}>
+      <View
+        testID="user-profile"
+        accessible={false}
+        accessibilityLabel={
+          (__DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local") &&
+          username
+            ? username
+            : undefined
+        }
+        style={styles.screen}
+      >
         {hasHeaderContent ? (
           <View style={styles.header}>
             {relationshipActions ? (
@@ -246,6 +282,21 @@ export default function UserProfileScreen() {
         ) : null}
         <View style={styles.feed}>{feedContent}</View>
       </View>
+      <Stack.Toolbar placement="left" />
+      {username ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            accessibilityLabel="Share"
+            icon="square.and.arrow.up"
+            onPress={() => {
+              void shareProfile(
+                username,
+                profileShareName(displayName, username),
+              );
+            }}
+          />
+        </Stack.Toolbar>
+      ) : null}
     </>
   );
 }

@@ -19,6 +19,7 @@ executionOrder:
     - view-profile
     - view-profile-post-detail
     - view-user-profile-post-detail
+    - open-profile-deep-link
     - list
     - search
     - requests

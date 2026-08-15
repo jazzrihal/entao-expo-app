@@ -9,6 +9,8 @@ export const queryKeys = {
   },
   profileSearch: (query: string) => ["profile-search", query] as const,
   userProfile: (userId: string) => ["user-profile", userId] as const,
+  userProfileByUsername: (username: string) =>
+    ["user-profile-username", username] as const,
   profileFeed: (userId: string) => ["profile-feed", userId] as const,
   friendsPosts: () => ["friends-posts"] as const,
   moments: () => ["moments"] as const,

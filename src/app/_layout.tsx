@@ -16,8 +16,9 @@ import {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
-  // Capture cold-start / openURL post deep links before auth redirects clear
-  // the route (returnTo for signed-out open of entao://post/{id}).
+  // Capture cold-start / openURL post and profile deep links before auth
+  // redirects clear the route (returnTo for signed-out open of
+  // entao://post/{id} or entao://user/{username}).
   useEffect(() => {
     void Linking.getInitialURL()
       .then((url) => {

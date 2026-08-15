@@ -3,9 +3,10 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Host, Text } from "@expo/ui";
 import { Empty } from "@/components/empty";
 import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useIsFocused, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { profileDisplayName } from "@/lib/profile-display";
+import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import {
   useProfileFeedQuery,
   type ProfileFeedPostWithImage,
@@ -24,6 +25,7 @@ type ProfileGridItem = PostGridItem & {
 
 export default function Profile() {
   const router = useRouter();
+  const isFocused = useIsFocused();
   const { session, signOut } = useAuth();
   const userId = session?.user.id;
   const email = session?.user.email;
@@ -159,11 +161,27 @@ export default function Profile() {
       <View testID="profile-feed" style={styles.feed}>
         {feedContent}
       </View>
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Button accessibilityLabel="Sign out" onPress={signOut}>
-          Sign out
-        </Stack.Toolbar.Button>
-      </Stack.Toolbar>
+      {isFocused ? (
+        <Stack.Toolbar placement="left">
+          <Stack.Toolbar.Button accessibilityLabel="Sign out" onPress={signOut}>
+            Sign out
+          </Stack.Toolbar.Button>
+        </Stack.Toolbar>
+      ) : null}
+      {isFocused && userId ? (
+        <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            accessibilityLabel="Share"
+            icon="square.and.arrow.up"
+            onPress={() => {
+              void shareProfile(
+                profileQuery.data?.username,
+                profileShareName(displayName, profileQuery.data?.username),
+              );
+            }}
+          />
+        </Stack.Toolbar>
+      ) : null}
     </>
   );
 }

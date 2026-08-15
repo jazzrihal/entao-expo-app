@@ -46,7 +46,7 @@ Related follow-ups (suite still automated, but brittle):
 
 - **Sign-in / Passwords autofill** — After a fresh simulator or `db reset`, password can land in the wrong field or React state can disagree with the secure field. Dismiss via the “Welcome back” title (not `hideKeyboard`) before focusing password; `clearKeychain: true` helps Save Password sheets.
 - **Sign-up Strong Password** — `autoComplete="new-password"` shows an iOS sheet invisible to XCUITest; type a single char, dismiss via the “Create account” title (`index: 0`), then enter the real password.
-- **Cold post deep link (`entao://post/{id}` while signed out)** — Auth loading can clear the post pathname before `returnTo` is applied. App now remembers the linking URL in `src/lib/post-sharing.ts` / root layout; re-check if signed-out → sign-in still lands on post detail.
+- **Cold post / profile deep link (`entao://post/{id}` or `entao://user/{username}` while signed out)** — Auth loading can clear the pathname before `returnTo` is applied. App now remembers the linking URL in `src/lib/post-sharing.ts` / root layout; re-check if signed-out → sign-in still lands on post detail or the other user’s profile.
 - **Pin badge a11y** — Nested badge `testID`s under `Pressable` are easy to lose on iOS; pin/unpin from Profile if Friends pager shows a stale Pin control.
 - **Local vs Release install** — `expo run:ios --configuration Release` may still try to open the Expo dev-client URL after install; confirm `main.jsbundle` is present and Maestro `launchApp` hits the Release app, not Metro.
 

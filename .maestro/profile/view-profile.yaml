@@ -12,6 +12,15 @@ env:
     text: "Profile"
     label: Open Profile tab
 - assertVisible: "Sign out"
+- assertVisible: "Share"
+- tapOn: "Share"
+- assertVisible: "entao.link"
+# This iOS version's compact share sheet has no "Cancel" button; swipe it down to dismiss.
+- swipe:
+    start: "50%,70%"
+    end: "50%,98%"
+    duration: 400
+- waitForAnimationToEnd
 - assertVisible:
     id: "profile-post-grid"
     label: Alice's seeded profile grid is visible

@@ -1,8 +1,9 @@
 export const POST_LINK_ORIGIN = "https://entao.link";
 const POST_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+const USERNAME_PATTERN = /^[A-Za-z0-9._-]+$/;
 
 export function buildPostLink(postId: string): string {
-  const encodedId = encodePostId(postId);
+  const encodedId = encodeLinkId(postId);
   return `${POST_LINK_ORIGIN}/post/${encodedId}`;
 }
 
@@ -15,33 +16,19 @@ export function buildPostShareMessage(authorName: string): string {
  * fragments, and additional path segments are intentionally rejected.
  */
 export function validatePostReturnPath(value: unknown): string | null {
-  if (typeof value !== "string") {
-    return null;
-  }
+  return validateResourceReturnPath("post", value);
+}
 
-  const match = /^(?:\/\(app\))?\/post\/([^/?#\\]+)$/.exec(value);
-  if (!match) {
-    return null;
-  }
-
-  try {
-    const postId = decodeURIComponent(match[1]);
-    if (!POST_ID_PATTERN.test(postId)) {
-      return null;
-    }
-    return `/post/${encodeURIComponent(postId)}`;
-  } catch {
-    return null;
-  }
+export function validateUserReturnPath(value: unknown): string | null {
+  return validateResourceReturnPath("user", value);
 }
 
 export function getPostIdFromReturnPath(value: unknown): string | null {
-  const validatedPath = validatePostReturnPath(value);
-  if (!validatedPath) {
-    return null;
-  }
+  return getResourceIdFromReturnPath("post", value);
+}
 
-  return decodeURIComponent(validatedPath.slice("/post/".length));
+export function getUsernameFromReturnPath(value: unknown): string | null {
+  return getResourceIdFromReturnPath("user", value);
 }
 
 /**
@@ -49,20 +36,15 @@ export function getPostIdFromReturnPath(value: unknown): string | null {
  * Custom schemes parse as `entao://post/{id}` (hostname `post`).
  */
 export function postPathFromLinkingUrl(url: unknown): string | null {
-  if (typeof url !== "string" || url.length === 0) {
-    return null;
-  }
+  return resourcePathFromLinkingUrl("post", url);
+}
 
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname === "post") {
-      const postId = parsed.pathname.replace(/^\//, "");
-      return validatePostReturnPath(`/post/${postId}`);
-    }
-    return validatePostReturnPath(parsed.pathname);
-  } catch {
-    return null;
-  }
+/**
+ * Map a cold-start / openURL linking URL to an internal user return path.
+ * Custom schemes parse as `entao://user/{username}` (hostname `user`).
+ */
+export function userPathFromLinkingUrl(url: unknown): string | null {
+  return resourcePathFromLinkingUrl("user", url);
 }
 
 /** Survives auth loading / redirects that clear the deep-link pathname. */
@@ -72,7 +54,10 @@ const initialLinkListeners = new Set<() => void>();
 
 export function rememberPostReturnPath(value: unknown): string | null {
   const validatedPath =
-    validatePostReturnPath(value) ?? postPathFromLinkingUrl(value);
+    validatePostReturnPath(value) ??
+    validateUserReturnPath(value) ??
+    postPathFromLinkingUrl(value) ??
+    userPathFromLinkingUrl(value);
   if (validatedPath) {
     pendingPostReturnPath = validatedPath;
   }
@@ -103,7 +88,9 @@ export function isInitialPostLinkResolved(): boolean {
   return initialLinkResolved;
 }
 
-export function subscribeInitialPostLinkResolved(listener: () => void): () => void {
+export function subscribeInitialPostLinkResolved(
+  listener: () => void,
+): () => void {
   if (initialLinkResolved) {
     listener();
     return () => {};
@@ -114,9 +101,71 @@ export function subscribeInitialPostLinkResolved(listener: () => void): () => vo
   };
 }
 
-function encodePostId(postId: string): string {
-  if (typeof postId !== "string" || postId.length === 0) {
-    throw new Error("Invalid post ID");
+function encodeLinkId(id: string): string {
+  if (typeof id !== "string" || id.length === 0) {
+    throw new Error("Invalid link ID");
   }
-  return encodeURIComponent(postId);
+  return encodeURIComponent(id);
+}
+
+function validateResourceReturnPath(
+  kind: "post" | "user",
+  value: unknown,
+): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const match = new RegExp(
+    `^(?:\\/\\(app\\))?\\/${kind}\\/([^/?#\\\\]+)$`,
+  ).exec(value);
+  if (!match) {
+    return null;
+  }
+
+  try {
+    const id = decodeURIComponent(match[1]);
+    if (id === "." || id === "..") {
+      return null;
+    }
+    const pattern = kind === "user" ? USERNAME_PATTERN : POST_ID_PATTERN;
+    if (!pattern.test(id)) {
+      return null;
+    }
+    return `/${kind}/${encodeURIComponent(id)}`;
+  } catch {
+    return null;
+  }
+}
+
+function getResourceIdFromReturnPath(
+  kind: "post" | "user",
+  value: unknown,
+): string | null {
+  const validatedPath = validateResourceReturnPath(kind, value);
+  if (!validatedPath) {
+    return null;
+  }
+
+  return decodeURIComponent(validatedPath.slice(`/${kind}/`.length));
+}
+
+function resourcePathFromLinkingUrl(
+  kind: "post" | "user",
+  url: unknown,
+): string | null {
+  if (typeof url !== "string" || url.length === 0) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === kind) {
+      const id = parsed.pathname.replace(/^\//, "");
+      return validateResourceReturnPath(kind, `/${kind}/${id}`);
+    }
+    return validateResourceReturnPath(kind, parsed.pathname);
+  } catch {
+    return null;
+  }
 }
