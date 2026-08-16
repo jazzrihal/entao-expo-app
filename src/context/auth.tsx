@@ -6,6 +6,7 @@ import {
   clearPushRegistrationCache,
   unregisterPushToken,
 } from "@/lib/push-notifications";
+import { POST_LINK_ORIGIN } from "@/lib/post-sharing";
 import { supabase } from "@/lib/supabase";
 
 type AuthResult = { error: string | null };
@@ -60,7 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function signUp(email: string, password: string) {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${POST_LINK_ORIGIN}/auth/confirm` },
+    });
     if (error) return { error: error.message, needsConfirmation: false };
     // When email confirmation is required, identities array is empty
     const needsConfirmation =
