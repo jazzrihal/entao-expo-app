@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Host, Text } from "@expo/ui";
-import CommunitySegmentedControl from "@expo/ui/community/segmented-control";
 import { Empty } from "@/components/empty";
-import { ProfileAccountFields } from "@/components/profile-account-fields";
 import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
 import { Stack, useIsFocused, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useAuth } from "@/context/auth";
-import { formatDateOnly, parseDateOnly } from "@/lib/profile";
 import { resolveDisplayName } from "@/lib/profile-display";
 import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import {
@@ -16,15 +13,10 @@ import {
   type ProfileFeedPostWithImage,
   PostDetailWithImage,
 } from "@/queries/posts";
-import {
-  useUpdateUserProfileMutation,
-  useUserProfileQuery,
-} from "@/queries/profile";
+import { useUserProfileQuery } from "@/queries/profile";
 import { useLocalPosts } from "@/hooks/useLocalPosts";
 import { localPostToDetail } from "@/lib/local-post-adapter";
 import type { LocalPost } from "@/lib/post-manager";
-
-type ProfileTab = "profile" | "account";
 
 type ProfileGridItem = PostGridItem & {
   _sortKey: number;
@@ -42,24 +34,6 @@ export default function Profile() {
   const profileQuery = useUserProfileQuery(userId);
   const feedQuery = useProfileFeedQuery(userId);
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
-  const updateMutation = useUpdateUserProfileMutation();
-
-  const [activeTab, setActiveTab] = useState<ProfileTab>("profile");
-  const [username, setUsername] = useState("");
-  const [displayNameField, setDisplayNameField] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState<Date | undefined>(undefined);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [fieldsSeeded, setFieldsSeeded] = useState(false);
-  const hasSeededFields = useRef(false);
-
-  useEffect(() => {
-    if (hasSeededFields.current || !profileQuery.data) return;
-    hasSeededFields.current = true;
-    setUsername(profileQuery.data.username ?? "");
-    setDisplayNameField(profileQuery.data.display_name ?? "");
-    setDateOfBirth(parseDateOnly(profileQuery.data.date_of_birth));
-    setFieldsSeeded(true);
-  }, [profileQuery.data]);
 
   const displayName = profileQuery.data
     ? resolveDisplayName(profileQuery.data)
@@ -124,22 +98,6 @@ export default function Profile() {
     [router, userId, mergedPosts, localPosts],
   );
 
-  const handleSaveAccount = useCallback(() => {
-    if (!userId || updateMutation.isPending) return;
-    setActionError(null);
-    updateMutation.mutate(
-      {
-        username,
-        display_name: displayNameField,
-        date_of_birth: formatDateOnly(dateOfBirth),
-      },
-      {
-        onError: (error) => setActionError(error.message),
-        onSuccess: () => setActionError(null),
-      },
-    );
-  }, [userId, updateMutation, username, displayNameField, dateOfBirth]);
-
   const feedContent = (() => {
     if (showFeedLoading) {
       return (
@@ -196,29 +154,6 @@ export default function Profile() {
     );
   })();
 
-  const accountContent = fieldsSeeded ? (
-    <ProfileAccountFields
-      username={username}
-      displayName={displayNameField}
-      dateOfBirth={dateOfBirth}
-      email={session?.user.email}
-      onUsernameChange={setUsername}
-      onDisplayNameChange={setDisplayNameField}
-      onDateOfBirthChange={setDateOfBirth}
-      errorMessage={actionError}
-    />
-  ) : (
-    <ScrollView
-      style={styles.feed}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <ActivityIndicator
-        testID="profile-account-loading"
-        style={styles.loader}
-      />
-    </ScrollView>
-  );
-
   return (
     <>
       <Stack.Screen options={{ title: displayName || "Profile" }} />
@@ -226,30 +161,16 @@ export default function Profile() {
         testID="profile-feed"
         style={[styles.feed, { paddingTop: headerHeight }]}
       >
-        <View style={styles.tabSwitcher}>
-          <CommunitySegmentedControl
-            testID="profile-tab-switcher"
-            values={["Profile", "Account"]}
-            selectedIndex={activeTab === "profile" ? 0 : 1}
-            onChange={(event) => {
-              setActiveTab(
-                event.nativeEvent.selectedSegmentIndex === 0
-                  ? "profile"
-                  : "account",
-              );
-            }}
-          />
-        </View>
-        {activeTab === "profile" ? feedContent : accountContent}
+        {feedContent}
       </View>
-      {isFocused && activeTab === "profile" ? (
+      {isFocused ? (
         <Stack.Toolbar placement="left">
           <Stack.Toolbar.Button accessibilityLabel="Sign out" onPress={signOut}>
             Sign out
           </Stack.Toolbar.Button>
         </Stack.Toolbar>
       ) : null}
-      {isFocused && userId && activeTab === "profile" ? (
+      {isFocused && userId ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             accessibilityLabel="Share"
@@ -265,17 +186,13 @@ export default function Profile() {
               );
             }}
           />
-        </Stack.Toolbar>
-      ) : null}
-      {isFocused && activeTab === "account" ? (
-        <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
-            accessibilityLabel={updateMutation.isPending ? "Saving" : "Save"}
-            variant="done"
-            disabled={updateMutation.isPending}
-            onPress={handleSaveAccount}
+            accessibilityLabel="Settings"
+            onPress={() => {
+              router.push("/(app)/(tabs)/profile/account-settings");
+            }}
           >
-            {updateMutation.isPending ? "Saving…" : "Save"}
+            Settings
           </Stack.Toolbar.Button>
         </Stack.Toolbar>
       ) : null}
@@ -286,11 +203,6 @@ export default function Profile() {
 const styles = StyleSheet.create({
   feed: {
     flex: 1,
-  },
-  tabSwitcher: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
   },
   scrollContent: {
     flexGrow: 1,

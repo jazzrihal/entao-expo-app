@@ -15,8 +15,8 @@ env:
     id: "profile-post-grid"
     label: Profile segment is the default
 - tapOn:
-    text: "Account"
-    label: Switch to Account segment
+    text: "Settings"
+    label: Open Account settings
 - extendedWaitUntil:
     visible:
       id: "profile-account-fields"
