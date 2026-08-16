@@ -126,12 +126,13 @@ export function useFeedQuery(
 
 export function useProfileFeedQuery(
   userId: string | undefined,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; staleTime?: number },
 ) {
   return useQuery({
     queryKey: queryKeys.profileFeed(userId ?? ""),
     queryFn: () => fetchProfileFeedWithImages(userId!),
     enabled: (options?.enabled ?? true) && !!userId,
+    staleTime: options?.staleTime,
   });
 }
 

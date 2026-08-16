@@ -31,8 +31,8 @@ export default function Profile() {
   const { session } = useAuth();
   const userId = session?.user.id;
 
-  const profileQuery = useUserProfileQuery(userId);
-  const feedQuery = useProfileFeedQuery(userId);
+  const profileQuery = useUserProfileQuery(userId, { staleTime: Infinity });
+  const feedQuery = useProfileFeedQuery(userId, { staleTime: Infinity });
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
 
   const displayName = profileQuery.data
@@ -148,6 +148,7 @@ export default function Profile() {
         refreshing={feedQuery.isRefetching && !feedQuery.isLoading}
         onRefresh={() => {
           refreshLocalPosts();
+          void profileQuery.refetch();
           void feedQuery.refetch();
         }}
       />

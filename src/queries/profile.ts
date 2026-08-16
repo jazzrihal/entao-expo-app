@@ -11,7 +11,7 @@ import { queryKeys } from "@/queries/keys";
 
 export function useUserProfileQuery(
   userId: string | undefined,
-  options?: { enabled?: boolean },
+  options?: { enabled?: boolean; staleTime?: number },
 ) {
   return useQuery({
     queryKey: queryKeys.userProfile(userId ?? ""),
@@ -21,6 +21,7 @@ export function useUserProfileQuery(
       return data;
     },
     enabled: (options?.enabled ?? true) && !!userId,
+    staleTime: options?.staleTime,
   });
 }
 
