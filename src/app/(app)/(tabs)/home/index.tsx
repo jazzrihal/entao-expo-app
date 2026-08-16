@@ -181,6 +181,7 @@ export default function Home() {
   const acceptLocation = useCallback(async () => {
     const permission = await Location.requestForegroundPermissionsAsync();
     if (!permission.granted) {
+      setLocationSheetOpen(false);
       return;
     }
 
@@ -198,7 +199,10 @@ export default function Home() {
       setLocationLabel(formatLocationButtonLabel(parts));
       setLocationSheetOpen(false);
     } catch {
+      // Ensure the sheet always dismisses, even when location resolution
+      // fails (e.g. no GPS fix) — otherwise "Accept" appears to hang forever.
       setLocationLabel("Select location");
+      setLocationSheetOpen(false);
     }
   }, []);
 
