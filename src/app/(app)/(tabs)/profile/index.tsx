@@ -1,11 +1,12 @@
 import { useCallback, useMemo } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
-import { Host, Text } from "@expo/ui";
+import { Button, Host, Text } from "@expo/ui";
 import { Empty } from "@/components/empty";
 import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
 import { Stack, useIsFocused, useRouter } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useAuth } from "@/context/auth";
+import { FEED_STUCK_AFTER_MS, useStuckAfter } from "@/hooks/useStuckAfter";
 import { resolveDisplayName } from "@/lib/profile-display";
 import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import {
@@ -67,6 +68,7 @@ export default function Profile() {
   }, [localPosts, feedQuery.data]);
 
   const showFeedLoading = feedQuery.isLoading && localPosts.length === 0;
+  const feedStuck = useStuckAfter(showFeedLoading, FEED_STUCK_AFTER_MS);
   const showFeedError =
     !!feedQuery.error && !feedQuery.isLoading && mergedPosts.length === 0;
   const showFeedEmpty =
@@ -105,10 +107,30 @@ export default function Profile() {
           style={styles.feed}
           contentContainerStyle={styles.scrollContent}
         >
-          <ActivityIndicator
-            testID="profile-feed-loading"
-            style={styles.loader}
-          />
+          {feedStuck ? (
+            <Empty
+              testID="profile-feed-stuck"
+              title="Still loading"
+              description="This is taking longer than usual. Check your connection and try again."
+              action={
+                <Button
+                  testID="profile-feed-retry"
+                  variant="filled"
+                  label="Retry"
+                  onPress={() => {
+                    refreshLocalPosts();
+                    void profileQuery.refetch();
+                    void feedQuery.refetch();
+                  }}
+                />
+              }
+            />
+          ) : (
+            <ActivityIndicator
+              testID="profile-feed-loading"
+              style={styles.loader}
+            />
+          )}
         </ScrollView>
       );
     }

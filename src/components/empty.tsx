@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useColorScheme } from "react-native";
 import { Column, Host, Spacer, Text } from "@expo/ui";
 import { resolveColorScheme, SECONDARY_LABEL } from "@/lib/theme-colors";
@@ -6,9 +7,10 @@ type EmptyProps = {
   title: string;
   description?: string;
   testID?: string;
+  action?: ReactNode;
 };
 
-export function Empty({ title, description, testID }: EmptyProps) {
+export function Empty({ title, description, testID, action }: EmptyProps) {
   const secondaryColor = SECONDARY_LABEL[resolveColorScheme(useColorScheme())];
 
   return (
@@ -23,6 +25,7 @@ export function Empty({ title, description, testID }: EmptyProps) {
             {description}
           </Text>
         ) : null}
+        {action}
         <Spacer flexible />
       </Column>
     </Host>

@@ -1,3 +1,4 @@
+import { throwIfAborted } from "@/lib/abort";
 import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 import { toPostgisPoint } from "@/lib/postgis";
@@ -226,11 +227,17 @@ export async function deletePost(
 export async function listProfileFeedPosts(params: {
   profileUserId: string;
   limit?: number;
+  signal?: AbortSignal;
 }): Promise<{ data: ProfileFeedPost[] | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("list_profile_feed_posts", {
+  let query = supabase.rpc("list_profile_feed_posts", {
     p_profile_user_id: params.profileUserId,
     p_limit: params.limit ?? 30,
   });
+  if (params.signal) {
+    query = query.abortSignal(params.signal);
+  }
+  const { data, error } = await query;
+  throwIfAborted(params.signal);
 
   return { data, error: rpcErrorMessage(error) };
 }
@@ -241,14 +248,20 @@ export async function listFeedPosts(params: {
   longitude: number;
   limit?: number;
   maxDistanceMeters?: number;
+  signal?: AbortSignal;
 }): Promise<{ data: FeedPost[] | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("list_feed_posts", {
+  let query = supabase.rpc("list_feed_posts", {
     p_at: params.at,
     p_latitude: params.latitude,
     p_longitude: params.longitude,
     p_limit: params.limit ?? 30,
     p_max_distance_meters: params.maxDistanceMeters,
   });
+  if (params.signal) {
+    query = query.abortSignal(params.signal);
+  }
+  const { data, error } = await query;
+  throwIfAborted(params.signal);
 
   return { data, error: rpcErrorMessage(error) };
 }
@@ -310,10 +323,16 @@ export function flattenFriendsPostsGrouped(
 
 export async function listFriendsPostsGrouped(params?: {
   recentWithin?: string;
+  signal?: AbortSignal;
 }): Promise<{ data: FriendsPostsGroup[] | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("list_friends_posts_grouped", {
+  let query = supabase.rpc("list_friends_posts_grouped", {
     p_recent_within: params?.recentWithin ?? "365 days",
   });
+  if (params?.signal) {
+    query = query.abortSignal(params.signal);
+  }
+  const { data, error } = await query;
+  throwIfAborted(params?.signal);
 
   if (error) {
     return { data: null, error: rpcErrorMessage(error) };
@@ -329,14 +348,19 @@ export async function listFriendsPostsGrouped(params?: {
 
 export async function getPostImageUrls(
   paths: string[],
+  signal?: AbortSignal,
 ): Promise<{ data: Record<string, string>; error: string | null }> {
   if (paths.length === 0) {
     return { data: {}, error: null };
   }
 
+  throwIfAborted(signal);
+
   const { data, error } = await supabase.storage
     .from(POST_IMAGES_BUCKET)
     .createSignedUrls(paths, SIGNED_URL_TTL_SECONDS);
+
+  throwIfAborted(signal);
 
   if (error) {
     return { data: {}, error: error.message };
@@ -363,8 +387,14 @@ async function getCurrentUserId(): Promise<string | null> {
 
 export async function getPost(
   postId: string,
+  signal?: AbortSignal,
 ): Promise<{ data: PostDetail | null; error: string | null }> {
-  const { data, error } = await supabase.rpc("get_post", { p_post_id: postId });
+  let query = supabase.rpc("get_post", { p_post_id: postId });
+  if (signal) {
+    query = query.abortSignal(signal);
+  }
+  const { data, error } = await query;
+  throwIfAborted(signal);
 
   return { data: data?.[0] ?? null, error: rpcErrorMessage(error) };
 }

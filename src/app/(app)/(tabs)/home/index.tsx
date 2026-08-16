@@ -9,23 +9,33 @@ import * as Location from "expo-location";
 import { Stack, useFocusEffect, useRouter } from "expo-router";
 import { HomeFeedHeader } from "@/components/home-feed-header";
 import { type MapCoordinates } from "@/components/map-picker";
+import { FEED_STUCK_AFTER_MS, useStuckAfter } from "@/hooks/useStuckAfter";
 import { locationPicker$ } from "@/lib/location-picker-store";
 import {
   formatLocationButtonLabel,
   resolvePostLocationParts,
 } from "@/lib/location-label";
-import {
-  momentPicker$,
-  type AppliedMoment,
-} from "@/lib/moment-picker-store";
+import { momentPicker$, type AppliedMoment } from "@/lib/moment-picker-store";
 import type { PostLocationParts } from "@/lib/post-display";
 import { openPostDetail } from "@/lib/navigation";
+import { withTimeout } from "@/lib/with-timeout";
 import { useFeedQuery, type FeedPostWithImage } from "@/queries/posts";
 
 const DEFAULT_COORDINATES: MapCoordinates = {
   latitude: 37.7749,
   longitude: -122.4194,
 };
+
+const LOCATION_FIX_TIMEOUT_MS = 10_000;
+
+function getCurrentPositionWithTimeout() {
+  return withTimeout(
+    Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    }),
+    LOCATION_FIX_TIMEOUT_MS,
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -60,6 +70,7 @@ export default function Home() {
   );
   const showFeedLoading =
     initializingLocation || (hasLocation && feedQuery.isPending);
+  const feedStuck = useStuckAfter(showFeedLoading, FEED_STUCK_AFTER_MS);
   const error = feedQuery.error?.message ?? null;
 
   useObserve(locationPicker$.confirmed, async ({ value }) => {
@@ -125,9 +136,7 @@ export default function Home() {
           return;
         }
 
-        const position = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
+        const position = await getCurrentPositionWithTimeout();
         const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -186,9 +195,7 @@ export default function Home() {
     }
 
     try {
-      const position = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
+      const position = await getCurrentPositionWithTimeout();
       const coordinates = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -256,6 +263,30 @@ export default function Home() {
 
   const feedContent = (() => {
     if (showFeedLoading) {
+      if (feedStuck) {
+        return (
+          <Empty
+            testID="home-feed-stuck"
+            title="Still loading"
+            description="This is taking longer than usual. Check your connection and try again."
+            action={
+              <Button
+                testID="home-feed-retry"
+                variant="filled"
+                label="Retry"
+                onPress={() => {
+                  if (initializingLocation) {
+                    setLocationLabel("Select location");
+                    setInitializingLocation(false);
+                  }
+                  void feedQuery.refetch();
+                }}
+              />
+            }
+          />
+        );
+      }
+
       return <ActivityIndicator style={styles.loader} />;
     }
 

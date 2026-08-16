@@ -60,10 +60,14 @@ function hasLocation(params: FeedParams): boolean {
 
 async function fetchFeedWithImages(
   params: FeedParams,
+  signal: AbortSignal,
 ): Promise<FeedPostWithImage[]> {
-  const posts = assertOk(await listFeedPosts(params));
+  const posts = assertOk(await listFeedPosts({ ...params, signal }));
   const urls = assertOk(
-    await getPostImageUrls(posts.map((p) => p.storage_object_path)),
+    await getPostImageUrls(
+      posts.map((p) => p.storage_object_path),
+      signal,
+    ),
   );
   return posts.map((post) => ({
     ...post,
@@ -73,10 +77,16 @@ async function fetchFeedWithImages(
 
 async function fetchProfileFeedWithImages(
   userId: string,
+  signal: AbortSignal,
 ): Promise<ProfileFeedPostWithImage[]> {
-  const posts = assertOk(await listProfileFeedPosts({ profileUserId: userId }));
+  const posts = assertOk(
+    await listProfileFeedPosts({ profileUserId: userId, signal }),
+  );
   const urls = assertOk(
-    await getPostImageUrls(posts.map((p) => p.storage_object_path)),
+    await getPostImageUrls(
+      posts.map((p) => p.storage_object_path),
+      signal,
+    ),
   );
   return posts.map((post) => ({
     ...post,
@@ -84,12 +94,14 @@ async function fetchProfileFeedWithImages(
   }));
 }
 
-async function fetchFriendsPostsGroupedWithImages(): Promise<FriendsPostsGroupedWithImages> {
-  const groups = assertOk(await listFriendsPostsGrouped());
+async function fetchFriendsPostsGroupedWithImages(
+  signal: AbortSignal,
+): Promise<FriendsPostsGroupedWithImages> {
+  const groups = assertOk(await listFriendsPostsGrouped({ signal }));
   const paths = groups.flatMap((group) =>
     group.posts.map((post) => post.storage_object_path),
   );
-  const urls = assertOk(await getPostImageUrls(paths));
+  const urls = assertOk(await getPostImageUrls(paths, signal));
   return {
     groups: groups.map((group) => ({
       ...group,
@@ -102,9 +114,12 @@ async function fetchFriendsPostsGroupedWithImages(): Promise<FriendsPostsGrouped
 
 async function fetchPostWithImage(
   postId: string,
+  signal: AbortSignal,
 ): Promise<PostDetailWithImage> {
-  const post = assertOk(await getPost(postId));
-  const urls = assertOk(await getPostImageUrls([post.storage_object_path]));
+  const post = assertOk(await getPost(postId, signal));
+  const urls = assertOk(
+    await getPostImageUrls([post.storage_object_path], signal),
+  );
   return {
     ...post,
     imageUrl: urls[post.storage_object_path],
@@ -119,7 +134,7 @@ export function useFeedQuery(
   const enabled = (options?.enabled ?? true) && locationEnabled;
   return useQuery({
     queryKey: queryKeys.feed(params),
-    queryFn: () => fetchFeedWithImages(params),
+    queryFn: ({ signal }) => fetchFeedWithImages(params, signal),
     enabled,
   });
 }
@@ -130,7 +145,7 @@ export function useProfileFeedQuery(
 ) {
   return useQuery({
     queryKey: queryKeys.profileFeed(userId ?? ""),
-    queryFn: () => fetchProfileFeedWithImages(userId!),
+    queryFn: ({ signal }) => fetchProfileFeedWithImages(userId!, signal),
     enabled: (options?.enabled ?? true) && !!userId,
     staleTime: options?.staleTime,
   });
@@ -139,7 +154,7 @@ export function useProfileFeedQuery(
 export function useFriendsPostsQuery() {
   return useQuery({
     queryKey: queryKeys.friendsPosts(),
-    queryFn: fetchFriendsPostsGroupedWithImages,
+    queryFn: ({ signal }) => fetchFriendsPostsGroupedWithImages(signal),
   });
 }
 
@@ -152,7 +167,7 @@ export function usePostQuery(
 ) {
   return useQuery({
     queryKey: queryKeys.post(postId ?? ""),
-    queryFn: () => fetchPostWithImage(postId!),
+    queryFn: ({ signal }) => fetchPostWithImage(postId!, signal),
     enabled: (options?.enabled ?? true) && !!postId,
     placeholderData: options?.placeholderData,
   });

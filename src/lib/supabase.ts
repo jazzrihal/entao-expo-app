@@ -1,3 +1,8 @@
+import {
+  createTimeoutSignal,
+  mergeAbortSignals,
+  SUPABASE_FETCH_TIMEOUT_MS,
+} from "@/lib/abort";
 import type { Database } from "@/lib/database.types";
 import { createClient } from "@supabase/supabase-js";
 import * as Device from "expo-device";
@@ -66,6 +71,22 @@ async function supabaseErrorBody(response: Response): Promise<unknown> {
   }
 }
 
+function fetchAbortSignal(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): AbortSignal {
+  const signals: AbortSignal[] = [
+    createTimeoutSignal(SUPABASE_FETCH_TIMEOUT_MS),
+  ];
+  if (init?.signal) {
+    signals.push(init.signal);
+  }
+  if (input instanceof Request && input.signal) {
+    signals.push(input.signal);
+  }
+  return mergeAbortSignals(signals);
+}
+
 async function loggedFetch(
   input: RequestInfo | URL,
   init?: RequestInit,
@@ -73,7 +94,10 @@ async function loggedFetch(
   const { method, url } = requestMeta(input, init);
   let response: Response;
   try {
-    response = await fetch(input, init);
+    response = await fetch(input, {
+      ...init,
+      signal: fetchAbortSignal(input, init),
+    });
   } catch (error) {
     console.error("[supabase]", method, url, error);
     throw error;
