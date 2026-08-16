@@ -9,6 +9,7 @@ import { FlashList } from "@shopify/flash-list";
 import { Image } from "@/components/image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
+import { FORCE_UPLOAD_INDICATORS } from "@/lib/debug-upload-indicators";
 import type { LocalPostStatus } from "@/lib/post-db";
 import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 
@@ -98,10 +99,14 @@ export function PostFeedGrid<T extends PostGridItem>({
             contentFit="cover"
           />
           {item.isPinned ? <PinnedPostBadge /> : null}
-          {item.isLocal && item.syncStatus ? (
+          {FORCE_UPLOAD_INDICATORS || (item.isLocal && item.syncStatus) ? (
             <LocalPostSyncBadge
               testID="local-post-thumbnail"
-              syncStatus={item.syncStatus}
+              syncStatus={
+                FORCE_UPLOAD_INDICATORS
+                  ? "uploading"
+                  : (item.syncStatus ?? "queued")
+              }
             />
           ) : null}
         </Pressable>

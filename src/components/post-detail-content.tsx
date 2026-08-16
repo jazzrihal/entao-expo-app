@@ -17,6 +17,7 @@ import {
 import { ZoomableImage } from "@/components/zoomable-image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
+import { FORCE_UPLOAD_INDICATORS } from "@/lib/debug-upload-indicators";
 import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
@@ -204,10 +205,14 @@ export function PostDetailContent({
                 style={{ width, height: imageHeight }}
                 width={width}
               />
-              {isLocalOnly && localSyncStatus ? (
+              {FORCE_UPLOAD_INDICATORS || (isLocalOnly && localSyncStatus) ? (
                 <LocalPostSyncBadge
                   testID={`${testIDPrefix}-detail-local-badge`}
-                  syncStatus={localSyncStatus}
+                  syncStatus={
+                    FORCE_UPLOAD_INDICATORS
+                      ? "uploading"
+                      : (localSyncStatus ?? "queued")
+                  }
                 />
               ) : null}
             </View>

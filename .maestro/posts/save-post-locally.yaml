@@ -29,6 +29,8 @@ env:
     id: "profile-post-grid"
 - assertVisible:
     id: "local-post-thumbnail"
+- assertNotVisible:
+    id: "network-activity-indicator"
 # Badge has pointerEvents none but Maestro still hits the parent cell in practice.
 # Prefer this over a grid index — local cells are not always first after seed posts.
 - tapOn:

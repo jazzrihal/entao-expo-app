@@ -15,7 +15,12 @@ import { createPost } from "@/lib/posts";
 import { startUpload } from "../../../modules/background-upload/src";
 import * as PostDb from "@/lib/post-db";
 import { markSynced } from "@/lib/post-manager";
-import { runSync, addSyncListener, resetSyncState } from "../sync-manager";
+import {
+  runSync,
+  addSyncListener,
+  isSyncRunning,
+  resetSyncState,
+} from "../sync-manager";
 
 jest.mock("@/lib/supabase", () => ({
   supabase: {
@@ -326,6 +331,63 @@ describe("sync-manager", () => {
     expect(listener).toHaveBeenCalled();
 
     remove();
+  });
+
+  // -------------------------------------------------------------------------
+  // isSyncRunning: only true while there is due work
+  // -------------------------------------------------------------------------
+  it("toggles isSyncRunning around runSync when entries are due", async () => {
+    const db = {};
+    setupHappyPath(db);
+
+    let resolveUpload!: () => void;
+    const uploadStarted = new Promise<void>((resolveStarted) => {
+      mockStartUpload.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveUpload = resolve;
+            resolveStarted();
+          }),
+      );
+    });
+
+    expect(isSyncRunning()).toBe(false);
+
+    const syncPromise = runSync();
+    await uploadStarted;
+    expect(isSyncRunning()).toBe(true);
+
+    resolveUpload();
+    await syncPromise;
+    expect(isSyncRunning()).toBe(false);
+  });
+
+  it("keeps isSyncRunning false throughout when the queue is empty", async () => {
+    const db = {};
+    let resolveDue!: (entries: unknown[]) => void;
+    mockGetDb.mockResolvedValue(db);
+    const duePending = new Promise<void>((resolveReady) => {
+      mockGetDue.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveDue = resolve;
+            resolveReady();
+          }),
+      );
+    });
+
+    const listener = jest.fn();
+    addSyncListener(listener);
+
+    const syncPromise = runSync();
+    await duePending;
+    expect(isSyncRunning()).toBe(false);
+
+    resolveDue([]);
+    await syncPromise;
+
+    expect(isSyncRunning()).toBe(false);
+    expect(listener).not.toHaveBeenCalled();
   });
 });
 

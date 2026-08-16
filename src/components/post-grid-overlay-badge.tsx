@@ -1,5 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { SymbolView, type SFSymbol } from "expo-symbols";
+import { SpinningIcon } from "@/components/spinning-icon";
 
 const SYMBOL_SIZE = 18;
 
@@ -7,6 +8,7 @@ type PostGridOverlayBadgeProps = {
   symbolName: SFSymbol;
   accessibilityLabel: string;
   testID?: string;
+  bouncing?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -14,6 +16,7 @@ export function PostGridOverlayBadge({
   symbolName,
   accessibilityLabel,
   testID,
+  bouncing = false,
   style,
 }: PostGridOverlayBadgeProps) {
   return (
@@ -27,13 +30,22 @@ export function PostGridOverlayBadge({
       style={[styles.badge, style]}
       pointerEvents="none"
     >
-      <SymbolView
-        name={symbolName}
-        tintColor="#FFFFFF"
-        resizeMode="scaleAspectFit"
-        style={styles.symbol}
-        accessible={false}
-      />
+      {bouncing ? (
+        <SpinningIcon
+          name={symbolName}
+          size={SYMBOL_SIZE}
+          tintColor="#FFFFFF"
+          bouncing
+        />
+      ) : (
+        <SymbolView
+          name={symbolName}
+          tintColor="#FFFFFF"
+          resizeMode="scaleAspectFit"
+          style={styles.symbol}
+          accessible={false}
+        />
+      )}
     </View>
   );
 }
@@ -46,6 +58,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.55)",
     borderRadius: 12,
     padding: 4,
+    overflow: "visible",
   },
   symbol: {
     width: SYMBOL_SIZE,

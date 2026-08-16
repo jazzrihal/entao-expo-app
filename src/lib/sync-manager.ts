@@ -24,6 +24,8 @@ function backoffMs(attempt: number): number {
 
 // Simple mutex – prevents concurrent sync runs
 let running = false;
+/** True only while runSync is processing a non-empty due queue (not no-op checks). */
+let syncActive = false;
 
 export type SyncManagerListener = () => void;
 const listeners = new Set<SyncManagerListener>();
@@ -33,9 +35,14 @@ export function addSyncListener(fn: SyncManagerListener): () => void {
   return () => listeners.delete(fn);
 }
 
+export function isSyncRunning(): boolean {
+  return syncActive;
+}
+
 /** @internal Reset mutex and listeners between test cases. */
 export function resetSyncState(): void {
   running = false;
+  syncActive = false;
   listeners.clear();
 }
 
@@ -46,10 +53,17 @@ function notifyListeners() {
 export async function runSync(): Promise<void> {
   if (running) return;
   running = true;
+  let announced = false;
 
   try {
     const db = await getDb();
     const entries = await getDueOutboxEntries(db);
+
+    if (entries.length > 0) {
+      syncActive = true;
+      announced = true;
+      notifyListeners();
+    }
 
     for (const entry of entries) {
       const post = await getLocalPostById(db, entry.local_post_id);
@@ -148,6 +162,10 @@ export async function runSync(): Promise<void> {
       }
     }
   } finally {
+    if (announced) {
+      syncActive = false;
+      notifyListeners();
+    }
     running = false;
   }
 }

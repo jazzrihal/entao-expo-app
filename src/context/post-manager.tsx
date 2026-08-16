@@ -5,7 +5,8 @@ import {
   useEffect,
   type ReactNode,
 } from "react";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState, StyleSheet, View, type AppStateStatus } from "react-native";
+import { NetworkActivityIndicator } from "@/components/network-activity-indicator";
 import { getDb } from "@/lib/post-db";
 import { runSync } from "@/lib/sync-manager";
 import { registerPostSyncTask } from "@/tasks/post-sync-task";
@@ -44,7 +45,10 @@ export function PostManagerProvider({ children }: { children: ReactNode }) {
 
   return (
     <PostManagerContext.Provider value={{ triggerSync }}>
-      {children}
+      <View style={styles.root}>
+        {children}
+        <NetworkActivityIndicator />
+      </View>
     </PostManagerContext.Provider>
   );
 }
@@ -56,3 +60,9 @@ export function usePostManager(): PostManagerContextValue {
   }
   return ctx;
 }
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});

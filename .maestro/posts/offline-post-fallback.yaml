@@ -36,6 +36,15 @@ env:
 - assertVisible:
     id: "local-post-thumbnail"
 - setAirplaneMode: disabled
+# Global indicator lights up while the outbox upload loop has work, then clears.
+- extendedWaitUntil:
+    visible:
+      id: "network-activity-indicator"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "network-activity-indicator"
+    timeout: 30000
 # Wait for background sync to complete (up to 30s)
 - extendedWaitUntil:
     notVisible:
