@@ -1,8 +1,8 @@
+import type { Database } from "@/lib/database.types";
+import { createClient } from "@supabase/supabase-js";
+import * as Device from "expo-device";
 import "expo-sqlite/localStorage/install";
 import { Platform } from "react-native";
-import * as Device from "expo-device";
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/database.types";
 
 const useLocal = __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local";
 
@@ -34,6 +34,59 @@ const supabaseKey = useLocal
   ? process.env.EXPO_PUBLIC_SUPABASE_LOCAL_PUBLISHABLE_KEY!
   : process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
+function requestMeta(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): { method: string; url: string } {
+  if (input instanceof Request) {
+    return { method: init?.method ?? input.method, url: input.url };
+  }
+  return {
+    method: init?.method ?? "GET",
+    url: typeof input === "string" ? input : String(input),
+  };
+}
+
+async function supabaseErrorBody(response: Response): Promise<unknown> {
+  try {
+    const json: unknown = await response.json();
+    if (!json || typeof json !== "object") {
+      return json;
+    }
+    const record = json as Record<string, unknown>;
+    const body: Record<string, unknown> = {};
+    for (const key of ["message", "code", "details", "hint"] as const) {
+      if (record[key] != null) {
+        body[key] = record[key];
+      }
+    }
+    return Object.keys(body).length > 0 ? body : json;
+  } catch {
+    return {};
+  }
+}
+
+async function loggedFetch(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  const { method, url } = requestMeta(input, init);
+  let response: Response;
+  try {
+    response = await fetch(input, init);
+  } catch (error) {
+    console.error("[supabase]", method, url, error);
+    throw error;
+  }
+
+  if (!response.ok) {
+    const body = await supabaseErrorBody(response.clone());
+    console.error("[supabase]", method, url, response.status, body);
+  }
+
+  return response;
+}
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     storage: localStorage,
@@ -41,4 +94,5 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+  global: { fetch: loggedFetch },
 });
