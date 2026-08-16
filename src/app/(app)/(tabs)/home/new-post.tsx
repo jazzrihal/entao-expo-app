@@ -27,12 +27,7 @@ import {
   TextInput,
   type TextInputRef,
 } from "@expo/ui";
-import {
-  CameraView,
-  useCameraPermissions,
-  type CameraType,
-  type FocusMode,
-} from "expo-camera";
+import { CameraView, useCameraPermissions, type CameraType } from "expo-camera";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Empty } from "@/components/empty";
 import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
@@ -93,7 +88,6 @@ export default function NewPostScreen() {
   const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState<CameraType>("back");
   const [gpsEnabled, setGpsEnabled] = useState(true);
-  const [autofocusMode, setAutofocusMode] = useState<FocusMode>("off");
   const [focusSquare, setFocusSquare] = useState({
     visible: false,
     x: 0,
@@ -107,9 +101,6 @@ export default function NewPostScreen() {
     null,
   );
   const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autofocusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
 
   useEffect(() => {
     zoomRef.current = zoom;
@@ -134,9 +125,6 @@ export default function NewPostScreen() {
       }
       if (focusTimeoutRef.current) {
         clearTimeout(focusTimeoutRef.current);
-      }
-      if (autofocusTimeoutRef.current) {
-        clearTimeout(autofocusTimeoutRef.current);
       }
     };
   }, []);
@@ -166,13 +154,7 @@ export default function NewPostScreen() {
 
   const handleTapFocus = useCallback((x: number, y: number) => {
     setFocusSquare({ visible: true, x, y });
-    setAutofocusMode("on");
-    if (autofocusTimeoutRef.current) {
-      clearTimeout(autofocusTimeoutRef.current);
-    }
-    autofocusTimeoutRef.current = setTimeout(() => {
-      setAutofocusMode("off");
-    }, 100);
+    cameraRef.current?.focusAsync(x, y).catch(() => {});
     if (focusTimeoutRef.current) {
       clearTimeout(focusTimeoutRef.current);
     }
@@ -471,7 +453,6 @@ export default function NewPostScreen() {
                 style={styles.camera}
                 facing={facing}
                 zoom={zoom}
-                autofocus={autofocusMode}
               />
               {focusSquare.visible ? (
                 <View

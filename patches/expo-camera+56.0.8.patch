@@ -1,0 +1,142 @@
+diff --git a/node_modules/expo-camera/build/Camera.types.d.ts b/node_modules/expo-camera/build/Camera.types.d.ts
+index 0ee50ec..7afac9e 100644
+--- a/node_modules/expo-camera/build/Camera.types.d.ts
++++ b/node_modules/expo-camera/build/Camera.types.d.ts
+@@ -471,6 +471,7 @@ export interface CameraViewRef {
+     readonly launchModernScanner: () => Promise<void>;
+     readonly resumePreview: () => Promise<void>;
+     readonly pausePreview: () => Promise<void>;
++    readonly focusAsync?: (x: number, y: number) => Promise<void>;
+ }
+ /**
+  * @hidden
+diff --git a/node_modules/expo-camera/build/CameraView.d.ts b/node_modules/expo-camera/build/CameraView.d.ts
+index da858fa..b9b6695 100644
+--- a/node_modules/expo-camera/build/CameraView.d.ts
++++ b/node_modules/expo-camera/build/CameraView.d.ts
+@@ -48,6 +48,11 @@ export default class CameraView extends Component<CameraViewProps> {
+      * Pauses the camera preview. It is not recommended to use `takePictureAsync` when preview is paused.
+      */
+     pausePreview(): Promise<void>;
++    /**
++     * Focuses the camera at a point within the preview, in view coordinates.
++     * @platform ios
++     */
++    focusAsync(x: number, y: number): Promise<void>;
+     static ConversionTables: {
+         [prop: string]: unknown;
+         type: Record<keyof import("./Camera.types").CameraType, import("./Camera.types").CameraNativeProps["facing"]>;
+diff --git a/node_modules/expo-camera/build/CameraView.js b/node_modules/expo-camera/build/CameraView.js
+index 78f8198..59de4ec 100644
+--- a/node_modules/expo-camera/build/CameraView.js
++++ b/node_modules/expo-camera/build/CameraView.js
+@@ -107,6 +107,13 @@ export default class CameraView extends Component {
+     async pausePreview() {
+         return this._cameraRef.current?.pausePreview();
+     }
++    /**
++     * Focuses the camera at a point within the preview, in view coordinates.
++     * @platform ios
++     */
++    async focusAsync(x, y) {
++        await this._cameraRef.current?.focusAsync?.(x, y);
++    }
+     // Values under keys from this object will be transformed to native options
+     static ConversionTables = ConversionTables;
+     static defaultProps = {
+diff --git a/node_modules/expo-camera/ios/CameraViewModule.swift b/node_modules/expo-camera/ios/CameraViewModule.swift
+index 03c82a4..b2d683d 100644
+--- a/node_modules/expo-camera/ios/CameraViewModule.swift
++++ b/node_modules/expo-camera/ios/CameraViewModule.swift
+@@ -246,6 +246,10 @@ public final class CameraViewModule: Module, ScannerResultHandler {
+         view.pausePreview()
+       }
+ 
++      AsyncFunction("focusAsync") { (view, x: Double, y: Double) in
++        view.focusAsync(atPoint: CGPoint(x: x, y: y))
++      }
++
+       AsyncFunction("getAvailablePictureSizes") {
+         return PictureSize.allCases.map { $0.rawValue }
+       }
+diff --git a/node_modules/expo-camera/ios/Current/CameraSessionManager.swift b/node_modules/expo-camera/ios/Current/CameraSessionManager.swift
+index eb8305b..8204edf 100644
+--- a/node_modules/expo-camera/ios/Current/CameraSessionManager.swift
++++ b/node_modules/expo-camera/ios/Current/CameraSessionManager.swift
+@@ -206,6 +206,27 @@ class CameraSessionManager: NSObject, DeviceDiscoveryDelegate {
+     }
+   }
+ 
++  func focus(at point: CGPoint) {
++    guard let device = captureDeviceInput?.device else { return }
++    do {
++      try device.lockForConfiguration()
++      defer { device.unlockForConfiguration() }
++      if device.isFocusPointOfInterestSupported, device.isFocusModeSupported(.autoFocus) {
++        device.focusPointOfInterest = point
++        device.focusMode = .autoFocus
++      }
++      if device.isExposurePointOfInterestSupported, device.isExposureModeSupported(.autoExpose) {
++        device.exposurePointOfInterest = point
++        device.exposureMode = .autoExpose
++      }
++    } catch {
++      log.info("\(#function): \(error.localizedDescription)")
++    }
++    delegate?.sessionQueue.asyncAfter(deadline: .now() + 1.0) { [weak self] in
++      self?.setFocusMode()
++    }
++  }
++
+   func updateZoom() {
+     guard let device = captureDeviceInput?.device, let delegate else {
+       return
+diff --git a/node_modules/expo-camera/ios/Current/CameraView.swift b/node_modules/expo-camera/ios/Current/CameraView.swift
+index 17470a9..e5e339b 100644
+--- a/node_modules/expo-camera/ios/Current/CameraView.swift
++++ b/node_modules/expo-camera/ios/Current/CameraView.swift
+@@ -323,6 +323,13 @@ public class CameraView: ExpoView, EXAppLifecycleListener, EXCameraInterface, Ca
+     previewLayer.connection?.isEnabled = false
+   }
+ 
++  func focusAsync(atPoint point: CGPoint) {
++    let devicePoint = previewLayer.captureDevicePointConverted(fromLayerPoint: point)
++    sessionQueue.async {
++      self.sessionManager.focus(at: devicePoint)
++    }
++  }
++
+   @objc func orientationChanged() {
+     changePreviewOrientation()
+   }
+diff --git a/node_modules/expo-camera/src/Camera.types.ts b/node_modules/expo-camera/src/Camera.types.ts
+index 7cf0a07..a013312 100644
+--- a/node_modules/expo-camera/src/Camera.types.ts
++++ b/node_modules/expo-camera/src/Camera.types.ts
+@@ -505,6 +505,7 @@ export interface CameraViewRef {
+   readonly launchModernScanner: () => Promise<void>;
+   readonly resumePreview: () => Promise<void>;
+   readonly pausePreview: () => Promise<void>;
++  readonly focusAsync?: (x: number, y: number) => Promise<void>;
+ }
+ 
+ /**
+diff --git a/node_modules/expo-camera/src/CameraView.tsx b/node_modules/expo-camera/src/CameraView.tsx
+index b2cc359..d84aab2 100644
+--- a/node_modules/expo-camera/src/CameraView.tsx
++++ b/node_modules/expo-camera/src/CameraView.tsx
+@@ -153,6 +153,14 @@ export default class CameraView extends Component<CameraViewProps> {
+     return this._cameraRef.current?.pausePreview();
+   }
+ 
++  /**
++   * Focuses the camera at a point within the preview, in view coordinates.
++   * @platform ios
++   */
++  async focusAsync(x: number, y: number): Promise<void> {
++    await this._cameraRef.current?.focusAsync?.(x, y);
++  }
++
+   // Values under keys from this object will be transformed to native options
+   static ConversionTables = ConversionTables;
+ 
