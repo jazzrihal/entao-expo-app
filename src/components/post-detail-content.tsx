@@ -5,7 +5,6 @@ import {
   View,
 } from "react-native";
 import {
-  Button,
   Column,
   Host,
   RNHostView,
@@ -35,16 +34,8 @@ import {
   resolveColorScheme,
 } from "@/lib/theme-colors";
 import type { PostDetailWithImage } from "@/queries/posts";
-import type { LocalPost } from "@/lib/post-manager";
 
 type PostDetailTestIDPrefixValue = PostDetailTestIDPrefix | "post";
-
-const SYNC_STATUS_LABELS: Record<string, string> = {
-  local: "Saved locally",
-  queued: "Waiting to upload",
-  uploading: "Uploading…",
-  failed: "Upload failed",
-};
 
 type PostDetailContentProps = {
   post: PostDetailWithImage;
@@ -58,8 +49,6 @@ type PostDetailContentProps = {
   isPinned: boolean;
   actionsDisabled: boolean;
   actionError: string | null;
-  localPost?: LocalPost | null;
-  onUploadToCloud?: () => void;
   isLocalOnly?: boolean;
   localSyncStatus?: LocalPostStatus;
   onExploreNearby?: () => void;
@@ -92,8 +81,6 @@ export function PostDetailContent({
   isPinned,
   actionsDisabled,
   actionError,
-  localPost,
-  onUploadToCloud,
   isLocalOnly = false,
   localSyncStatus,
   onExploreNearby,
@@ -289,29 +276,6 @@ export function PostDetailContent({
               >
                 {actionError}
               </Text>
-            ) : null}
-            {localPost ? (
-              <Row spacing={8} alignment="center">
-                <Text
-                  testID={`${testIDPrefix}-detail-sync-status`}
-                  textStyle={{
-                    color:
-                      localPost.status === "failed" ? "#DC2626" : "#6B7280",
-                  }}
-                >
-                  {SYNC_STATUS_LABELS[localPost.status] ?? localPost.status}
-                </Text>
-                {(localPost.status === "local" ||
-                  localPost.status === "failed") &&
-                onUploadToCloud ? (
-                  <Button
-                    testID={`${testIDPrefix}-detail-upload-btn`}
-                    variant="outlined"
-                    label="Upload to Cloud"
-                    onPress={onUploadToCloud}
-                  />
-                ) : null}
-              </Row>
             ) : null}
           </Column>
         </Column>

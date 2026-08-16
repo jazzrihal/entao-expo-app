@@ -137,6 +137,7 @@ export async function queuePostForUpload(
       last_error: null,
     });
     await updateLocalPostStatus(resolvedDb, localPostId, "queued");
+    notifyPostChangeListeners();
     return { error: null };
   } catch (err) {
     return {

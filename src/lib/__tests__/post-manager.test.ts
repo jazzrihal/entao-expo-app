@@ -5,6 +5,7 @@
 
 import * as FileSystem from "expo-file-system/legacy";
 import {
+  addPostChangeListener,
   saveLocalPost,
   queuePostForUpload,
   getLocalPosts,
@@ -168,6 +169,23 @@ describe("post-manager", () => {
         "post-1",
         "queued",
       );
+    });
+
+    it("notifies post-change listeners", async () => {
+      const dbStub = makeDbStub();
+      (mockPostDb.getDb as jest.Mock).mockResolvedValue(dbStub);
+      (mockPostDb.insertOutboxEntry as jest.Mock).mockResolvedValue(undefined);
+      (mockPostDb.updateLocalPostStatus as jest.Mock).mockResolvedValue(
+        undefined,
+      );
+      const listener = jest.fn();
+      const unsubscribe = addPostChangeListener(listener);
+
+      const result = await queuePostForUpload("post-1");
+
+      expect(result.error).toBeNull();
+      expect(listener).toHaveBeenCalledTimes(1);
+      unsubscribe();
     });
 
     it("second call with same localPostId is a no-op (idempotency_key dedup)", async () => {

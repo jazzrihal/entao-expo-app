@@ -41,3 +41,19 @@ env:
 - assertVisible:
     id: "profile-post-detail-local-badge"
 - assertNotVisible: "Share"
+- assertNotVisible:
+    id: "network-activity-indicator"
+- assertVisible: "Post"
+- tapOn: "Post"
+- extendedWaitUntil:
+    visible:
+      id: "network-activity-indicator"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible:
+      id: "network-activity-indicator"
+    timeout: 30000
+- extendedWaitUntil:
+    notVisible:
+      id: "local-post-thumbnail"
+    timeout: 30000

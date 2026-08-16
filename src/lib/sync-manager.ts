@@ -9,7 +9,35 @@ import {
   deleteOutboxEntry,
 } from "@/lib/post-db";
 import { markSynced } from "@/lib/post-manager";
-import { startUpload } from "../../modules/background-upload/src";
+import {
+  startUpload,
+  addCompleteListener,
+  addErrorListener,
+} from "../../modules/background-upload/src";
+
+/**
+ * `startUpload()` only resolves once the PUT request has been handed off to
+ * `URLSession` (iOS) — not when the transfer actually finishes. We must wait
+ * for the native `onComplete`/`onError` event for this uploadId before it's
+ * safe to insert the post row, otherwise the `ensure_post_image_exists`
+ * trigger can race the still-in-flight upload.
+ */
+function waitForNativeUploadCompletion(uploadId: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const completeSub = addCompleteListener((e) => {
+      if (e.uploadId !== uploadId) return;
+      completeSub?.remove();
+      errorSub?.remove();
+      resolve();
+    });
+    const errorSub = addErrorListener((e) => {
+      if (e.uploadId !== uploadId) return;
+      completeSub?.remove();
+      errorSub?.remove();
+      reject(new Error(e.message));
+    });
+  });
+}
 
 const POST_IMAGES_BUCKET = "post-images";
 
@@ -100,17 +128,27 @@ export async function runSync(): Promise<void> {
         // Attempt native background upload; fall back to JS XHR on web or
         // if the module is unavailable (simulator without rebuild).
         let uploadError: string | null = null;
+        let usedNativeUpload = false;
         try {
-          await startUpload(
+          const uploadId = await startUpload(
             post.local_image_uri,
             signedUrl,
             token,
             "image/jpeg",
           );
-        } catch {
-          // Native module unavailable – fall through to JS upload via the
-          // standard supabase path so the flow still works in dev/web.
-          uploadError = await jsUploadFallback(post.local_image_uri, path);
+          usedNativeUpload = true;
+          await waitForNativeUploadCompletion(uploadId);
+        } catch (err) {
+          if (usedNativeUpload) {
+            // The native module started the upload but it failed in flight
+            // (surfaced via the async onError event).
+            uploadError =
+              err instanceof Error ? err.message : "Native upload failed";
+          } else {
+            // Native module unavailable – fall through to JS upload via the
+            // standard supabase path so the flow still works in dev/web.
+            uploadError = await jsUploadFallback(post.local_image_uri, path);
+          }
         }
 
         if (uploadError) throw new Error(uploadError);

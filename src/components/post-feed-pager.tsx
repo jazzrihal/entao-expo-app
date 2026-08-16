@@ -14,10 +14,12 @@ import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PostFeedPage } from "@/components/post-feed-page";
 import { useAuth } from "@/context/auth";
+import { getLocalSyncStatus } from "@/lib/local-post-adapter";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
-import { deleteLocalPost } from "@/lib/post-manager";
+import { deleteLocalPost, queuePostForUpload } from "@/lib/post-manager";
 import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 import { resolveDisplayName } from "@/lib/profile-display";
+import { runSync } from "@/lib/sync-manager";
 import {
   useDeletePostMutation,
   type PostDetailWithImage,
@@ -56,6 +58,7 @@ export function PostFeedPager({
   const [activeIndex, setActiveIndex] = useState(() =>
     initialIndex != null && initialIndex >= 0 ? initialIndex : 0,
   );
+  const [uploadStarted, setUploadStarted] = useState(false);
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<PostDetailWithImage>>(null);
   const didScrollToInitial = useRef(false);
@@ -83,6 +86,14 @@ export function PostFeedPager({
     activePost.author_id === session.user.id;
   const showDelete = !!activePost && isOwner;
   const showShare = !!activePost && !activeIsLocalOnly;
+  const activeSyncStatus = activePost
+    ? getLocalSyncStatus(activePost)
+    : undefined;
+  const showPost =
+    !!activePost &&
+    activeIsLocalOnly &&
+    !uploadStarted &&
+    (activeSyncStatus === "local" || activeSyncStatus === "failed");
 
   const handleLayout = useCallback(
     (event: { nativeEvent: { layout: { height: number } } }) => {
@@ -187,6 +198,23 @@ export function PostFeedPager({
     ]);
   }, [activeIsLocalOnly, activePost, deleteMutation, isOwner, router]);
 
+  const handlePost = useCallback(() => {
+    if (!activePost || uploadStarted) {
+      return;
+    }
+
+    setUploadStarted(true);
+    void (async () => {
+      const { error } = await queuePostForUpload(activePost.id);
+      if (error) {
+        setUploadStarted(false);
+        Alert.alert("Unable to post", error);
+        return;
+      }
+      void runSync();
+    })();
+  }, [activePost, uploadStarted]);
+
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<PostDetailWithImage>) => (
       <PostFeedPage
@@ -220,7 +248,7 @@ export function PostFeedPager({
           headerLargeTitle: false,
         }}
       />
-      {showDelete || showShare ? (
+      {showDelete || showShare || showPost || uploadStarted ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             accessibilityLabel="Delete"
@@ -235,6 +263,15 @@ export function PostFeedPager({
             hidden={!showShare}
             onPress={handleShare}
           />
+          <Stack.Toolbar.Button
+            accessibilityLabel="Post"
+            hidden={!showPost}
+            disabled={uploadStarted}
+            variant="done"
+            onPress={handlePost}
+          >
+            Post
+          </Stack.Toolbar.Button>
         </Stack.Toolbar>
       ) : null}
       <View style={styles.container} onLayout={handleLayout}>
