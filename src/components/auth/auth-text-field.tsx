@@ -1,7 +1,6 @@
 import { useRef, useState } from "react";
 import { Pressable, StyleSheet, useColorScheme, View } from "react-native";
 import {
-  Column,
   Host,
   Text,
   TextInput,
@@ -51,21 +50,33 @@ export function AuthTextField({
 
   return (
     <View style={styles.wrap}>
-      <Host
-        ignoreSafeArea="all"
-        matchContents={{ vertical: true }}
-        style={{ width: "100%" }}
+      <Host ignoreSafeArea="all" matchContents style={styles.labelHost}>
+        <Text
+          textStyle={{
+            color: SECONDARY_LABEL[theme],
+            fontSize: LABEL_FONT_SIZE,
+            fontWeight: "500",
+            textAlign: "left",
+          }}
+        >
+          {label}
+        </Text>
+      </Host>
+      <View
+        style={[
+          styles.field,
+          {
+            backgroundColor: ELEVATED_BACKGROUND[theme],
+            borderWidth: focused ? 2 : 1,
+            borderColor: focused ? colors.primary : SEPARATOR_COLOR[theme],
+          },
+        ]}
       >
-        <Column spacing={COLUMN_SPACING} style={{ width: "100%" }}>
-          <Text
-            textStyle={{
-              color: SECONDARY_LABEL[theme],
-              fontSize: LABEL_FONT_SIZE,
-              fontWeight: "500",
-            }}
-          >
-            {label}
-          </Text>
+        <Host
+          ignoreSafeArea="all"
+          matchContents={{ vertical: true }}
+          style={{ width: "100%" }}
+        >
           <TextInput
             ref={inputRef}
             {...textInputProps}
@@ -77,8 +88,7 @@ export function AuthTextField({
               paddingHorizontal: 16,
               paddingVertical: 12,
               paddingRight: showToggle ? 44 : 16,
-              backgroundColor: ELEVATED_BACKGROUND[theme],
-              borderRadius: INPUT_RADIUS,
+              backgroundColor: "transparent",
               ...style,
             }}
             textStyle={{
@@ -96,63 +106,49 @@ export function AuthTextField({
               onBlur?.();
             }}
           />
-        </Column>
-      </Host>
-      <View
-        pointerEvents="none"
-        style={[
-          styles.outline,
-          {
-            borderWidth: focused ? 2 : 1,
-            borderColor: focused ? colors.primary : SEPARATOR_COLOR[theme],
-          },
-        ]}
-      />
-      {showToggle ? (
-        <Pressable
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={visible ? "Hide password" : "Show password"}
-          testID={testID ? `${testID}-toggle-visibility` : undefined}
-          onPress={() => setVisible((current) => !current)}
-          style={styles.toggle}
-        >
-          <SymbolView
-            name={{
-              ios: visible ? "eye.slash" : "eye",
-              android: visible ? "visibility_off" : "visibility",
-            }}
-            tintColor={SECONDARY_LABEL[theme]}
-            size={SYMBOL_SIZE}
-            accessible={false}
-          />
-        </Pressable>
-      ) : null}
+        </Host>
+        {showToggle ? (
+          <Pressable
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={visible ? "Hide password" : "Show password"}
+            testID={testID ? `${testID}-toggle-visibility` : undefined}
+            onPress={() => setVisible((current) => !current)}
+            style={styles.toggle}
+          >
+            <SymbolView
+              name={{
+                ios: visible ? "eye.slash" : "eye",
+                android: visible ? "visibility_off" : "visibility",
+              }}
+              tintColor={SECONDARY_LABEL[theme]}
+              size={SYMBOL_SIZE}
+              accessible={false}
+            />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: {
-    position: "relative",
     width: "100%",
-    overflow: "visible",
+    gap: COLUMN_SPACING,
   },
-  outline: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: LABEL_FONT_SIZE + COLUMN_SPACING,
-    height: INPUT_MIN_HEIGHT,
+  labelHost: {
+    alignSelf: "flex-start",
+  },
+  field: {
+    width: "100%",
     borderRadius: INPUT_RADIUS,
+    overflow: "hidden",
   },
   toggle: {
     position: "absolute",
     right: 4,
-    top:
-      LABEL_FONT_SIZE +
-      COLUMN_SPACING +
-      (INPUT_MIN_HEIGHT - TOGGLE_BUTTON_SIZE) / 2,
+    top: (INPUT_MIN_HEIGHT - TOGGLE_BUTTON_SIZE) / 2,
     width: TOGGLE_BUTTON_SIZE,
     height: TOGGLE_BUTTON_SIZE,
     alignItems: "center",
