@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { Button } from "@expo/ui";
 import { ProfileAccountFields } from "@/components/profile-account-fields";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { formatDateOnly, parseDateOnly } from "@/lib/profile";
 import {
@@ -9,8 +10,9 @@ import {
   useUserProfileQuery,
 } from "@/queries/profile";
 
-export default function AccountSettings() {
-  const { session } = useAuth();
+export default function Settings() {
+  const router = useRouter();
+  const { session, signOut } = useAuth();
   const userId = session?.user.id;
 
   const profileQuery = useUserProfileQuery(userId);
@@ -61,7 +63,13 @@ export default function AccountSettings() {
             onDisplayNameChange={setDisplayNameField}
             onDateOfBirthChange={setDateOfBirth}
             errorMessage={actionError}
-          />
+          >
+            <Button
+              variant="text"
+              label="Sign out"
+              onPress={() => void signOut()}
+            />
+          </ProfileAccountFields>
         ) : (
           <ScrollView
             style={styles.screen}
@@ -74,6 +82,14 @@ export default function AccountSettings() {
           </ScrollView>
         )}
       </View>
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.Button
+          accessibilityLabel="Cancel"
+          onPress={() => router.back()}
+        >
+          Cancel
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
           accessibilityLabel={updateMutation.isPending ? "Saving" : "Save"}

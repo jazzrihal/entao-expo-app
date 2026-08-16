@@ -8,6 +8,7 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn: "Settings"
 - tapOn: "Sign out"
 - assertVisible:
     id: "sign-in-email"

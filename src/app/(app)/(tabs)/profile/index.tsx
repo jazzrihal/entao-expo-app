@@ -28,7 +28,7 @@ export default function Profile() {
   const router = useRouter();
   const isFocused = useIsFocused();
   const headerHeight = useHeaderHeight();
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
   const userId = session?.user.id;
 
   const profileQuery = useUserProfileQuery(userId);
@@ -163,38 +163,34 @@ export default function Profile() {
       >
         {feedContent}
       </View>
-      {isFocused ? (
-        <Stack.Toolbar placement="left">
-          <Stack.Toolbar.Button accessibilityLabel="Sign out" onPress={signOut}>
-            Sign out
-          </Stack.Toolbar.Button>
-        </Stack.Toolbar>
-      ) : null}
       {isFocused && userId ? (
-        <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button
-            accessibilityLabel="Share"
-            icon="square.and.arrow.up"
-            onPress={() => {
-              void shareProfile(
-                profileQuery.data?.username,
-                profileShareName(
-                  profileQuery.data?.display_name,
+        <>
+          <Stack.Toolbar placement="left">
+            <Stack.Toolbar.Button
+              accessibilityLabel="Settings"
+              icon="gearshape"
+              onPress={() => {
+                router.push("/(app)/(tabs)/profile/settings");
+              }}
+            />
+          </Stack.Toolbar>
+          <Stack.Toolbar placement="right">
+            <Stack.Toolbar.Button
+              accessibilityLabel="Share"
+              icon="square.and.arrow.up"
+              onPress={() => {
+                void shareProfile(
                   profileQuery.data?.username,
-                  profileQuery.data?.id,
-                ),
-              );
-            }}
-          />
-          <Stack.Toolbar.Button
-            accessibilityLabel="Settings"
-            onPress={() => {
-              router.push("/(app)/(tabs)/profile/account-settings");
-            }}
-          >
-            Settings
-          </Stack.Toolbar.Button>
-        </Stack.Toolbar>
+                  profileShareName(
+                    profileQuery.data?.display_name,
+                    profileQuery.data?.username,
+                    profileQuery.data?.id,
+                  ),
+                );
+              }}
+            />
+          </Stack.Toolbar>
+        </>
       ) : null}
     </>
   );

@@ -10,9 +10,9 @@ export default function ProfileLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen
-        name="account-settings"
+        name="settings"
         options={{
-          title: "Account settings",
+          title: "Settings",
           presentation: "modal",
           headerLargeTitle: false,
         }}

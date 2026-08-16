@@ -98,7 +98,7 @@ env:
     commands:
       - assertVisible: "Friends"
       - tapOn: "Profile"
-      - assertVisible: "Sign out"
+      - assertVisible: "Settings"
 - runFlow:
     when:
       visible:

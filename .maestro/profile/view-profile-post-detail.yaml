@@ -11,7 +11,7 @@ env:
 - tapOn:
     text: "Profile"
     label: Open Profile tab
-- assertVisible: "Sign out"
+- assertVisible: "Settings"
 - assertVisible:
     id: "profile-post-grid"
     label: Alice's seeded profile grid is visible
@@ -34,6 +34,6 @@ env:
 - swipe:
     start: "1%,50%"
     end: "95%,50%"
-- assertVisible: "Sign out"
+- assertVisible: "Settings"
 - assertVisible:
     id: "profile-post-grid"
