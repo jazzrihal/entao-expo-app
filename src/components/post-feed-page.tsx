@@ -5,6 +5,7 @@ import { PostDetailContent } from "@/components/post-detail-content";
 import { useAuth } from "@/context/auth";
 import { getLocalSyncStatus } from "@/lib/local-post-adapter";
 import { openUserProfile, type PostDetailTestIDPrefix } from "@/lib/navigation";
+import { resolveDisplayName } from "@/lib/profile-display";
 import { momentPicker$ } from "@/lib/moment-picker-store";
 import {
   getPostViewerEngagement,
@@ -101,7 +102,11 @@ export const PostFeedPage = memo(function PostFeedPage({
     if (isLocalOnly) return;
     openUserProfile(router, session?.user.id, {
       id: post.author_id,
-      displayName: post.display_name,
+      displayName: resolveDisplayName({
+        display_name: post.display_name,
+        username: post.username,
+        id: post.author_id,
+      }),
       username: post.username,
     });
   }, [

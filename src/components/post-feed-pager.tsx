@@ -17,6 +17,7 @@ import { useAuth } from "@/context/auth";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import { deleteLocalPost } from "@/lib/post-manager";
 import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
+import { resolveDisplayName } from "@/lib/profile-display";
 import {
   useDeletePostMutation,
   type PostDetailWithImage,
@@ -132,7 +133,13 @@ export function PostFeedPager({
 
     try {
       await Share.share({
-        message: buildPostShareMessage(activePost.display_name),
+        message: buildPostShareMessage(
+          resolveDisplayName({
+            display_name: activePost.display_name,
+            username: activePost.username,
+            id: activePost.author_id,
+          }),
+        ),
         url: buildPostLink(activePost.id),
       });
     } catch (error) {

@@ -5,7 +5,7 @@ import { Empty } from "@/components/empty";
 import { PostFeedGrid, type PostGridItem } from "@/components/post-feed-grid";
 import { Stack, useIsFocused, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
-import { profileDisplayName } from "@/lib/profile-display";
+import { resolveDisplayName } from "@/lib/profile-display";
 import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import {
   useProfileFeedQuery,
@@ -28,13 +28,14 @@ export default function Profile() {
   const isFocused = useIsFocused();
   const { session, signOut } = useAuth();
   const userId = session?.user.id;
-  const email = session?.user.email;
 
   const profileQuery = useUserProfileQuery(userId);
   const feedQuery = useProfileFeedQuery(userId);
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
 
-  const displayName = profileDisplayName(profileQuery.data, email);
+  const displayName = profileQuery.data
+    ? resolveDisplayName(profileQuery.data)
+    : "Profile";
 
   // Build merged grid items sorted by date descending.
   const mergedPosts = useMemo((): ProfileGridItem[] => {
@@ -176,7 +177,11 @@ export default function Profile() {
             onPress={() => {
               void shareProfile(
                 profileQuery.data?.username,
-                profileShareName(displayName, profileQuery.data?.username),
+                profileShareName(
+                  profileQuery.data?.display_name,
+                  profileQuery.data?.username,
+                  profileQuery.data?.id,
+                ),
               );
             }}
           />

@@ -5,6 +5,10 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { openUserProfile } from "@/lib/navigation";
 import {
+  displayNameFontSize,
+  resolveDisplayName,
+} from "@/lib/profile-display";
+import {
   relationshipLabel,
   type RelationshipKind,
 } from "@/lib/relationship-status";
@@ -33,9 +37,15 @@ export function ProfileListItem({
   const router = useRouter();
   const { session } = useAuth();
 
+  const titleText = resolveDisplayName({
+    display_name: displayName,
+    username,
+    id: profileId,
+  });
   const statusLabel = relationship ? relationshipLabel(relationship) : "";
   const meta = subtitle ?? (trailing ? undefined : statusLabel || undefined);
-  const supportingText = meta ? `@${username} · ${meta}` : `@${username}`;
+  const handle = username.trim() ? `@${username}` : "";
+  const supportingText = handle && meta ? `${handle} · ${meta}` : handle || meta;
 
   const openProfile = useCallback(() => {
     if (!profileId) {
@@ -44,21 +54,24 @@ export function ProfileListItem({
 
     openUserProfile(router, session?.user.id, {
       id: profileId,
-      displayName,
+      displayName: titleText,
       username,
     });
-  }, [profileId, router, session?.user.id, displayName, username]);
+  }, [profileId, router, session?.user.id, titleText, username]);
 
   const title = profileId ? (
     <Text
-      textStyle={{ fontWeight: "600" }}
+      textStyle={{
+        fontSize: displayNameFontSize(titleText.length, 17),
+        fontWeight: "600",
+      }}
       testID={testID ? `${testID}-name` : undefined}
       onPress={openProfile}
     >
-      {displayName}
+      {titleText}
     </Text>
   ) : (
-    displayName
+    titleText
   );
 
   return (

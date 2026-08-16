@@ -1,5 +1,6 @@
 import { Alert, Share } from "react-native";
 import { POST_LINK_ORIGIN } from "@/lib/post-sharing";
+import { resolveDisplayName } from "@/lib/profile-display";
 
 export function buildProfileLink(username: string): string {
   if (typeof username !== "string" || username.length === 0) {
@@ -15,8 +16,13 @@ export function buildProfileShareMessage(name: string): string {
 export function profileShareName(
   displayName: string | null | undefined,
   username: string | null | undefined,
+  id?: string | null,
 ): string {
-  return displayName || username || "Profile";
+  return resolveDisplayName({
+    display_name: displayName,
+    username,
+    id,
+  });
 }
 
 export async function shareProfile(

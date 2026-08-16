@@ -43,7 +43,7 @@ import { useAuth } from "@/context/auth";
 import { resolvePostLocationParts } from "@/lib/location-label";
 import { buildLocationLine, formatCapturedAt } from "@/lib/post-display";
 import { DEFAULT_POST_PRIVACY_SCOPE, type PostPrivacyScope } from "@/lib/posts";
-import { profileDisplayName } from "@/lib/profile-display";
+import { resolveDisplayName } from "@/lib/profile-display";
 import { saveLocalPost, queuePostForUpload } from "@/lib/post-manager";
 import { runSync } from "@/lib/sync-manager";
 import { useCreatePostMutation } from "@/queries/posts";
@@ -121,10 +121,11 @@ export default function NewPostScreen() {
 
   const createPostMutation = useCreatePostMutation();
 
-  const displayName = profileDisplayName(
-    profileQuery.data,
-    session?.user.email,
-  );
+  const displayName = resolveDisplayName({
+    display_name: profileQuery.data?.display_name,
+    username: profileQuery.data?.username,
+    id: session?.user.id,
+  });
 
   useEffect(() => {
     return () => {

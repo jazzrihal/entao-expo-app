@@ -22,6 +22,11 @@ import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
 import { parsePostBadges } from "@/lib/posts";
 import {
+  displayNameFontSize,
+  resolveDisplayName,
+  truncateDisplayName,
+} from "@/lib/profile-display";
+import {
   BADGE_BACKGROUND,
   BADGE_TEXT_COLOR,
   ELEVATED_BACKGROUND,
@@ -96,6 +101,12 @@ export function PostDetailContent({
   const { width } = useWindowDimensions();
   const theme = resolveColorScheme(useColorScheme());
 
+  const authorName = resolveDisplayName({
+    display_name: post.display_name,
+    username: post.username,
+    id: post.author_id,
+  });
+  const authorLabel = truncateDisplayName(authorName, 28);
   const badges = parsePostBadges(post.badges);
   const locationLine = buildLocationLine({
     address: post.address,
@@ -149,10 +160,14 @@ export function PostDetailContent({
           >
             <Text
               testID={`${testIDPrefix}-detail-author`}
-              textStyle={{ fontSize: 17, fontWeight: "600" }}
+              numberOfLines={1}
+              textStyle={{
+                fontSize: displayNameFontSize(authorName.length, 17),
+                fontWeight: "600",
+              }}
               onPress={onAuthorPress}
             >
-              {post.display_name}
+              {authorLabel}
             </Text>
             {badges.length > 0 ? (
               <>

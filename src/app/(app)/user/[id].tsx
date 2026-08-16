@@ -7,7 +7,7 @@ import { Empty } from "@/components/empty";
 import { PostFeedGrid } from "@/components/post-feed-grid";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
-import { profileDisplayName } from "@/lib/profile-display";
+import { resolveDisplayName } from "@/lib/profile-display";
 import { isProfileUserId } from "@/lib/profile";
 import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import { openPostDetail } from "@/lib/navigation";
@@ -101,10 +101,15 @@ export default function UserProfileScreen() {
     return null;
   }, [incomingQuery.data, outgoingQuery.data, userId]);
 
-  const displayName =
-    profileDisplayName(profileQuery.data, undefined) || routeDisplayName || "";
+  const displayName = resolveDisplayName(
+    profileQuery.data ?? {
+      display_name: routeDisplayName,
+      username: routeUsername,
+      id: routeIsUserId ? routeParam : undefined,
+    },
+  );
   const username = profileQuery.data?.username ?? routeUsername ?? undefined;
-  const headerTitle = displayName || username || "Profile";
+  const headerTitle = displayName;
 
   const posts = feedQuery.data ?? [];
   const gridPosts = useMemo(
@@ -291,7 +296,12 @@ export default function UserProfileScreen() {
             onPress={() => {
               void shareProfile(
                 username,
-                profileShareName(displayName, username),
+                profileShareName(
+                  profileQuery.data?.display_name ?? routeDisplayName,
+                  username,
+                  profileQuery.data?.id ??
+                    (routeIsUserId ? routeParam : undefined),
+                ),
               );
             }}
           />

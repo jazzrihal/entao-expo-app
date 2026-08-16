@@ -15,6 +15,11 @@ import { FriendsFeedThumbnailRow } from "@/components/friends/friends-feed-thumb
 import { useAuth } from "@/context/auth";
 import { openPostDetail, openUserProfile } from "@/lib/navigation";
 import { flattenFriendsPostsGrouped } from "@/lib/posts";
+import {
+  displayNameFontSize,
+  resolveDisplayName,
+  truncateDisplayName,
+} from "@/lib/profile-display";
 import { ELEVATED_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 import { queryKeys } from "@/queries/keys";
 import {
@@ -70,7 +75,11 @@ export function FriendsFeedTab() {
         key: `header-${group.author_id}`,
         authorId: group.author_id,
         username: group.username,
-        displayName: group.display_name,
+        displayName: resolveDisplayName({
+          display_name: group.display_name,
+          username: group.username,
+          id: group.author_id,
+        }),
       });
       group.posts.forEach((post, index) => {
         items.push({
@@ -134,9 +143,16 @@ export function FriendsFeedTab() {
               }
             >
               <Text
-                style={[styles.sectionHeaderText, { color: HEADER_COLORS[theme] }]}
+                numberOfLines={1}
+                style={[
+                  styles.sectionHeaderText,
+                  {
+                    color: HEADER_COLORS[theme],
+                    fontSize: displayNameFontSize(item.displayName.length, 28),
+                  },
+                ]}
               >
-                {item.displayName}
+                {truncateDisplayName(item.displayName, 16)}
               </Text>
             </Pressable>
           </View>

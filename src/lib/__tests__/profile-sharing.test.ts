@@ -18,9 +18,10 @@ describe("profile sharing", () => {
     );
   });
 
-  it("prefers display name, then username, then Profile", () => {
-    expect(profileShareName("Alice", "alice")).toBe("Alice");
-    expect(profileShareName("", "alice")).toBe("alice");
-    expect(profileShareName(undefined, undefined)).toBe("Profile");
+  it("prefers display name, then username, then user id", () => {
+    expect(profileShareName("Alice", "alice", "user-1")).toBe("Alice");
+    expect(profileShareName("", "alice", "user-1")).toBe("alice");
+    expect(profileShareName(undefined, undefined, "user-1")).toBe("user-1");
+    expect(profileShareName(undefined, undefined)).toBe("");
   });
 });
