@@ -111,6 +111,9 @@ export async function runSync(): Promise<void> {
           >[0]["privacyScope"],
           latitude: post.latitude ?? undefined,
           longitude: post.longitude ?? undefined,
+          address: post.address,
+          city: post.city,
+          region: post.region,
         });
 
         if (insertError || !remotePost) {

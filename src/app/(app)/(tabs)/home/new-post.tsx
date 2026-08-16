@@ -41,7 +41,11 @@ import * as Location from "expo-location";
 import { Stack, useRouter, useTheme } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { resolvePostLocationParts } from "@/lib/location-label";
-import { buildLocationLine, formatCapturedAt } from "@/lib/post-display";
+import {
+  buildLocationLine,
+  formatCapturedAt,
+  type PostLocationParts,
+} from "@/lib/post-display";
 import { DEFAULT_POST_PRIVACY_SCOPE, type PostPrivacyScope } from "@/lib/posts";
 import { resolveDisplayName } from "@/lib/profile-display";
 import { saveLocalPost, queuePostForUpload } from "@/lib/post-manager";
@@ -75,11 +79,7 @@ export default function NewPostScreen() {
   const [latitude, setLatitude] = useState<number | undefined>();
   const [longitude, setLongitude] = useState<number | undefined>();
   const [locationLine, setLocationLine] = useState<string | null>(null);
-  const [locationParts, setLocationParts] = useState<{
-    address?: string | null;
-    city?: string | null;
-    region?: string | null;
-  }>({});
+  const [locationParts, setLocationParts] = useState<PostLocationParts>({});
   const [resolvingLocation, setResolvingLocation] = useState(false);
   const [caption, setCaption] = useState("");
   const [privacyScope, setPrivacyScope] = useState<PostPrivacyScope>(
@@ -337,6 +337,7 @@ export default function NewPostScreen() {
         privacyScope,
         latitude,
         longitude,
+        ...locationParts,
       },
       {
         onSuccess: () => router.back(),

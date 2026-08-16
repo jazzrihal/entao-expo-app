@@ -168,6 +168,10 @@ export type CreatePostInput = {
   privacyScope: PostPrivacyScope;
   latitude?: number;
   longitude?: number;
+  address?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
 };
 
 export async function createPost(
@@ -178,6 +182,10 @@ export async function createPost(
     captured_at: input.capturedAt,
     caption: input.caption?.trim() || null,
     privacy_scope: input.privacyScope,
+    address: input.address?.trim() || null,
+    city: input.city?.trim() || null,
+    region: input.region?.trim() || null,
+    country: input.country?.trim() || null,
   };
 
   if (
