@@ -1,5 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { getUserProfile, getUserProfileByUsername } from "@/lib/profile";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/context/auth";
+import {
+  getUserProfile,
+  getUserProfileByUsername,
+  updateUserProfile,
+  type UpdateUserProfileInput,
+} from "@/lib/profile";
+import { assertOk } from "@/lib/result";
 import { queryKeys } from "@/queries/keys";
 
 export function useUserProfileQuery(
@@ -30,5 +37,24 @@ export function useUserProfileByUsernameQuery(
       return data;
     },
     enabled: (options?.enabled ?? true) && !!username,
+  });
+}
+
+export function useUpdateUserProfileMutation() {
+  const queryClient = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id;
+
+  return useMutation({
+    mutationFn: async (updates: UpdateUserProfileInput) => {
+      if (!userId) throw new Error("Not signed in");
+      return assertOk(await updateUserProfile(userId, updates));
+    },
+    onSuccess: () => {
+      if (!userId) return;
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.userProfile(userId),
+      });
+    },
   });
 }

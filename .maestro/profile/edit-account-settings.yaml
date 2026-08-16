@@ -1,0 +1,41 @@
+appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
+- assertVisible:
+    id: "profile-post-grid"
+    label: Profile segment is the default
+- tapOn:
+    text: "Account"
+    label: Switch to Account segment
+- extendedWaitUntil:
+    visible:
+      id: "profile-account-fields"
+    timeout: 15000
+- assertVisible: "Username"
+- assertVisible: "Display Name"
+- assertVisible: "Email"
+- assertVisible:
+    id: "profile-account-dob"
+    label: Date of birth control is visible
+- tapOn:
+    id: "profile-account-display-name"
+- eraseText
+- inputText: "Alice E2E Account"
+- tapOn: "Email"
+- waitForAnimationToEnd
+- tapOn: "Save"
+- extendedWaitUntil:
+    notVisible:
+      id: "profile-account-error"
+    timeout: 10000
+- assertVisible: "Alice E2E Account"

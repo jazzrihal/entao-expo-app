@@ -17,6 +17,7 @@ executionOrder:
     - sign-out
     - sign-up
     - view-profile
+    - edit-account-settings
     - view-profile-post-detail
     - view-user-profile-post-detail
     - open-profile-deep-link
