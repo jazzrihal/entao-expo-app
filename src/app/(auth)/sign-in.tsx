@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Button, Column, Row, Text as UiText } from "@expo/ui";
-import { router, useTheme } from "expo-router";
+import { Text, useColorScheme, View } from "react-native";
+import { Button, Row, Text as UiText } from "@expo/ui";
+import { router } from "expo-router";
 import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthSocialButtons } from "@/components/auth/auth-social-buttons";
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { AuthTextField } from "@/components/auth/auth-text-field";
 import { useAuth } from "@/context/auth";
+import {
+  ERROR_BACKGROUND,
+  ERROR_TEXT,
+  resolveColorScheme,
+} from "@/lib/theme-colors";
 
 export default function SignIn() {
-  const { colors } = useTheme();
+  const theme = resolveColorScheme(useColorScheme());
   const { signIn, signInWithApple } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,14 +66,19 @@ export default function SignIn() {
         </Row>
       }
     >
-      <Column spacing={12} style={{ width: "100%" }}>
+      <View style={{ width: "100%", gap: 16 }}>
         {error ? (
-          <UiText
+          <Text
             testID="sign-in-error"
-            textStyle={{ color: colors.notification as string }}
+            style={{
+              backgroundColor: ERROR_BACKGROUND[theme],
+              color: ERROR_TEXT[theme],
+              borderRadius: 10,
+              padding: 12,
+            }}
           >
             {error}
-          </UiText>
+          </Text>
         ) : null}
 
         <AuthTextField
@@ -92,7 +103,7 @@ export default function SignIn() {
           onSubmitEditing={handleSignIn}
           placeholder="••••••••"
         />
-      </Column>
+      </View>
     </AuthScreen>
   );
 }

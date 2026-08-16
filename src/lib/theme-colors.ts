@@ -28,6 +28,17 @@ export const SECONDARY_LABEL = {
   dark: "#8E8E93",
 } as const;
 
+/** Error banner surface (auth forms and similar). */
+export const ERROR_BACKGROUND = {
+  light: "#FEE2E2",
+  dark: "#3F1D1D",
+} as const;
+
+export const ERROR_TEXT = {
+  light: "#DC2626",
+  dark: "#FCA5A5",
+} as const;
+
 /** Date/location/meta text on base or elevated surfaces. */
 export const META_TEXT_COLOR = {
   light: "#8E8E93",

@@ -89,13 +89,7 @@ function AuthScreenContent({
 
           <View style={{ width: "100%", gap: 24 }}>
             {children ? (
-              <Host
-                ignoreSafeArea="all"
-                matchContents={{ vertical: true }}
-                style={{ width: "100%" }}
-              >
-                {children}
-              </Host>
+              <View style={{ width: "100%", gap: 24 }}>{children}</View>
             ) : null}
 
             {action ? (
