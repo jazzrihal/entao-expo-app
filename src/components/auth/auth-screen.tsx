@@ -71,23 +71,24 @@ function AuthScreenContent({
             width: "100%",
           }}
         >
-          <View style={{ width: "100%", alignItems: "center", gap: 24 }}>
+          <View style={{ width: "100%", alignItems: "center" }}>
             <Image
               source={colorScheme === "dark" ? LOGO_DARK : LOGO_LIGHT}
-              style={{ width: 176, height: 176 }}
+              style={{ width: 176, height: 176, backgroundColor: "transparent" }}
               contentFit="contain"
               accessibilityLabel="Então"
             />
-            <CenteredHost>
-              <Column spacing={8} alignment="center">
-                {title ? (
-                  <Text textStyle={{ color: MUTED }}>{title}</Text>
-                ) : null}
-              </Column>
-            </CenteredHost>
           </View>
 
           <View style={{ width: "100%", gap: 24 }}>
+            {title ? (
+              <CenteredHost>
+                <Column spacing={8} alignment="center">
+                  <Text textStyle={{ color: MUTED }}>{title}</Text>
+                </Column>
+              </CenteredHost>
+            ) : null}
+
             {children ? (
               <View style={{ width: "100%", gap: 24 }}>{children}</View>
             ) : null}
