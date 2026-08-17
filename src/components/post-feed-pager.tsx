@@ -22,6 +22,7 @@ import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 import { resolveDisplayName } from "@/lib/profile-display";
 import type { ReportReason } from "@/lib/reports";
 import { runSync } from "@/lib/sync-manager";
+import { useBlockUserMutation } from "@/queries/blocks";
 import {
   useDeletePostMutation,
   type PostDetailWithImage,
@@ -70,6 +71,7 @@ export function PostFeedPager({
   const router = useRouter();
   const deleteMutation = useDeletePostMutation();
   const reportMutation = useReportPostMutation();
+  const blockMutation = useBlockUserMutation();
 
   const bottomInset =
     insets.bottom + (includeTabBarInset ? NATIVE_TAB_BAR_HEIGHT : 0);
@@ -92,6 +94,7 @@ export function PostFeedPager({
   const showDelete = !!activePost && isOwner;
   const showShare = !!activePost && !activeIsLocalOnly;
   const showReport = !!activePost && !isOwner && !activeIsLocalOnly;
+  const showBlock = !!activePost && !isOwner && !activeIsLocalOnly;
   const reportSheetOpen = !!activePost && reportPostId === activePost.id;
   const activeSyncStatus = activePost
     ? getLocalSyncStatus(activePost)
@@ -206,6 +209,39 @@ export function PostFeedPager({
     ]);
   }, [activeIsLocalOnly, activePost, deleteMutation, isOwner, router]);
 
+  const handleBlock = useCallback(() => {
+    if (!activePost || isOwner || blockMutation.isPending) {
+      return;
+    }
+    const authorId = activePost.author_id;
+    Alert.alert(
+      "Block this user?",
+      "They won't be able to see your posts or contact you, and you won't see theirs.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await blockMutation.mutateAsync(authorId);
+                router.back();
+              } catch (error) {
+                Alert.alert(
+                  "Unable to block",
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to block user.",
+                );
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [activePost, blockMutation, isOwner, router]);
+
   const handleReport = useCallback(() => {
     if (!activePost) {
       return;
@@ -295,7 +331,12 @@ export function PostFeedPager({
           headerLargeTitle: false,
         }}
       />
-      {showDelete || showShare || showReport || showPost || uploadStarted ? (
+      {showDelete ||
+      showShare ||
+      showReport ||
+      showBlock ||
+      showPost ||
+      uploadStarted ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             accessibilityLabel="Delete"
@@ -315,6 +356,13 @@ export function PostFeedPager({
             icon="square.and.arrow.up"
             hidden={!showShare}
             onPress={handleShare}
+          />
+          <Stack.Toolbar.Button
+            accessibilityLabel="Block"
+            icon="hand.raised"
+            hidden={!showBlock}
+            disabled={blockMutation.isPending}
+            onPress={handleBlock}
           />
           <Stack.Toolbar.Button
             accessibilityLabel="Post"

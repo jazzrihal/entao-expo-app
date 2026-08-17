@@ -7,7 +7,8 @@ import {
   View,
 } from "react-native";
 import { Button, Host, Row, Text } from "@expo/ui";
-import { fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
+import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
+import { disabled, fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
 import { Empty } from "@/components/empty";
 import { ReportSheet } from "@/components/report-sheet";
 
@@ -39,6 +40,7 @@ import {
   useUserProfileByUsernameQuery,
   useUserProfileQuery,
 } from "@/queries/profile";
+import { useBlockUserMutation } from "@/queries/blocks";
 import { useReportProfileMutation } from "@/queries/reports";
 
 export default function UserProfileScreen() {
@@ -96,6 +98,7 @@ export default function UserProfileScreen() {
   const respondMutation = useRespondToFriendRequestMutation();
   const cancelMutation = useCancelFriendRequestMutation();
   const reportMutation = useReportProfileMutation();
+  const blockMutation = useBlockUserMutation();
   const [reportSheetOpen, setReportSheetOpen] = useState(false);
 
   const relationship = parseRelationshipStatus(relationshipQuery.data);
@@ -154,6 +157,38 @@ export default function UserProfileScreen() {
     reportMutation.reset();
   }, [reportMutation]);
 
+  const handleBlock = useCallback(() => {
+    if (!userId || blockMutation.isPending) {
+      return;
+    }
+    Alert.alert(
+      "Block this user?",
+      "They won't be able to see your posts or contact you, and you won't see theirs.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Block",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                await blockMutation.mutateAsync(userId);
+                router.back();
+              } catch (error) {
+                Alert.alert(
+                  "Unable to block",
+                  error instanceof Error
+                    ? error.message
+                    : "Unable to block user.",
+                );
+              }
+            })();
+          },
+        },
+      ],
+    );
+  }, [blockMutation, router, userId]);
+
   const handleReportSubmit = useCallback(
     (reason: ReportReason) => {
       if (!userId || reportMutation.isPending) {
@@ -179,12 +214,14 @@ export default function UserProfileScreen() {
   const actionPending =
     sendMutation.isPending ||
     respondMutation.isPending ||
-    cancelMutation.isPending;
+    cancelMutation.isPending ||
+    blockMutation.isPending;
 
   const actionError =
     sendMutation.error?.message ??
     respondMutation.error?.message ??
     cancelMutation.error?.message ??
+    blockMutation.error?.message ??
     null;
 
   const relationshipActions = userId
@@ -293,7 +330,7 @@ export default function UserProfileScreen() {
     );
   }
 
-  const hasHeaderContent = !!relationshipActions || !!actionError;
+  const hasHeaderContent = !!userId || !!relationshipActions || !!actionError;
 
   return (
     <>
@@ -314,6 +351,21 @@ export default function UserProfileScreen() {
             {relationshipActions ? (
               <View style={styles.actionRow}>
                 <Host matchContents>{relationshipActions}</Host>
+              </View>
+            ) : null}
+            {userId ? (
+              <View style={styles.actionRow}>
+                <Host matchContents>
+                  <SwiftUIButton
+                    testID={`user-profile-block-${userId}`}
+                    role="destructive"
+                    label={blockMutation.isPending ? "Blocking…" : "Block"}
+                    modifiers={
+                      blockMutation.isPending ? [disabled(true)] : undefined
+                    }
+                    onPress={handleBlock}
+                  />
+                </Host>
               </View>
             ) : null}
             {actionError ? (

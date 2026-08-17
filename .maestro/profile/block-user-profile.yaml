@@ -1,0 +1,43 @@
+appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Seeded friends feed is visible
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-1"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    id: "friends-feed-section-bob-row-1"
+    label: Open Bob's second friends-feed row
+- assertVisible:
+    id: "friends-post-detail"
+- tapOn:
+    id: "friends-post-detail-author"
+    label: Open author profile from post detail
+- assertVisible:
+    id: "user-profile"
+- tapOn:
+    id: "user-profile-block-.*"
+    label: Open block confirmation
+- assertVisible: "Block this user?"
+- tapOn: "Cancel"
+- assertVisible:
+    id: "user-profile"
