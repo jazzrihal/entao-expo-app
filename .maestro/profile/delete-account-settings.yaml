@@ -1,0 +1,39 @@
+appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
+- tapOn:
+    text: "Settings"
+    label: Open Account settings
+- extendedWaitUntil:
+    visible:
+      id: "profile-account-fields"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: "Delete account"
+    direction: DOWN
+    visibilityPercentage: 50
+- tapOn:
+    text: "Delete account"
+    label: Open delete account confirmation
+- assertVisible: "Delete account?"
+- tapOn: "Delete"
+- extendedWaitUntil:
+    visible: "Cancel account deletion"
+    timeout: 15000
+- tapOn:
+    text: "Cancel account deletion"
+    label: Cancel scheduled account deletion
+- extendedWaitUntil:
+    visible: "Delete account"
+    timeout: 15000

@@ -2,6 +2,8 @@ import { supabase } from "@/lib/supabase";
 import type { Database } from "@/lib/database.types";
 
 export type UserProfile = Database["public"]["Tables"]["user_profiles"]["Row"];
+export type AccountDeletionRequest =
+  Database["public"]["Tables"]["account_deletion_requests"]["Row"];
 
 function rpcErrorMessage(error: { message: string } | null): string | null {
   return error?.message ?? null;
@@ -87,4 +89,32 @@ export async function updateUserProfile(
     .maybeSingle();
 
   return { data, error: rpcErrorMessage(error) };
+}
+
+export async function getAccountDeletionRequest(userId: string): Promise<{
+  data: AccountDeletionRequest | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase
+    .from("account_deletion_requests")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  return { data, error: rpcErrorMessage(error) };
+}
+
+export async function requestAccountDeletion(): Promise<{
+  data: AccountDeletionRequest | null;
+  error: string | null;
+}> {
+  const { data, error } = await supabase.rpc("request_account_deletion");
+  return { data, error: rpcErrorMessage(error) };
+}
+
+export async function cancelAccountDeletion(): Promise<{
+  error: string | null;
+}> {
+  const { error } = await supabase.rpc("cancel_account_deletion");
+  return { error: rpcErrorMessage(error) };
 }

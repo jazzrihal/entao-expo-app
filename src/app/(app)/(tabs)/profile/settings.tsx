@@ -1,11 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
-import { Button } from "@expo/ui";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { Button, FieldGroup, Text } from "@expo/ui";
 import { ProfileAccountFields } from "@/components/profile-account-fields";
 import { Stack, useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { formatDateOnly, parseDateOnly } from "@/lib/profile";
 import {
+  useAccountDeletionRequestQuery,
+  useCancelAccountDeletionMutation,
+  useRequestAccountDeletionMutation,
   useUpdateUserProfileMutation,
   useUserProfileQuery,
 } from "@/queries/profile";
@@ -17,6 +26,9 @@ export default function Settings() {
 
   const profileQuery = useUserProfileQuery(userId);
   const updateMutation = useUpdateUserProfileMutation();
+  const deletionQuery = useAccountDeletionRequestQuery(userId);
+  const requestDeletionMutation = useRequestAccountDeletionMutation();
+  const cancelDeletionMutation = useCancelAccountDeletionMutation();
 
   const [username, setUsername] = useState("");
   const [displayNameField, setDisplayNameField] = useState("");
@@ -50,6 +62,38 @@ export default function Settings() {
     );
   }, [userId, updateMutation, username, displayNameField, dateOfBirth]);
 
+  const handleDeleteAccount = useCallback(() => {
+    if (requestDeletionMutation.isPending) return;
+    Alert.alert(
+      "Delete account?",
+      "Your account will be permanently deleted after a 30-day grace period. You can cancel anytime before then.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            requestDeletionMutation.mutate(undefined, {
+              onError: (error) =>
+                Alert.alert("Unable to delete account", error.message),
+            });
+          },
+        },
+      ],
+    );
+  }, [requestDeletionMutation]);
+
+  const handleCancelDeletion = useCallback(() => {
+    if (cancelDeletionMutation.isPending) return;
+    cancelDeletionMutation.mutate(undefined, {
+      onError: (error) =>
+        Alert.alert("Unable to cancel account deletion", error.message),
+    });
+  }, [cancelDeletionMutation]);
+
+  const pendingDeletion =
+    deletionQuery.data?.status === "pending" ? deletionQuery.data : null;
+
   return (
     <>
       <View style={styles.screen}>
@@ -64,11 +108,36 @@ export default function Settings() {
             onDateOfBirthChange={setDateOfBirth}
             errorMessage={actionError}
           >
-            <Button
-              variant="text"
-              label="Sign out"
-              onPress={() => void signOut()}
-            />
+            <FieldGroup.Section>
+              <Button
+                variant="text"
+                label="Sign out"
+                onPress={() => void signOut()}
+              />
+            </FieldGroup.Section>
+            {deletionQuery.isPending ? null : pendingDeletion ? (
+              <FieldGroup.Section>
+                <Text testID="profile-account-deletion-scheduled">
+                  {`Account scheduled for deletion on ${new Date(pendingDeletion.scheduled_for).toLocaleDateString()}`}
+                </Text>
+                <Button
+                  variant="text"
+                  label="Cancel account deletion"
+                  disabled={cancelDeletionMutation.isPending}
+                  onPress={handleCancelDeletion}
+                />
+              </FieldGroup.Section>
+            ) : (
+              <FieldGroup.Section>
+                <Button
+                  variant="text"
+                  disabled={requestDeletionMutation.isPending}
+                  onPress={handleDeleteAccount}
+                >
+                  <Text textStyle={{ color: "#DC2626" }}>Delete account</Text>
+                </Button>
+              </FieldGroup.Section>
+            )}
           </ProfileAccountFields>
         ) : (
           <ScrollView

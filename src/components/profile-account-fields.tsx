@@ -1,11 +1,11 @@
 import {
-    Column,
-    FieldGroup,
-    Host,
-    RNHostView,
-    Text,
-    TextInput,
-    type TextInputRef,
+  Column,
+  FieldGroup,
+  Host,
+  RNHostView,
+  Text,
+  TextInput,
+  type TextInputRef,
 } from "@expo/ui";
 import CommunityDateTimePicker from "@expo/ui/community/datetime-picker";
 import { useCallback, useRef, useState, type ReactNode } from "react";
@@ -115,7 +115,7 @@ export function ProfileAccountFields({
               <FieldGroup.Section title="Email">
                 <Text testID="profile-account-email">{email ?? ""}</Text>
               </FieldGroup.Section>
-              {children ? <FieldGroup.Section>{children}</FieldGroup.Section> : null}
+              {children}
             </FieldGroup>
           </Column>
         </Host>

@@ -18,6 +18,7 @@ executionOrder:
     - sign-up
     - view-profile
     - edit-account-settings
+    - delete-account-settings
     - view-profile-post-detail
     - view-user-profile-post-detail
     - open-profile-deep-link
