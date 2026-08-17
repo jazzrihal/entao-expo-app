@@ -27,8 +27,10 @@ executionOrder:
     - feed
     - pin-badge
     - open-profile-from-post
+    - report-profile
     - save-recall-delete
     - create-post
     - view-post-detail
+    - report-post
     - open-post-deep-link
     - save-post-locally

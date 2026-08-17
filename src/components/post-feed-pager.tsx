@@ -13,17 +13,20 @@ import {
 import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { PostFeedPage } from "@/components/post-feed-page";
+import { ReportSheet } from "@/components/report-sheet";
 import { useAuth } from "@/context/auth";
 import { getLocalSyncStatus } from "@/lib/local-post-adapter";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import { deleteLocalPost, queuePostForUpload } from "@/lib/post-manager";
 import { buildPostLink, buildPostShareMessage } from "@/lib/post-sharing";
 import { resolveDisplayName } from "@/lib/profile-display";
+import type { ReportReason } from "@/lib/reports";
 import { runSync } from "@/lib/sync-manager";
 import {
   useDeletePostMutation,
   type PostDetailWithImage,
 } from "@/queries/posts";
+import { useReportPostMutation } from "@/queries/reports";
 
 type PostFeedPagerProps = {
   posts: PostDetailWithImage[];
@@ -59,12 +62,14 @@ export function PostFeedPager({
     initialIndex != null && initialIndex >= 0 ? initialIndex : 0,
   );
   const [uploadStarted, setUploadStarted] = useState(false);
+  const [reportPostId, setReportPostId] = useState<string | null>(null);
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<PostDetailWithImage>>(null);
   const didScrollToInitial = useRef(false);
   const { session } = useAuth();
   const router = useRouter();
   const deleteMutation = useDeletePostMutation();
+  const reportMutation = useReportPostMutation();
 
   const bottomInset =
     insets.bottom + (includeTabBarInset ? NATIVE_TAB_BAR_HEIGHT : 0);
@@ -86,6 +91,8 @@ export function PostFeedPager({
     activePost.author_id === session.user.id;
   const showDelete = !!activePost && isOwner;
   const showShare = !!activePost && !activeIsLocalOnly;
+  const showReport = !!activePost && !isOwner && !activeIsLocalOnly;
+  const reportSheetOpen = !!activePost && reportPostId === activePost.id;
   const activeSyncStatus = activePost
     ? getLocalSyncStatus(activePost)
     : undefined;
@@ -133,6 +140,7 @@ export function PostFeedPager({
         event.nativeEvent.contentOffset.y / pageHeight,
       );
       setActiveIndex(Math.min(Math.max(nextIndex, 0), posts.length - 1));
+      setReportPostId(null);
     },
     [pageHeight, posts.length],
   );
@@ -198,6 +206,45 @@ export function PostFeedPager({
     ]);
   }, [activeIsLocalOnly, activePost, deleteMutation, isOwner, router]);
 
+  const handleReport = useCallback(() => {
+    if (!activePost) {
+      return;
+    }
+    reportMutation.reset();
+    setReportPostId(activePost.id);
+  }, [activePost, reportMutation]);
+
+  const handleReportSubmit = useCallback(
+    (reason: ReportReason) => {
+      if (!activePost || reportMutation.isPending) {
+        return;
+      }
+
+      reportMutation.mutate(
+        {
+          postId: activePost.id,
+          authorId: activePost.author_id,
+          reason,
+        },
+        {
+          onSuccess: () => {
+            setReportPostId(null);
+            Alert.alert(
+              "Report submitted",
+              "Thanks — our team will review it.",
+            );
+          },
+        },
+      );
+    },
+    [activePost, reportMutation],
+  );
+
+  const handleReportDismiss = useCallback(() => {
+    setReportPostId(null);
+    reportMutation.reset();
+  }, [reportMutation]);
+
   const handlePost = useCallback(() => {
     if (!activePost || uploadStarted) {
       return;
@@ -248,7 +295,7 @@ export function PostFeedPager({
           headerLargeTitle: false,
         }}
       />
-      {showDelete || showShare || showPost || uploadStarted ? (
+      {showDelete || showShare || showReport || showPost || uploadStarted ? (
         <Stack.Toolbar placement="right">
           <Stack.Toolbar.Button
             accessibilityLabel="Delete"
@@ -256,6 +303,12 @@ export function PostFeedPager({
             hidden={!showDelete}
             disabled={deleteMutation.isPending}
             onPress={handleDelete}
+          />
+          <Stack.Toolbar.Button
+            accessibilityLabel="Report"
+            icon="flag"
+            hidden={!showReport}
+            onPress={handleReport}
           />
           <Stack.Toolbar.Button
             accessibilityLabel="Share"
@@ -305,6 +358,15 @@ export function PostFeedPager({
           />
         ) : null}
       </View>
+      <ReportSheet
+        key={reportPostId ?? "closed"}
+        isPresented={reportSheetOpen}
+        targetLabel="post"
+        onDismiss={handleReportDismiss}
+        onSubmit={handleReportSubmit}
+        isSubmitting={reportMutation.isPending}
+        error={reportMutation.error?.message ?? null}
+      />
     </>
   );
 }

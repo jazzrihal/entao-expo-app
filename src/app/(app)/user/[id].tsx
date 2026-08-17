@@ -1,8 +1,15 @@
-import { useCallback, useMemo } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { Button, Host, Row, Text } from "@expo/ui";
 import { fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
 import { Empty } from "@/components/empty";
+import { ReportSheet } from "@/components/report-sheet";
 
 import { PostFeedGrid } from "@/components/post-feed-grid";
 import { Redirect, Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -11,6 +18,7 @@ import { resolveDisplayName } from "@/lib/profile-display";
 import { isProfileUserId } from "@/lib/profile";
 import { profileShareName, shareProfile } from "@/lib/profile-sharing";
 import { openPostDetail } from "@/lib/navigation";
+import type { ReportReason } from "@/lib/reports";
 import {
   parseRelationshipStatus,
   type RelationshipKind,
@@ -31,6 +39,7 @@ import {
   useUserProfileByUsernameQuery,
   useUserProfileQuery,
 } from "@/queries/profile";
+import { useReportProfileMutation } from "@/queries/reports";
 
 export default function UserProfileScreen() {
   const router = useRouter();
@@ -86,6 +95,8 @@ export default function UserProfileScreen() {
   const sendMutation = useSendFriendRequestMutation();
   const respondMutation = useRespondToFriendRequestMutation();
   const cancelMutation = useCancelFriendRequestMutation();
+  const reportMutation = useReportProfileMutation();
+  const [reportSheetOpen, setReportSheetOpen] = useState(false);
 
   const relationship = parseRelationshipStatus(relationshipQuery.data);
   const requestId = useMemo(() => {
@@ -136,6 +147,33 @@ export default function UserProfileScreen() {
       });
     },
     [router, userId],
+  );
+
+  const handleReportDismiss = useCallback(() => {
+    setReportSheetOpen(false);
+    reportMutation.reset();
+  }, [reportMutation]);
+
+  const handleReportSubmit = useCallback(
+    (reason: ReportReason) => {
+      if (!userId || reportMutation.isPending) {
+        return;
+      }
+
+      reportMutation.mutate(
+        { userId, reason },
+        {
+          onSuccess: () => {
+            setReportSheetOpen(false);
+            Alert.alert(
+              "Report submitted",
+              "Thanks — our team will review it.",
+            );
+          },
+        },
+      );
+    },
+    [reportMutation, userId],
   );
 
   const actionPending =
@@ -288,12 +326,25 @@ export default function UserProfileScreen() {
         <View style={styles.feed}>{feedContent}</View>
       </View>
       <Stack.Toolbar placement="left" />
-      {username ? (
+      {username || userId ? (
         <Stack.Toolbar placement="right">
+          <Stack.Toolbar.Button
+            accessibilityLabel="Report"
+            icon="flag"
+            hidden={!userId}
+            onPress={() => {
+              reportMutation.reset();
+              setReportSheetOpen(true);
+            }}
+          />
           <Stack.Toolbar.Button
             accessibilityLabel="Share"
             icon="square.and.arrow.up"
+            hidden={!username}
             onPress={() => {
+              if (!username) {
+                return;
+              }
               void shareProfile(
                 username,
                 profileShareName(
@@ -307,6 +358,15 @@ export default function UserProfileScreen() {
           />
         </Stack.Toolbar>
       ) : null}
+      <ReportSheet
+        key={reportSheetOpen ? "open" : "closed"}
+        isPresented={reportSheetOpen}
+        targetLabel="profile"
+        onDismiss={handleReportDismiss}
+        onSubmit={handleReportSubmit}
+        isSubmitting={reportMutation.isPending}
+        error={reportMutation.error?.message ?? null}
+      />
     </>
   );
 }
