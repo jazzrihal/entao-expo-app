@@ -29,6 +29,8 @@ env:
     label: Open Bob's second friends-feed row
 - assertVisible:
     id: "friends-post-detail"
+- tapOn:
+    label: "More"
 - assertVisible: "Report"
 - tapOn: "Report"
 - assertVisible:

@@ -7,8 +7,7 @@ import {
   View,
 } from "react-native";
 import { Button, Host, Row, Text } from "@expo/ui";
-import { Button as SwiftUIButton } from "@expo/ui/swift-ui";
-import { disabled, fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
+import { fixedSize, lineLimit } from "@expo/ui/swift-ui/modifiers";
 import { Empty } from "@/components/empty";
 import { ReportSheet } from "@/components/report-sheet";
 
@@ -330,7 +329,7 @@ export default function UserProfileScreen() {
     );
   }
 
-  const hasHeaderContent = !!userId || !!relationshipActions || !!actionError;
+  const hasHeaderContent = !!relationshipActions || !!actionError;
 
   return (
     <>
@@ -353,21 +352,6 @@ export default function UserProfileScreen() {
                 <Host matchContents>{relationshipActions}</Host>
               </View>
             ) : null}
-            {userId ? (
-              <View style={styles.actionRow}>
-                <Host matchContents>
-                  <SwiftUIButton
-                    testID={`user-profile-block-${userId}`}
-                    role="destructive"
-                    label={blockMutation.isPending ? "Blocking…" : "Block"}
-                    modifiers={
-                      blockMutation.isPending ? [disabled(true)] : undefined
-                    }
-                    onPress={handleBlock}
-                  />
-                </Host>
-              </View>
-            ) : null}
             {actionError ? (
               <Host matchContents>
                 <Text testID="user-profile-action-error">{actionError}</Text>
@@ -380,15 +364,29 @@ export default function UserProfileScreen() {
       <Stack.Toolbar placement="left" />
       {username || userId ? (
         <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button
-            accessibilityLabel="Report"
-            icon="flag"
+          <Stack.Toolbar.Menu
+            accessibilityLabel="More"
+            icon="ellipsis.circle"
             hidden={!userId}
-            onPress={() => {
-              reportMutation.reset();
-              setReportSheetOpen(true);
-            }}
-          />
+          >
+            <Stack.Toolbar.MenuAction
+              icon="flag"
+              onPress={() => {
+                reportMutation.reset();
+                setReportSheetOpen(true);
+              }}
+            >
+              Report
+            </Stack.Toolbar.MenuAction>
+            <Stack.Toolbar.MenuAction
+              icon="hand.raised"
+              destructive
+              disabled={blockMutation.isPending}
+              onPress={handleBlock}
+            >
+              Block
+            </Stack.Toolbar.MenuAction>
+          </Stack.Toolbar.Menu>
           <Stack.Toolbar.Button
             accessibilityLabel="Share"
             icon="square.and.arrow.up"

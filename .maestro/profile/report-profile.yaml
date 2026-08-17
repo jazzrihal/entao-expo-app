@@ -34,6 +34,8 @@ env:
     label: Open author profile from post detail
 - assertVisible:
     id: "user-profile"
+- tapOn:
+    label: "More"
 - assertVisible: "Report"
 - tapOn: "Report"
 - assertVisible:

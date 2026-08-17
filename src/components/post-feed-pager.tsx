@@ -95,6 +95,7 @@ export function PostFeedPager({
   const showShare = !!activePost && !activeIsLocalOnly;
   const showReport = !!activePost && !isOwner && !activeIsLocalOnly;
   const showBlock = !!activePost && !isOwner && !activeIsLocalOnly;
+  const showMore = showDelete || showReport || showBlock;
   const reportSheetOpen = !!activePost && reportPostId === activePost.id;
   const activeSyncStatus = activePost
     ? getLocalSyncStatus(activePost)
@@ -331,38 +332,44 @@ export function PostFeedPager({
           headerLargeTitle: false,
         }}
       />
-      {showDelete ||
-      showShare ||
-      showReport ||
-      showBlock ||
-      showPost ||
-      uploadStarted ? (
+      {showMore || showShare || showPost || uploadStarted ? (
         <Stack.Toolbar placement="right">
-          <Stack.Toolbar.Button
-            accessibilityLabel="Delete"
-            icon="trash"
-            hidden={!showDelete}
-            disabled={deleteMutation.isPending}
-            onPress={handleDelete}
-          />
-          <Stack.Toolbar.Button
-            accessibilityLabel="Report"
-            icon="flag"
-            hidden={!showReport}
-            onPress={handleReport}
-          />
+          <Stack.Toolbar.Menu
+            accessibilityLabel="More"
+            icon="ellipsis.circle"
+            hidden={!showMore}
+          >
+            <Stack.Toolbar.MenuAction
+              icon="trash"
+              destructive
+              hidden={!showDelete}
+              disabled={deleteMutation.isPending}
+              onPress={handleDelete}
+            >
+              Delete
+            </Stack.Toolbar.MenuAction>
+            <Stack.Toolbar.MenuAction
+              icon="flag"
+              hidden={!showReport}
+              onPress={handleReport}
+            >
+              Report
+            </Stack.Toolbar.MenuAction>
+            <Stack.Toolbar.MenuAction
+              icon="hand.raised"
+              destructive
+              hidden={!showBlock}
+              disabled={blockMutation.isPending}
+              onPress={handleBlock}
+            >
+              Block
+            </Stack.Toolbar.MenuAction>
+          </Stack.Toolbar.Menu>
           <Stack.Toolbar.Button
             accessibilityLabel="Share"
             icon="square.and.arrow.up"
             hidden={!showShare}
             onPress={handleShare}
-          />
-          <Stack.Toolbar.Button
-            accessibilityLabel="Block"
-            icon="hand.raised"
-            hidden={!showBlock}
-            disabled={blockMutation.isPending}
-            onPress={handleBlock}
           />
           <Stack.Toolbar.Button
             accessibilityLabel="Post"

@@ -35,8 +35,8 @@ env:
 - assertVisible:
     id: "user-profile"
 - tapOn:
-    id: "user-profile-block-.*"
-    label: Open block confirmation
+    label: "More"
+- tapOn: "Block"
 - assertVisible: "Block this user?"
 - tapOn: "Cancel"
 - assertVisible:
