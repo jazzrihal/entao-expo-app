@@ -1,5 +1,5 @@
 import "@/lib/query-native";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import * as Linking from "expo-linking";
 import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from "expo-router";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -12,9 +12,20 @@ import {
   markInitialPostLinkResolved,
   rememberPostReturnPath,
 } from "@/lib/post-sharing";
+import { useSupabaseTarget } from "@/lib/supabase";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const supabaseTarget = useSupabaseTarget();
+  const previousSupabaseTarget = useRef(supabaseTarget);
+
+  useEffect(() => {
+    if (previousSupabaseTarget.current === supabaseTarget) {
+      return;
+    }
+    previousSupabaseTarget.current = supabaseTarget;
+    queryClient.clear();
+  }, [supabaseTarget]);
 
   // Capture cold-start / openURL post and profile deep links before auth
   // redirects clear the route (returnTo for signed-out open of
@@ -37,7 +48,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
+          <AuthProvider key={supabaseTarget}>
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >

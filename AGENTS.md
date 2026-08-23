@@ -49,7 +49,7 @@ Human/local dev (Mac) still uses `.env`, Supabase, Metro, and dev clients — se
 
 ## Product overview
 
-**Então** is an Expo SDK 56 app (Expo Router, React Native 0.85) with email/password auth via Supabase. In `__DEV__` and E2E release builds (`EXPO_PUBLIC_SUPABASE_ENV=local`), `src/lib/supabase.ts` uses `EXPO_PUBLIC_SUPABASE_LOCAL_*` from `.env` (see `.env.example`).
+**Então** is an Expo SDK 56 app (Expo Router, React Native 0.85) with email/password auth via Supabase. In `__DEV__` and E2E release builds (`EXPO_PUBLIC_SUPABASE_ENV=local`), `src/lib/supabase.ts` uses `EXPO_PUBLIC_SUPABASE_LOCAL_*` from `.env` (see `.env.example`). Production can opt into preview via the Sign-in easter egg; Dev/E2E stay local.
 
 ## GitHub Actions (iOS E2E)
 

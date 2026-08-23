@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Text, useColorScheme, View } from "react-native";
+import { Alert, Text, useColorScheme, View } from "react-native";
 import { Button, Row, Text as UiText } from "@expo/ui";
 import { router } from "expo-router";
 import { AuthScreen } from "@/components/auth/auth-screen";
@@ -12,22 +12,76 @@ import {
   ERROR_TEXT,
   resolveColorScheme,
 } from "@/lib/theme-colors";
+import {
+  attemptPreviewSignIn,
+  commitSupabaseTarget,
+  hasPreviewCredentials,
+  isLocalSupabase,
+  useSupabaseTarget,
+} from "@/lib/supabase";
+import { canOfferPreview, isPreviewTriggerEmail } from "@/lib/supabase-target";
+
+function confirmPreviewSwitch(): Promise<"switch" | "keep"> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      "Switch to preview?",
+      "This signs you in against the preview project instead of production.",
+      [
+        {
+          text: "Not now",
+          style: "cancel",
+          onPress: () => resolve("keep"),
+        },
+        { text: "Switch", onPress: () => resolve("switch") },
+      ],
+      { cancelable: false },
+    );
+  });
+}
 
 export default function SignIn() {
   const theme = resolveColorScheme(useColorScheme());
   const { signIn, signInWithApple } = useAuth();
+  const supabaseTarget = useSupabaseTarget();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSignIn() {
-    if (!email || !password) {
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !password) {
       setError("Please enter your email and password.");
       return;
     }
     setLoading(true);
-    const { error } = await signIn(email.trim(), password);
+    setError(null);
+
+    const offerPreview =
+      canOfferPreview({
+        useLocal: isLocalSupabase,
+        currentTarget: supabaseTarget,
+        previewConfigured: hasPreviewCredentials(),
+      }) && isPreviewTriggerEmail(trimmedEmail);
+
+    if (offerPreview) {
+      const choice = await confirmPreviewSwitch();
+      if (choice === "switch") {
+        const { error: previewError, client } = await attemptPreviewSignIn(
+          trimmedEmail,
+          password,
+        );
+        if (previewError) {
+          setLoading(false);
+          setError(previewError);
+          return;
+        }
+        await commitSupabaseTarget("preview", client);
+        return;
+      }
+    }
+
+    const { error } = await signIn(trimmedEmail, password);
     setLoading(false);
     setError(error);
   }
@@ -55,15 +109,27 @@ export default function SignIn() {
         />
       }
       footer={
-        <Row spacing={4} alignment="center">
-          <UiText>{"Don't have an account?"}</UiText>
-          <Button
-            testID="sign-in-link-to-sign-up"
-            variant="text"
-            label="Sign up"
-            onPress={() => router.replace("/(auth)/sign-up")}
-          />
-        </Row>
+        <>
+          {supabaseTarget === "preview" ? (
+            <Button
+              variant="text"
+              label="Preview mode"
+              disabled={loading}
+              onPress={() => {
+                void commitSupabaseTarget("production");
+              }}
+            />
+          ) : null}
+          <Row spacing={4} alignment="center">
+            <UiText>{"Don't have an account?"}</UiText>
+            <Button
+              testID="sign-in-link-to-sign-up"
+              variant="text"
+              label="Sign up"
+              onPress={() => router.replace("/(auth)/sign-up")}
+            />
+          </Row>
+        </>
       }
     >
       <View style={{ width: "100%", gap: 16 }}>

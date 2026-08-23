@@ -4,11 +4,19 @@ import {
   SUPABASE_FETCH_TIMEOUT_MS,
 } from "@/lib/abort";
 import type { Database } from "@/lib/database.types";
-import { createClient } from "@supabase/supabase-js";
+import {
+  PREVIEW_STORAGE_KEY,
+  PREVIEW_STORAGE_VALUE,
+  resolveSupabaseTarget,
+  type SupabaseTarget,
+} from "@/lib/supabase-target";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import * as Device from "expo-device";
 import "expo-sqlite/localStorage/install";
+import { useSyncExternalStore } from "react";
 import { Platform } from "react-native";
 
+export type EntaoSupabaseClient = SupabaseClient<Database>;
 const useLocal = __DEV__ || process.env.EXPO_PUBLIC_SUPABASE_ENV === "local";
 
 /** Physical device cannot reach 127.0.0.1 on the host Mac — use a tunnel URL. */
@@ -17,10 +25,16 @@ const useTunnel =
   Device.isDevice &&
   (Platform.OS === "ios" || Platform.OS === "android");
 
-function resolveSupabaseUrl(): string {
-  if (!useLocal) {
-    return process.env.EXPO_PUBLIC_SUPABASE_URL!;
-  }
+export const isLocalSupabase = useLocal;
+
+export function hasPreviewCredentials(): boolean {
+  return Boolean(
+    process.env.EXPO_PUBLIC_SUPABASE_PREVIEW_URL &&
+    process.env.EXPO_PUBLIC_SUPABASE_PREVIEW_PUBLISHABLE_KEY,
+  );
+}
+
+function resolveLocalSupabaseUrl(): string {
   if (useTunnel) {
     const tunnelUrl = process.env.EXPO_PUBLIC_SUPABASE_TUNNEL_URL;
     if (!tunnelUrl) {
@@ -33,11 +47,32 @@ function resolveSupabaseUrl(): string {
   return process.env.EXPO_PUBLIC_SUPABASE_LOCAL_URL!;
 }
 
-const supabaseUrl = resolveSupabaseUrl();
+function credentialsFor(target: SupabaseTarget): { url: string; key: string } {
+  if (target === "local") {
+    return {
+      url: resolveLocalSupabaseUrl(),
+      key: process.env.EXPO_PUBLIC_SUPABASE_LOCAL_PUBLISHABLE_KEY!,
+    };
+  }
+  if (target === "preview") {
+    return {
+      url: process.env.EXPO_PUBLIC_SUPABASE_PREVIEW_URL!,
+      key: process.env.EXPO_PUBLIC_SUPABASE_PREVIEW_PUBLISHABLE_KEY!,
+    };
+  }
+  return {
+    url: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+    key: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+  };
+}
 
-const supabaseKey = useLocal
-  ? process.env.EXPO_PUBLIC_SUPABASE_LOCAL_PUBLISHABLE_KEY!
-  : process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+function persistedPreview(): boolean {
+  try {
+    return localStorage.getItem(PREVIEW_STORAGE_KEY) === PREVIEW_STORAGE_VALUE;
+  } catch {
+    return false;
+  }
+}
 
 function requestMeta(
   input: RequestInfo | URL,
@@ -111,12 +146,80 @@ async function loggedFetch(
   return response;
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
-  auth: {
-    storage: localStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
-  },
-  global: { fetch: loggedFetch },
+function createSupabaseClient(target: SupabaseTarget): EntaoSupabaseClient {
+  const { url, key } = credentialsFor(target);
+  return createClient<Database>(url, key, {
+    auth: {
+      storage: localStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
+    global: { fetch: loggedFetch },
+  });
+}
+
+let currentTarget: SupabaseTarget = resolveSupabaseTarget({
+  useLocal,
+  persistedPreview: persistedPreview(),
+  previewConfigured: hasPreviewCredentials(),
 });
+
+export let supabase: EntaoSupabaseClient = createSupabaseClient(currentTarget);
+
+const targetListeners = new Set<() => void>();
+
+function emitSupabaseTarget() {
+  for (const listener of targetListeners) {
+    listener();
+  }
+}
+
+export function subscribeSupabaseTarget(onStoreChange: () => void): () => void {
+  targetListeners.add(onStoreChange);
+  return () => {
+    targetListeners.delete(onStoreChange);
+  };
+}
+
+export function getSupabaseTarget(): SupabaseTarget {
+  return currentTarget;
+}
+
+export function useSupabaseTarget(): SupabaseTarget {
+  return useSyncExternalStore(
+    subscribeSupabaseTarget,
+    getSupabaseTarget,
+    getSupabaseTarget,
+  );
+}
+
+export async function attemptPreviewSignIn(
+  email: string,
+  password: string,
+): Promise<{ error: string | null; client: EntaoSupabaseClient }> {
+  const client = createSupabaseClient("preview");
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  return { error: error?.message ?? null, client };
+}
+
+export async function commitSupabaseTarget(
+  target: "preview" | "production",
+  client?: EntaoSupabaseClient,
+): Promise<void> {
+  if (useLocal) {
+    return;
+  }
+
+  if (target === "preview") {
+    localStorage.setItem(PREVIEW_STORAGE_KEY, PREVIEW_STORAGE_VALUE);
+  } else {
+    localStorage.removeItem(PREVIEW_STORAGE_KEY);
+  }
+
+  const previous = supabase;
+  void previous.auth.signOut().catch(() => {});
+  supabase = client ?? createSupabaseClient(target);
+  currentTarget = target;
+  emitSupabaseTarget();
+}
