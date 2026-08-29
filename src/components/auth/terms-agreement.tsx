@@ -1,7 +1,13 @@
-import { StyleSheet, View } from "react-native";
-import { Button, Checkbox, Column, Host, Row, Text } from "@expo/ui";
+import { StyleSheet, Text, useColorScheme, View } from "react-native";
+import { Checkbox, Host } from "@expo/ui";
 import * as WebBrowser from "expo-web-browser";
 import { TERMS_URL } from "@/lib/terms";
+import { resolveColorScheme } from "@/lib/theme-colors";
+
+const LINK_COLOR = {
+  light: "#007AFF",
+  dark: "#0A84FF",
+} as const;
 
 type TermsAgreementProps = {
   checked: boolean;
@@ -18,40 +24,69 @@ export function TermsAgreement({
   onChange,
   disabled = false,
 }: TermsAgreementProps) {
+  const theme = resolveColorScheme(useColorScheme());
+
   return (
     <View style={styles.root} testID="auth-terms-agreement">
-      <Host matchContents ignoreSafeArea="all">
-        <Column spacing={8}>
-          <Checkbox
-            testID="auth-terms-checkbox"
-            value={checked}
-            onValueChange={onChange}
-            disabled={disabled}
-            label="I agree to the Terms of Service"
-          />
-          <Row spacing={4} alignment="center">
-            <Text textStyle={{ color: MUTED }}>Read the</Text>
-            <Button
-              testID="auth-terms-link"
-              variant="text"
-              label="Terms of Service"
-              disabled={disabled}
-              onPress={() => {
-                void openTerms();
-              }}
-            />
-          </Row>
-        </Column>
+      <Text
+        style={[
+          styles.text,
+          { color: theme === "dark" ? "#FFFFFF" : "#000000" },
+        ]}
+      >
+        I agree to the{" "}
+        <Text
+          testID="auth-terms-link"
+          style={[
+            styles.link,
+            { color: LINK_COLOR[theme] },
+            disabled && styles.linkDisabled,
+          ]}
+          onPress={
+            disabled
+              ? undefined
+              : () => {
+                  void openTerms();
+                }
+          }
+        >
+          Terms of Service
+        </Text>
+      </Text>
+      <Host matchContents={{ vertical: true }} style={styles.checkboxHost}>
+        <Checkbox
+          testID="auth-terms-checkbox"
+          value={checked}
+          onValueChange={onChange}
+          disabled={disabled}
+        />
       </Host>
     </View>
   );
 }
 
-const MUTED = "#8E8E93";
-
 const styles = StyleSheet.create({
   root: {
-    width: "100%",
-    alignItems: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    maxWidth: "100%",
+    gap: 8,
+  },
+  checkboxHost: {
+    // matchContents can slightly under-measure the native toggle's width,
+    // clipping its trailing edge — a fixed, generous width avoids that.
+    width: 70,
+  },
+  text: {
+    flexShrink: 1,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  link: {
+    fontWeight: "600",
+  },
+  linkDisabled: {
+    opacity: 0.5,
   },
 });
