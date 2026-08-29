@@ -602,6 +602,33 @@ export type Database = {
           },
         ]
       }
+      terms_versions: {
+        Row: {
+          content_hash: string
+          created_at: string
+          effective_at: string
+          is_current: boolean
+          slug: string
+          url: string
+        }
+        Insert: {
+          content_hash: string
+          created_at?: string
+          effective_at: string
+          is_current?: boolean
+          slug: string
+          url: string
+        }
+        Update: {
+          content_hash?: string
+          created_at?: string
+          effective_at?: string
+          is_current?: boolean
+          slug?: string
+          url?: string
+        }
+        Relationships: []
+      }
       user_blocks: {
         Row: {
           blocked_id: string
@@ -659,11 +686,66 @@ export type Database = {
         }
         Relationships: []
       }
+      user_terms_acceptances: {
+        Row: {
+          accepted_at: string
+          content_hash: string
+          id: string
+          terms_slug: string
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          content_hash: string
+          id?: string
+          terms_slug: string
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          content_hash?: string
+          id?: string
+          terms_slug?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_terms_acceptances_terms_slug_fkey"
+            columns: ["terms_slug"]
+            isOneToOne: false
+            referencedRelation: "terms_versions"
+            referencedColumns: ["slug"]
+          },
+          {
+            foreignKeyName: "user_terms_acceptances_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      accept_terms: {
+        Args: { p_hash: string; p_slug: string }
+        Returns: {
+          accepted_at: string
+          content_hash: string
+          id: string
+          terms_slug: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "user_terms_acceptances"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       are_friends: {
         Args: { p_other_id: string; p_user_id: string }
         Returns: boolean
@@ -681,6 +763,23 @@ export type Database = {
       cancel_friend_request: {
         Args: { p_request_id: string }
         Returns: undefined
+      }
+      get_current_terms: {
+        Args: never
+        Returns: {
+          content_hash: string
+          created_at: string
+          effective_at: string
+          is_current: boolean
+          slug: string
+          url: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "terms_versions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       get_post: {
         Args: { p_post_id: string }
@@ -715,6 +814,7 @@ export type Database = {
         Args: { p_other_id: string; p_user_id: string }
         Returns: string
       }
+      has_accepted_current_terms: { Args: never; Returns: boolean }
       is_blocked: {
         Args: { p_other_id: string; p_user_id: string }
         Returns: boolean
