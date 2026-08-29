@@ -14,13 +14,6 @@ env:
       visible: "Allow"
     commands:
       - tapOn: "Allow"
-- runFlow:
-    when:
-      visible:
-        id: "home-feed-accept-location"
-    commands:
-      - tapOn:
-          id: "home-feed-accept-location"
 - extendedWaitUntil:
     visible:
       id: "home-feed-location"

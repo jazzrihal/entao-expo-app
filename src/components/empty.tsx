@@ -8,15 +8,31 @@ type EmptyProps = {
   description?: string;
   testID?: string;
   action?: ReactNode;
+  /** Where to pin copy when a centered system sheet would cover mid-screen. */
+  contentAlign?: "center" | "top" | "bottom";
 };
 
-export function Empty({ title, description, testID, action }: EmptyProps) {
+export function Empty({
+  title,
+  description,
+  testID,
+  action,
+  contentAlign = "center",
+}: EmptyProps) {
   const secondaryColor = SECONDARY_LABEL[resolveColorScheme(useColorScheme())];
 
   return (
     <Host style={{ flex: 1 }} testID={testID}>
-      <Column alignment="center" spacing={8} style={{ paddingHorizontal: 24 }}>
-        <Spacer flexible />
+      <Column
+        alignment="center"
+        spacing={8}
+        style={{
+          paddingHorizontal: 24,
+          ...(contentAlign === "top" ? { paddingTop: 24 } : null),
+          ...(contentAlign === "bottom" ? { paddingBottom: 24 } : null),
+        }}
+      >
+        {contentAlign !== "top" ? <Spacer flexible /> : null}
         <Text textStyle={{ fontWeight: "600", textAlign: "center" }}>
           {title}
         </Text>
@@ -26,7 +42,7 @@ export function Empty({ title, description, testID, action }: EmptyProps) {
           </Text>
         ) : null}
         {action}
-        <Spacer flexible />
+        {contentAlign !== "bottom" ? <Spacer flexible /> : null}
       </Column>
     </Host>
   );

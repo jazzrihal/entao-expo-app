@@ -30,7 +30,7 @@ env:
       - tapOn: "Cancel"
 # The simulator has no GPS fix by default, so `getCurrentPositionAsync()` in the app
 # hangs for ~15-20s before failing, which both slows every flow down and races with
-# the "Grant access to your location?" fallback sheet blocking navigation below.
+# Home still initializing location.
 # Mock a fix near the seeded Tokyo post cluster (entao-supabase-backend/supabase/seeds/02_posts.sql)
 # so location resolves instantly and the Home feed shows seeded nearby posts.
 - setLocation:
@@ -111,14 +111,6 @@ env:
       - tapOn:
           id: "terms-gate-accept-button"
       - waitForAnimationToEnd
-# With a mocked GPS fix above, location resolves without the "Grant access to your
-# location?" fallback sheet — but guard defensively in case it still races in.
-- runFlow:
-    when:
-      visible:
-        id: "home-feed-location-actions"
-    commands:
-      - tapOn: "Reject"
 # Auth + tab settle can lag on CI; wait before tapping and for the logged-in probe.
 - extendedWaitUntil:
     visible: "Profile"

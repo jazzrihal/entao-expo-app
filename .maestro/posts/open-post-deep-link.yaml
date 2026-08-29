@@ -111,12 +111,6 @@ env:
       visible: ".*Would Like to Send You Notifications.*"
     commands:
       - tapOn: "Don’t Allow"
-- runFlow:
-    when:
-      visible:
-        id: "home-feed-location-actions"
-    commands:
-      - tapOn: "Reject"
 # Auth layout redirects to /(app)/post/[id] when returnTo was preserved.
 - extendedWaitUntil:
     visible:

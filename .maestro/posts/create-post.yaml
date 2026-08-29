@@ -13,15 +13,7 @@ env:
 - assertVisible:
     id: "home-feed"
 - tapOn: "New post"
-# In-app sheet when camera is not yet granted (CI sim without pre-grant, or race).
-- runFlow:
-    when:
-      visible:
-        id: "new-post-camera-permission-required"
-    commands:
-      - tapOn:
-          id: "new-post-request-camera-permission"
-# System dialog after tapping Accept / requestPermission().
+# System camera dialog when permission was not pre-granted.
 - runFlow:
     when:
       visible: "Allow"

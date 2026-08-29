@@ -30,7 +30,6 @@ import {
 import { CameraView, useCameraPermissions, type CameraType } from "expo-camera";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Empty } from "@/components/empty";
-import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
 import { ZoomableImage } from "@/components/zoomable-image";
 import * as Location from "expo-location";
 import { Stack, useRouter, useTheme } from "expo-router";
@@ -84,7 +83,6 @@ export default function NewPostScreen() {
   const [savedLocally, setSavedLocally] = useState(false);
   const [captionFocused, setCaptionFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cameraSheetOpen, setCameraSheetOpen] = useState(true);
   const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState<CameraType>("back");
   const [gpsEnabled, setGpsEnabled] = useState(true);
@@ -101,10 +99,22 @@ export default function NewPostScreen() {
     null,
   );
   const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didRequestCameraPermission = useRef(false);
 
   useEffect(() => {
     zoomRef.current = zoom;
   }, [zoom]);
+
+  useEffect(() => {
+    if (!permission || permission.granted || imageUri) {
+      return;
+    }
+    if (didRequestCameraPermission.current) {
+      return;
+    }
+    didRequestCameraPermission.current = true;
+    void requestPermission();
+  }, [permission, requestPermission, imageUri]);
 
   const profileQuery = useUserProfileQuery(session?.user.id, {
     enabled: !!session?.user.id && !!imageUri,
@@ -401,36 +411,8 @@ export default function NewPostScreen() {
             testID="new-post-camera-permission-required"
             title="Camera access required"
             description="Allow camera access to take a photo for your post."
+            contentAlign="top"
           />
-          <EmptyActionsSheet
-            isPresented={cameraSheetOpen}
-            onDismiss={() => setCameraSheetOpen(false)}
-            testID="new-post-camera-permission-actions"
-          >
-            <Text textStyle={{ textAlign: "center" }}>
-              Grant access to the camera?
-            </Text>
-            {submitError ? (
-              <Text testID="new-post-error" textStyle={{ textAlign: "center" }}>
-                {submitError}
-              </Text>
-            ) : null}
-            <Row spacing={12} alignment="center">
-              <Button
-                testID="new-post-request-camera-permission"
-                variant="filled"
-                label="Accept"
-                onPress={() => {
-                  void requestPermission();
-                }}
-              />
-              <Button
-                variant="outlined"
-                label="Reject"
-                onPress={() => router.back()}
-              />
-            </Row>
-          </EmptyActionsSheet>
           <Stack.Toolbar placement="left">
             <Stack.Toolbar.Button
               accessibilityLabel="Back"

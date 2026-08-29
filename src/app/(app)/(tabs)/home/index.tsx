@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { Button, Host, Row, Text } from "@expo/ui";
+import { Button, Host, Text } from "@expo/ui";
 import { Empty } from "@/components/empty";
-import { EmptyActionsSheet } from "@/components/empty-actions-sheet";
 import { PostFeedGrid } from "@/components/post-feed-grid";
 import { useObserve } from "@legendapp/state/react";
 import * as Location from "expo-location";
@@ -46,7 +45,6 @@ export default function Home() {
   const [locationLabel, setLocationLabel] = useState("Current location");
   const [locationParts, setLocationParts] = useState<PostLocationParts>({});
   const [initializingLocation, setInitializingLocation] = useState(true);
-  const [locationSheetOpen, setLocationSheetOpen] = useState(false);
 
   const hasLocation =
     selectedLocation != null &&
@@ -187,32 +185,6 @@ export default function Home() {
     router.push("/(app)/(tabs)/home/map-picker-modal");
   }, [selectedLocation, router]);
 
-  const acceptLocation = useCallback(async () => {
-    const permission = await Location.requestForegroundPermissionsAsync();
-    if (!permission.granted) {
-      setLocationSheetOpen(false);
-      return;
-    }
-
-    try {
-      const position = await getCurrentPositionWithTimeout();
-      const coordinates = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      };
-      setSelectedLocation(coordinates);
-      const parts = await resolvePostLocationParts(coordinates);
-      setLocationParts(parts);
-      setLocationLabel(formatLocationButtonLabel(parts));
-      setLocationSheetOpen(false);
-    } catch {
-      // Ensure the sheet always dismisses, even when location resolution
-      // fails (e.g. no GPS fix) — otherwise "Accept" appears to hang forever.
-      setLocationLabel("Select location");
-      setLocationSheetOpen(false);
-    }
-  }, []);
-
   const openMoments = useCallback(() => {
     momentPicker$.draft.set(
       hasLocation
@@ -230,18 +202,6 @@ export default function Home() {
     );
     router.push("/(app)/(tabs)/home/moments");
   }, [hasLocation, locationParts, router, selectedDate, selectedLocation]);
-
-  const showLocationEmpty =
-    !initializingLocation && !showFeedLoading && !selectedLocation;
-
-  const [prevShowLocationEmpty, setPrevShowLocationEmpty] =
-    useState(showLocationEmpty);
-  if (showLocationEmpty !== prevShowLocationEmpty) {
-    setPrevShowLocationEmpty(showLocationEmpty);
-    if (showLocationEmpty) {
-      setLocationSheetOpen(true);
-    }
-  }
 
   const handleOpenPostDetail = useCallback(
     (post: FeedPostWithImage) => {
@@ -343,33 +303,6 @@ export default function Home() {
       <View testID="home-feed" style={styles.feed}>
         {feedContent}
       </View>
-
-      {showLocationEmpty ? (
-        <EmptyActionsSheet
-          isPresented={locationSheetOpen}
-          onDismiss={() => setLocationSheetOpen(false)}
-          testID="home-feed-location-actions"
-        >
-          <Text textStyle={{ textAlign: "center" }}>
-            Grant access to your location?
-          </Text>
-          <Row spacing={12} alignment="center">
-            <Button
-              testID="home-feed-accept-location"
-              variant="filled"
-              label="Accept"
-              onPress={() => {
-                void acceptLocation();
-              }}
-            />
-            <Button
-              variant="outlined"
-              label="Reject"
-              onPress={() => setLocationSheetOpen(false)}
-            />
-          </Row>
-        </EmptyActionsSheet>
-      ) : null}
 
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
