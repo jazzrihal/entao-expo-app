@@ -16,4 +16,8 @@ export const queryKeys = {
   profileFeed: (userId: string) => ["profile-feed", userId] as const,
   friendsPosts: () => ["friends-posts"] as const,
   moments: () => ["moments"] as const,
+  terms: {
+    current: () => ["terms", "current"] as const,
+    accepted: () => ["terms", "accepted"] as const,
+  },
 };

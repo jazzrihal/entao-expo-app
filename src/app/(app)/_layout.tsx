@@ -1,14 +1,12 @@
 import { useEffect, type ReactNode } from "react";
 import { Redirect, usePathname } from "expo-router";
 import { Stack } from "expo-router/stack";
+import { TermsGate } from "@/components/terms-gate";
 import { useAuth } from "@/context/auth";
 import { PostManagerProvider } from "@/context/post-manager";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useInitialPostLinkReady } from "@/hooks/use-pending-post-return";
-import {
-  consumePostReturnPath,
-  peekPostReturnPath,
-} from "@/lib/post-sharing";
+import { consumePostReturnPath, peekPostReturnPath } from "@/lib/post-sharing";
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -51,27 +49,29 @@ export default function AppLayout() {
   }
 
   return (
-    <AuthenticatedShell>
-      <PostManagerProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="user/[id]"
-            options={{
-              headerBackButtonDisplayMode: "minimal",
-              headerLargeTitle: false,
-            }}
-          />
-          <Stack.Screen
-            name="post/[id]"
-            options={{
-              title: "",
-              headerBackButtonDisplayMode: "minimal",
-              headerLargeTitle: false,
-            }}
-          />
-        </Stack>
-      </PostManagerProvider>
-    </AuthenticatedShell>
+    <TermsGate>
+      <AuthenticatedShell>
+        <PostManagerProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="user/[id]"
+              options={{
+                headerBackButtonDisplayMode: "minimal",
+                headerLargeTitle: false,
+              }}
+            />
+            <Stack.Screen
+              name="post/[id]"
+              options={{
+                title: "",
+                headerBackButtonDisplayMode: "minimal",
+                headerLargeTitle: false,
+              }}
+            />
+          </Stack>
+        </PostManagerProvider>
+      </AuthenticatedShell>
+    </TermsGate>
   );
 }

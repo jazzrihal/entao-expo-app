@@ -6,6 +6,7 @@ import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthSocialButtons } from "@/components/auth/auth-social-buttons";
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { AuthTextField } from "@/components/auth/auth-text-field";
+import { TermsAgreement } from "@/components/auth/terms-agreement";
 import { useAuth } from "@/context/auth";
 import {
   ERROR_BACKGROUND,
@@ -19,11 +20,16 @@ export default function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   async function handleSignUp() {
+    if (!agreed) {
+      setError("Please agree to the Terms of Service.");
+      return;
+    }
     if (!email || !password) {
       setError("Please fill in all fields.");
       return;
@@ -73,12 +79,17 @@ export default function SignUp() {
           label="Create account"
           onPress={handleSignUp}
           loading={loading}
+          disabled={!agreed}
         />
       }
       social={
         <AuthSocialButtons
-          disabled={loading}
+          disabled={loading || !agreed}
           onApplePress={async (opts) => {
+            if (!agreed) {
+              setError("Please agree to the Terms of Service.");
+              return { error: "Please agree to the Terms of Service." };
+            }
             const result = await signInWithApple(opts);
             if (!result.error) setError(null);
             return result;
@@ -144,6 +155,12 @@ export default function SignUp() {
           returnKeyType="done"
           onSubmitEditing={handleSignUp}
           placeholder="••••••••"
+        />
+
+        <TermsAgreement
+          checked={agreed}
+          onChange={setAgreed}
+          disabled={loading}
         />
       </View>
     </AuthScreen>

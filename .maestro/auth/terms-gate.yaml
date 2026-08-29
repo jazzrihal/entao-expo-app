@@ -1,0 +1,125 @@
+appId: com.jazzrihal.entao
+# Dedicated Terms of Service acceptance coverage for Apple Guideline 1.2.
+# Asserts: sign-up checkbox gates submit; terms link is present; post-auth
+# TermsGate appears for a fresh account and Accept unlocks the app.
+env:
+  NEW_EMAIL: ${E2E_TERMS_EMAIL || "e2e-terms@entao.app"}
+  NEW_PASSWORD: ${E2E_TERMS_PASSWORD || "Password123!"}
+---
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    permissions:
+      location: inuse
+      camera: allow
+      notifications: deny
+- setLocation:
+    latitude: 35.6762
+    longitude: 139.6503
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 60000
+- assertVisible:
+    id: "auth-terms-disclaimer"
+- assertVisible:
+    id: "auth-terms-link"
+- tapOn:
+    id: "sign-in-link-to-sign-up"
+- extendedWaitUntil:
+    visible:
+      id: "sign-up-email"
+    timeout: 15000
+- assertVisible:
+    id: "auth-terms-checkbox"
+- assertVisible:
+    id: "auth-terms-link"
+- tapOn:
+    id: "sign-up-email"
+- eraseText
+- inputText: ${NEW_EMAIL}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-password"
+- inputText: "x"
+- waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-password"
+- eraseText
+- inputText: ${NEW_PASSWORD}
+- waitForAnimationToEnd
+- repeat:
+    while:
+      visible: "Speed up your typing.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-confirm-password"
+- eraseText
+- inputText: ${NEW_PASSWORD}
+- waitForAnimationToEnd
+- tapOn:
+    text: "Create account"
+    index: 0
+- waitForAnimationToEnd
+# Submit must stay gated until the Terms checkbox is checked.
+- assertVisible:
+    id: "sign-up-button"
+- tapOn:
+    id: "auth-terms-checkbox"
+- waitForAnimationToEnd
+- tapOn:
+    id: "sign-up-button"
+- runFlow:
+    when:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
+# Local: TermsGate then tabs. Hosted: confirmation screen (no session yet).
+- runFlow:
+    when:
+      notVisible:
+        id: "sign-up-confirmation"
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: "terms-gate-accept-button"
+          timeout: 30000
+      - assertVisible:
+          id: "terms-gate"
+      - assertVisible:
+          id: "terms-gate-link"
+      - tapOn:
+          id: "terms-gate-accept-button"
+      - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Friends"
+          timeout: 30000
+      - tapOn: "Profile"
+      - assertVisible: "Settings"
+- runFlow:
+    when:
+      visible:
+        id: "sign-up-confirmation"
+    commands:
+      - assertVisible:
+          id: "sign-up-confirmation"

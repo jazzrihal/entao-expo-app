@@ -6,6 +6,7 @@ import { AuthScreen } from "@/components/auth/auth-screen";
 import { AuthSocialButtons } from "@/components/auth/auth-social-buttons";
 import { AuthSubmitButton } from "@/components/auth/auth-submit-button";
 import { AuthTextField } from "@/components/auth/auth-text-field";
+import { TermsDisclaimer } from "@/components/auth/terms-disclaimer";
 import { useAuth } from "@/context/auth";
 import {
   ERROR_BACKGROUND,
@@ -169,6 +170,8 @@ export default function SignIn() {
           onSubmitEditing={handleSignIn}
           placeholder="••••••••"
         />
+
+        <TermsDisclaimer />
       </View>
     </AuthScreen>
   );

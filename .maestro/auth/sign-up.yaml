@@ -77,6 +77,14 @@ env:
     text: "Create account"
     index: 0
 - waitForAnimationToEnd
+# Terms checkbox must be checked before Create account / Apple are enabled.
+- extendedWaitUntil:
+    visible:
+      id: "auth-terms-checkbox"
+    timeout: 15000
+- tapOn:
+    id: "auth-terms-checkbox"
+- waitForAnimationToEnd
 - extendedWaitUntil:
     visible:
       id: "sign-up-button"
@@ -88,15 +96,29 @@ env:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
-# Local Supabase skips email confirmation and lands on tabs immediately.
-# Hosted requires confirmation and shows sign-up-confirmation.
+# Local Supabase skips email confirmation and lands on tabs (or TermsGate)
+# immediately. Hosted requires confirmation and shows sign-up-confirmation.
 # Exactly one success path must hard-fail if neither appears.
 - runFlow:
     when:
       notVisible:
         id: "sign-up-confirmation"
     commands:
-      - assertVisible: "Friends"
+      # Wait until TermsGate or tabs settle (gate loads after has_accepted query).
+      - extendedWaitUntil:
+          visible: "Friends|Accept Terms of Service|One more thing"
+          timeout: 30000
+      - runFlow:
+          when:
+            visible:
+              id: "terms-gate-accept-button"
+          commands:
+            - tapOn:
+                id: "terms-gate-accept-button"
+            - waitForAnimationToEnd
+      - extendedWaitUntil:
+          visible: "Friends"
+          timeout: 30000
       - tapOn: "Profile"
       - assertVisible: "Settings"
 - runFlow:

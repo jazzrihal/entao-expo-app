@@ -16,6 +16,7 @@ executionOrder:
     - sign-in-validation
     - sign-out
     - sign-up
+    - terms-gate
     - view-profile
     - edit-account-settings
     - delete-account-settings

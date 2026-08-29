@@ -98,6 +98,19 @@ env:
       visible: ".*Would Like to Send You Notifications.*"
     commands:
       - tapOn: "Don’t Allow"
+# TermsGate blocks tabs until current terms are accepted. Seeded E2E users
+# should already have accepted; handle defensively if they have not.
+- extendedWaitUntil:
+    visible: "Profile|Accept Terms of Service|One more thing"
+    timeout: 30000
+- runFlow:
+    when:
+      visible:
+        id: "terms-gate-accept-button"
+    commands:
+      - tapOn:
+          id: "terms-gate-accept-button"
+      - waitForAnimationToEnd
 # With a mocked GPS fix above, location resolves without the "Grant access to your
 # location?" fallback sheet — but guard defensively in case it still races in.
 - runFlow:
