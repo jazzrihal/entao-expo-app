@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { Pressable, useColorScheme, View } from "react-native";
 import { Column, Host, Text } from "@expo/ui";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   AuthKeyboardProvider,
   useAuthKeyboard,
@@ -45,21 +45,20 @@ function AuthScreenContent({
 }: AuthScreenProps) {
   const keyboard = useAuthKeyboard();
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   return (
-    <SafeAreaView
-      edges={["top", "bottom"]}
-      style={{
-        flex: 1,
-        paddingBottom: 32,
-        paddingHorizontal: 24,
-      }}
-      testID={testID}
-    >
+    <View style={{ flex: 1 }} testID={testID}>
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingHorizontal: 24,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + 32,
+        }}
         onScrollBeginDrag={keyboard?.dismiss}
       >
         <Pressable
@@ -111,7 +110,7 @@ function AuthScreenContent({
           </View>
         </Pressable>
       </KeyboardAwareScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
