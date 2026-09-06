@@ -14,6 +14,11 @@ import {
 } from "@/lib/post-sharing";
 import { useSupabaseTarget } from "@/lib/supabase";
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/global.css';
+import { SafeAreaListener } from 'react-native-safe-area-context';
+import { Uniwind } from 'uniwind';
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const supabaseTarget = useSupabaseTarget();
@@ -52,8 +57,18 @@ export default function RootLayout() {
             <ThemeProvider
               value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
             >
-              <Slot />
-            </ThemeProvider>
+    <SafeAreaListener
+      onChange={({ insets }) => {
+        Uniwind.updateInsets(insets);
+      }}
+    >
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <GluestackUIProvider mode="dark">
+          <Slot />
+        </GluestackUIProvider>
+      </GestureHandlerRootView>
+    </SafeAreaListener>
+    </ThemeProvider>
           </AuthProvider>
         </QueryClientProvider>
       </KeyboardProvider>
