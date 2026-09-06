@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   FlatList,
-  Platform,
   Share,
   StyleSheet,
   View,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { Stack, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TAB_BAR_HEIGHT } from "@/components/app-tab-bar";
 import { PostFeedPage } from "@/components/post-feed-page";
 import { ReportSheet } from "@/components/report-sheet";
 import { useAuth } from "@/context/auth";
@@ -41,12 +41,6 @@ type PostFeedPagerProps = {
   localPostIds?: Set<string>;
 };
 
-const NATIVE_TAB_BAR_HEIGHT = Platform.select({
-  ios: 49,
-  android: 56,
-  default: 49,
-}) as number;
-
 export function PostFeedPager({
   posts,
   testIDPrefix,
@@ -73,8 +67,7 @@ export function PostFeedPager({
   const reportMutation = useReportPostMutation();
   const blockMutation = useBlockUserMutation();
 
-  const bottomInset =
-    insets.bottom + (includeTabBarInset ? NATIVE_TAB_BAR_HEIGHT : 0);
+  const bottomInset = insets.bottom + (includeTabBarInset ? TAB_BAR_HEIGHT : 0);
   const pagerTestID = testID ?? `${testIDPrefix}-feed-pager`;
   const scrollIndex =
     initialIndex != null && initialIndex >= 0 ? initialIndex : undefined;

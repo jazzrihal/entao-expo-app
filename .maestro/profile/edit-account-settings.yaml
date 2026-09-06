@@ -9,7 +9,7 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn:
-    text: "Profile"
+    id: "tab-profile"
     label: Open Profile tab
 - assertVisible:
     id: "profile-post-grid"

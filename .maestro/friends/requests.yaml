@@ -10,7 +10,8 @@ appId: com.jazzrihal.entao
     env:
       E2E_EMAIL: "eve@example.com"
       E2E_PASSWORD: "entao-local-dev"
-- tapOn: "Friends"
+- tapOn:
+    id: "tab-friends"
 - tapOn:
     id: "friends-list-button"
 - assertVisible:

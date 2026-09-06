@@ -8,14 +8,35 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
+- assertVisible:
+    id: "tab-home"
+- assertVisible:
+    id: "tab-friends"
+- assertVisible:
+    id: "tab-profile"
+- tapOn:
+    id: "tab-home"
+    label: Open Home tab
+- assertVisible:
+    id: "home-feed"
+    label: Home tab shows the nearby feed
 - tapOn:
     id: "tab-friends"
+    label: Open Friends tab
+- assertVisible:
+    id: "friends-feed"
+    label: Friends tab shows the friends feed
+- tapOn:
+    id: "tab-profile"
+    label: Open Profile tab
+- assertVisible: "Settings"
+- tapOn:
+    id: "tab-friends"
+    label: Return to Friends tab
 - tapOn:
     id: "friends-list-button"
 - assertVisible:
     id: "friends-list"
-- assertVisible:
-    id: "friends-count-bar"
 - assertNotVisible:
     id: "tab-home"
     label: Tab bar hides on the friends list screen

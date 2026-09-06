@@ -13,7 +13,8 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - setAirplaneMode: enabled
-- tapOn: "Home"
+- tapOn:
+    id: "tab-home"
 - assertVisible:
     id: "home-feed"
 - tapOn: "New post"
@@ -30,7 +31,8 @@ env:
 # Post fails silently and saves locally; expect navigation back to home
 - assertVisible:
     id: "home-feed"
-- tapOn: "Profile"
+- tapOn:
+    id: "tab-profile"
 - assertVisible:
     id: "profile-post-grid"
 - assertVisible:

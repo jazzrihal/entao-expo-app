@@ -113,7 +113,8 @@ env:
       - waitForAnimationToEnd
 # Auth + tab settle can lag on CI; wait before tapping and for the logged-in probe.
 - extendedWaitUntil:
-    visible: "Profile"
+    visible:
+      id: "tab-profile"
     timeout: 30000
 # Password / notification sheets can still race in after tabs appear.
 - repeat:
@@ -126,7 +127,8 @@ env:
       visible: ".*Would Like to Send You Notifications.*"
     commands:
       - tapOn: "Don’t Allow"
-- tapOn: "Profile"
+- tapOn:
+    id: "tab-profile"
 - repeat:
     while:
       visible: "Not Now"

@@ -9,7 +9,8 @@ env:
     env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
-- tapOn: "Home"
+- tapOn:
+    id: "tab-home"
 - assertVisible:
     id: "home-feed"
 - tapOn: "New post"

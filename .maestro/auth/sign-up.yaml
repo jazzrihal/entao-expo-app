@@ -117,9 +117,11 @@ env:
                 id: "terms-gate-accept-button"
             - waitForAnimationToEnd
       - extendedWaitUntil:
-          visible: "Friends"
+          visible:
+            id: "tab-friends"
           timeout: 30000
-      - tapOn: "Profile"
+      - tapOn:
+          id: "tab-profile"
       - assertVisible: "Settings"
 - runFlow:
     when:

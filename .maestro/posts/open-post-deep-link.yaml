@@ -14,7 +14,7 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn:
-    text: "Home"
+    id: "tab-home"
     label: Open Home tab
 - assertVisible:
     id: "home-feed-grid"

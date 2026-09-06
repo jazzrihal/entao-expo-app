@@ -9,7 +9,7 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn:
-    text: "Home"
+    id: "tab-home"
     label: Open Home tab
 - assertVisible:
     id: "home-feed-grid"
@@ -52,7 +52,8 @@ env:
 - assertVisible:
     id: "home-feed-grid"
 # Pin/unpin on Alice's own seeded profile posts — home nearby cells can belong to others.
-- tapOn: "Profile"
+- tapOn:
+    id: "tab-profile"
 - assertVisible:
     id: "profile-post-grid"
 # Local-only cells cannot be pinned; skip the local badge cell when present.

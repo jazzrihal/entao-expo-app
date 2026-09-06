@@ -24,6 +24,7 @@ executionOrder:
     - view-user-profile-post-detail
     - open-profile-deep-link
     - list
+    - tab-bar
     - search
     - requests
     - feed

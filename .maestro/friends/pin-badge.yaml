@@ -9,7 +9,7 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn:
-    text: "Friends"
+    id: "tab-friends"
     label: Open Friends tab
 - assertVisible:
     id: "friends-feed"
@@ -57,7 +57,8 @@ env:
 # Friends-pager reopen can show a stale Pin control; profile detail reflects
 # pins reliably. Clear via Profile so later flows don't see this Bob pin on
 # Alice's profile grid (list_profile_feed_posts includes pinned others' posts).
-- tapOn: "Profile"
+- tapOn:
+    id: "tab-profile"
 - assertVisible:
     id: "profile-post-grid"
 - extendedWaitUntil:
