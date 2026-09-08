@@ -11,7 +11,7 @@ Read the exact versioned docs at https://docs.expo.dev/versions/v56.0.0/ before 
 1. **Implement** the requested change on a branch (`cursor/<descriptive-name>-dacb`).
 2. **Add or update Maestro flows** under `.maestro/` when behavior is user-visible (reuse `auth/sign-in.yaml` subflows where possible). CI runs the full suite via `npm run test:e2e` on **macOS** only.
 3. **Open or update a PR** to `main` and push commits before handoff.
-4. **Verify on CI** — treat a green **iOS E2E** workflow as the definition of “build and flow work.” Use `gh` to watch runs until compile + Maestro succeed, or fix failures from logs.
+4. **Verify on CI** — PRs gate on **lint**, **unit**, and **integration** workflows, not iOS E2E. Use `gh` to watch those checks, or fix failures from logs.
 
 ```bash
 gh run list --branch <branch>
@@ -21,7 +21,7 @@ gh run view <run-id> --log-failed
 gh pr checks <pr-number>
 ```
 
-Do not mark work complete based only on local `tsc`/lint if the change affects UI or native builds — **confirm macOS jobs on the PR.**
+Do not mark work complete based only on local `tsc`/lint — **confirm the PR lint/unit/integration jobs.** Do not wait on macOS iOS E2E for merge.
 
 ### What this VM is for
 
@@ -57,7 +57,8 @@ Workflows under `.github/workflows/`:
 
 | Workflow | Runner | Role |
 | --- | --- | --- |
-| **`e2e-ios.yml`** | `ubuntu-latest` + `macos-26` | PRs to `main`: resolve/reuse `ios-e2e-app` artifact, optionally compile, reset hosted Supabase, run Maestro |
+| **`lint.yml`**, **`unit-tests.yml`**, **`integration-tests.yml`** | `ubuntu-latest` | PR gates on `main` |
+| **`e2e-ios.yml`** | `macos-26` | Weekly on `main` (Sunday 06:00 UTC) and `workflow_dispatch`: compile, reset hosted Supabase, run Maestro |
 | **`e2e-ios-compile.yml`** | `macos-26` (reusable) | `npm ci` → `npm run build:e2e:ios -- --device generic --output ./build/ios-e2e` → upload artifact |
 
 **Required GitHub secrets** (repo settings; used by CI, not the Linux agent VM):
@@ -65,9 +66,7 @@ Workflows under `.github/workflows/`:
 - `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY` — baked into the E2E iOS build
 - `SUPABASE_ACCESS_TOKEN`, `E2E_SUPABASE_DB_PASSWORD`, `E2E_SUPABASE_PROJECT_REF`, `E2E_SUPABASE_BACKEND_TOKEN` — reset hosted DB from `jazzrihal/entao-supabase-backend` (or `vars.E2E_SUPABASE_BACKEND_REPOSITORY`)
 
-**Artifact reuse:** `.github/scripts/resolve-ios-e2e-artifact.py` skips recompile when the PR only touches test-only paths (e.g. `.maestro/**`) and build inputs are unchanged since the last `ios-e2e-app` artifact.
-
-**E2E triggers** (path filters): app source, `package-lock.json`, `.maestro/**`, workflow files — see `e2e-ios.yml`.
+iOS E2E is not a PR gate. Cron only runs after this workflow is on `main`; GitHub may delay or skip schedules, so use **Actions → iOS E2E → Run workflow** after merge when you need an immediate compile + Maestro run.
 
 ## Local development (humans / Mac)
 

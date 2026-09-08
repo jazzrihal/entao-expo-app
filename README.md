@@ -27,9 +27,9 @@ You can start developing by editing the files inside the **src/app** directory. 
 
 ## CI and E2E
 
-Pull requests run the iOS E2E workflow when app/build inputs, Maestro flows, or the iOS E2E workflow files change. The workflow compiles a release E2E iOS app on `macos-26` when source/build inputs changed or no reusable artifact exists; otherwise it reuses the latest matching `ios-e2e-app` artifact and runs Maestro against that build.
+Pull requests gate on lint, unit, and integration workflows. iOS E2E runs weekly on `main` (Sunday 06:00 UTC) and on demand via **Actions → iOS E2E → Run workflow**. Each run compiles a release E2E iOS app on `macos-26` and runs Maestro against that build.
 
-The E2E job resets the dedicated hosted Supabase test project from the backend migrations and seed data before running Maestro. If a build or E2E check fails, inspect the GitHub Actions logs, fix the failure, push the branch, and rerun until the relevant PR checks pass.
+The E2E job resets the dedicated hosted Supabase test project from the backend migrations and seed data before running Maestro. If a PR check fails, inspect the GitHub Actions logs, fix the failure, and push until lint/unit/integration pass. For E2E failures after merge, inspect the scheduled or dispatched run and fix on a follow-up PR.
 
 Local release E2E (macOS): `npm run build:e2e:ios` (installs a Release build with `EXPO_PUBLIC_SUPABASE_ENV=local`), then `npm run test:e2e` against a booted simulator. A local `supabase db reset` (backend repo) is required between full runs that mutate seed data. Prefer the Release binary over a development client — Maestro must exercise the embedded JS bundle, not Metro.
 
