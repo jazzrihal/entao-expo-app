@@ -32,7 +32,11 @@ export function NetworkActivityIndicator() {
       accessible={active}
       accessibilityLabel={active ? "Uploading" : undefined}
       pointerEvents="none"
-      style={[styles.pill, { top: insets.top + BELOW_TITLE_TOP }, animatedStyle]}
+      style={[
+        styles.pill,
+        { top: insets.top + BELOW_TITLE_TOP },
+        animatedStyle,
+      ]}
     >
       <SpinningIcon
         name="arrow.triangle.2.circlepath"

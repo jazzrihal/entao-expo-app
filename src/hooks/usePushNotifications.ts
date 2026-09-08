@@ -58,7 +58,9 @@ export function usePushNotifications(): void {
     let lastHeardDeviceToken: string | null = null;
     const tokenSub = Notifications.addPushTokenListener((token) => {
       const tokenData =
-        typeof token?.data === "string" ? token.data : String(token?.data ?? "");
+        typeof token?.data === "string"
+          ? token.data
+          : String(token?.data ?? "");
       if (tokenData === lastHeardDeviceToken) return;
       lastHeardDeviceToken = tokenData;
       void registerPushToken(userId);

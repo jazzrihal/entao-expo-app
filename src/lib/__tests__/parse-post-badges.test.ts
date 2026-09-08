@@ -1,8 +1,8 @@
+import { parsePostBadges } from "../posts";
+
 jest.mock("@/lib/supabase", () => ({
   supabase: {},
 }));
-
-import { parsePostBadges } from "../posts";
 
 const validBadge = {
   badge_id: "badge-1",

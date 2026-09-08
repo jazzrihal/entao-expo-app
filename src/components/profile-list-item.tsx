@@ -4,10 +4,7 @@ import { ListItem, Text } from "@expo/ui";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { openUserProfile } from "@/lib/navigation";
-import {
-  displayNameFontSize,
-  resolveDisplayName,
-} from "@/lib/profile-display";
+import { displayNameFontSize, resolveDisplayName } from "@/lib/profile-display";
 import {
   relationshipLabel,
   type RelationshipKind,
@@ -45,7 +42,8 @@ export function ProfileListItem({
   const statusLabel = relationship ? relationshipLabel(relationship) : "";
   const meta = subtitle ?? (trailing ? undefined : statusLabel || undefined);
   const handle = username.trim() ? `@${username}` : "";
-  const supportingText = handle && meta ? `${handle} · ${meta}` : handle || meta;
+  const supportingText =
+    handle && meta ? `${handle} · ${meta}` : handle || meta;
 
   const openProfile = useCallback(() => {
     if (!profileId) {

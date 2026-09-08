@@ -237,8 +237,7 @@ export function PostDetailScreen() {
                   is_pinned_by_current_user:
                     post.is_pinned_by_current_user ||
                     parsedPost.is_pinned_by_current_user,
-                  user_reaction:
-                    post.user_reaction ?? parsedPost.user_reaction,
+                  user_reaction: post.user_reaction ?? parsedPost.user_reaction,
                 }
               : post,
           )

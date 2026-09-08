@@ -7,7 +7,7 @@ module.exports = defineConfig([
   expoConfig,
   eslintPluginPrettierRecommended,
   {
-    ignores: ["dist/*"],
+    ignores: ["dist/*", "src/lib/database.types.ts"],
   },
   {
     files: ["src/**/*.{ts,tsx}"],

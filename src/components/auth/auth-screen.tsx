@@ -73,7 +73,11 @@ function AuthScreenContent({
           <View style={{ width: "100%", alignItems: "center" }}>
             <Image
               source={colorScheme === "dark" ? LOGO_DARK : LOGO_LIGHT}
-              style={{ width: 176, height: 176, backgroundColor: "transparent" }}
+              style={{
+                width: 176,
+                height: 176,
+                backgroundColor: "transparent",
+              }}
               contentFit="contain"
               accessibilityLabel="Então"
             />

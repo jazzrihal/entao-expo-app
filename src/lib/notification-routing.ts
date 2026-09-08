@@ -46,10 +46,7 @@ export function getNotificationHref(
   if (typeof payload.actor_id === "string") {
     const actorId = payload.actor_id.trim();
     if (actorId.length > 0) {
-      if (
-        options?.sessionUserId != null &&
-        actorId === options.sessionUserId
-      ) {
+      if (options?.sessionUserId != null && actorId === options.sessionUserId) {
         return "/(app)/(tabs)/profile";
       }
       return `/user/${actorId}`;

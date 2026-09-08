@@ -1,6 +1,4 @@
-function firstNonEmpty(
-  ...values: Array<string | null | undefined>
-): string {
+function firstNonEmpty(...values: (string | null | undefined)[]): string {
   for (const value of values) {
     const trimmed = value?.trim();
     if (trimmed) {

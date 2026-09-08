@@ -182,7 +182,10 @@ export function FriendsFeedTab() {
   if (showError) {
     return (
       <View style={styles.message}>
-        <Text testID="friends-feed-error" style={{ color: HEADER_COLORS[theme] }}>
+        <Text
+          testID="friends-feed-error"
+          style={{ color: HEADER_COLORS[theme] }}
+        >
           {feedQuery.error?.message ?? "Failed to load feed"}
         </Text>
       </View>

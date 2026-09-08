@@ -2,7 +2,6 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Column, FieldGroup, Host, ListItem, Text } from "@expo/ui";
 import { Stack, useRouter } from "expo-router";
-import { Empty } from "@/components/empty";
 import { MomentListLabels } from "@/components/moment-list-item";
 import { SwipeableMomentListItem } from "@/components/swipeable-moment-list-item";
 import { useAuth } from "@/context/auth";

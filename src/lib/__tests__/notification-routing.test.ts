@@ -12,16 +12,24 @@ describe("getNotificationHref", () => {
   });
 
   it("rejects absolute and protocol-relative urls", () => {
-    expect(getNotificationHref({ url: "https://evil.example/post/1" })).toBeNull();
+    expect(
+      getNotificationHref({ url: "https://evil.example/post/1" }),
+    ).toBeNull();
     expect(getNotificationHref({ url: "//evil.example/post/1" })).toBeNull();
     expect(getNotificationHref({ url: "http://evil.example/" })).toBeNull();
   });
 
   it("maps post_id to /post/{id}", () => {
     expect(
-      getNotificationHref({ type: "post_liked", post_id: "abc-123", actor_id: "u1" }),
+      getNotificationHref({
+        type: "post_liked",
+        post_id: "abc-123",
+        actor_id: "u1",
+      }),
     ).toBe("/post/abc-123");
-    expect(getNotificationHref({ post_id: "  abc-123  " })).toBe("/post/abc-123");
+    expect(getNotificationHref({ post_id: "  abc-123  " })).toBe(
+      "/post/abc-123",
+    );
   });
 
   it("maps friend_request to /friends/list even when actor_id is present", () => {
