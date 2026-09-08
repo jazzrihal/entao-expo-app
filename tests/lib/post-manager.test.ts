@@ -11,9 +11,9 @@ import {
   getLocalPosts,
   markSynced,
   deleteLocalPost,
-} from "../post-manager";
+} from "@/lib/post-manager";
 
-import * as PostDb from "../post-db";
+import * as PostDb from "@/lib/post-db";
 
 // ---------------------------------------------------------------------------
 // Mock expo-crypto so randomUUID returns a deterministic value in tests
@@ -25,7 +25,7 @@ jest.mock("expo-crypto", () => ({
 // ---------------------------------------------------------------------------
 // Mock post-db so we control DB behaviour per test
 // ---------------------------------------------------------------------------
-jest.mock("../post-db", () => ({
+jest.mock("@/lib/post-db", () => ({
   getDb: jest.fn(),
   insertLocalPost: jest.fn(),
   insertOutboxEntry: jest.fn(),

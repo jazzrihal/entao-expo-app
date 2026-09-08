@@ -2,7 +2,7 @@ import {
   canOfferPreview,
   isPreviewTriggerEmail,
   resolveSupabaseTarget,
-} from "../supabase-target";
+} from "@/lib/supabase-target";
 
 describe("resolveSupabaseTarget", () => {
   it("local wins over persisted preview", () => {

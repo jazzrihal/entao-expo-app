@@ -38,7 +38,7 @@ const mockRunSync = runSync as jest.Mock;
 // Force the module to load and register the task
 beforeAll(() => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports -- must load lazily after `taskCallback` is declared to avoid a TDZ error from the mocked defineTask()
-  require("../post-sync-task");
+  require("@/tasks/post-sync-task");
 });
 
 describe("post-sync-task", () => {

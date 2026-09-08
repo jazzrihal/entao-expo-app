@@ -8,7 +8,7 @@ import { AppState } from "react-native";
 
 import { getLocalPosts } from "@/lib/post-manager";
 import * as SyncManager from "@/lib/sync-manager";
-import { useLocalPosts } from "../useLocalPosts";
+import { useLocalPosts } from "@/hooks/useLocalPosts";
 
 // ---------------------------------------------------------------------------
 // Mocks

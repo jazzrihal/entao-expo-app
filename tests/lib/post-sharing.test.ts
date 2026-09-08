@@ -10,7 +10,7 @@ import {
   userPathFromLinkingUrl,
   validatePostReturnPath,
   validateUserReturnPath,
-} from "../post-sharing";
+} from "@/lib/post-sharing";
 
 describe("post sharing", () => {
   it("builds a canonical HTTPS link and encodes the post ID", () => {

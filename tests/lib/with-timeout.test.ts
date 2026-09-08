@@ -1,4 +1,4 @@
-import { withTimeout } from "../with-timeout";
+import { withTimeout } from "@/lib/with-timeout";
 
 describe("withTimeout", () => {
   beforeEach(() => {

@@ -1,6 +1,6 @@
 import { act, renderHook } from "@testing-library/react-native";
 
-import { useStuckAfter } from "../useStuckAfter";
+import { useStuckAfter } from "@/hooks/useStuckAfter";
 
 describe("useStuckAfter", () => {
   beforeEach(() => {

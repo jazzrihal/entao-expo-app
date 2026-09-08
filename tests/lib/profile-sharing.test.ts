@@ -2,8 +2,8 @@ import {
   buildProfileLink,
   buildProfileShareMessage,
   profileShareName,
-} from "../profile-sharing";
-import { POST_LINK_ORIGIN } from "../post-sharing";
+} from "@/lib/profile-sharing";
+import { POST_LINK_ORIGIN } from "@/lib/post-sharing";
 
 describe("profile sharing", () => {
   it("builds a canonical HTTPS link and encodes the username", () => {

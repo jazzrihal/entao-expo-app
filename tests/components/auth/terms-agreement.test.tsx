@@ -4,7 +4,7 @@ import { render, screen, userEvent } from "@testing-library/react-native";
 import * as WebBrowser from "expo-web-browser";
 
 import { TERMS_URL } from "@/lib/terms";
-import { TermsAgreement } from "../terms-agreement";
+import { TermsAgreement } from "@/components/auth/terms-agreement";
 
 jest.mock("expo-web-browser", () => ({
   openBrowserAsync: jest.fn(),

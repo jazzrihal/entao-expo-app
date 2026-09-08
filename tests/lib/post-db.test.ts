@@ -36,7 +36,7 @@ import {
   getLocalImageUri,
   type LocalPost,
   type UploadOutboxEntry,
-} from "../post-db";
+} from "@/lib/post-db";
 
 // ---------------------------------------------------------------------------
 // Minimal in-memory SQLite stub

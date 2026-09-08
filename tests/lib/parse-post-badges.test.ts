@@ -1,4 +1,4 @@
-import { parsePostBadges } from "../posts";
+import { parsePostBadges } from "@/lib/posts";
 
 jest.mock("@/lib/supabase", () => ({
   supabase: {},

@@ -1,4 +1,4 @@
-import { getNotificationHref } from "../notification-routing";
+import { getNotificationHref } from "@/lib/notification-routing";
 
 describe("getNotificationHref", () => {
   it("returns a safe relative data.url string", () => {

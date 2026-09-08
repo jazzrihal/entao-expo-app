@@ -12,7 +12,11 @@
 // ---------------------------------------------------------------------------
 import { supabase } from "@/lib/supabase";
 import { createPost } from "@/lib/posts";
-import { startUpload } from "../../../modules/background-upload/src";
+import {
+  startUpload,
+  addCompleteListener,
+  addErrorListener,
+} from "../../modules/background-upload/src";
 import * as PostDb from "@/lib/post-db";
 import { markSynced } from "@/lib/post-manager";
 import {
@@ -20,7 +24,7 @@ import {
   addSyncListener,
   isSyncRunning,
   resetSyncState,
-} from "../sync-manager";
+} from "@/lib/sync-manager";
 
 jest.mock("@/lib/supabase", () => ({
   supabase: {
@@ -35,8 +39,10 @@ jest.mock("@/lib/posts", () => ({
 }));
 
 // Mock for the native background-upload module
-jest.mock("../../../modules/background-upload/src", () => ({
+jest.mock("../../modules/background-upload/src", () => ({
   startUpload: jest.fn(),
+  addCompleteListener: jest.fn(),
+  addErrorListener: jest.fn(),
 }));
 
 jest.mock("@/lib/post-db", () => ({
@@ -64,7 +70,10 @@ const mockDeleteOutbox = PostDb.deleteOutboxEntry as jest.Mock;
 const mockMarkSynced = markSynced as jest.Mock;
 const mockCreatePost = createPost as jest.Mock;
 const mockStartUpload = startUpload as jest.Mock;
+const mockAddCompleteListener = addCompleteListener as jest.Mock;
+const mockAddErrorListener = addErrorListener as jest.Mock;
 const mockStorageFrom = supabase.storage.from as jest.Mock;
+const NATIVE_UPLOAD_ID = "upload-1";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -116,7 +125,14 @@ function setupHappyPath(db: object) {
     upload: jest.fn().mockResolvedValue({ error: null }),
   });
 
-  mockStartUpload.mockResolvedValue(undefined);
+  mockStartUpload.mockResolvedValue(NATIVE_UPLOAD_ID);
+  mockAddCompleteListener.mockImplementation(
+    (cb: (e: { uploadId: string }) => void) => {
+      queueMicrotask(() => cb({ uploadId: NATIVE_UPLOAD_ID }));
+      return { remove: jest.fn() };
+    },
+  );
+  mockAddErrorListener.mockImplementation(() => ({ remove: jest.fn() }));
   mockCreatePost.mockResolvedValue({ data: { id: "remote-1" }, error: null });
   mockMarkSynced.mockResolvedValue({ error: null });
 
@@ -344,8 +360,8 @@ describe("sync-manager", () => {
     const uploadStarted = new Promise<void>((resolveStarted) => {
       mockStartUpload.mockImplementation(
         () =>
-          new Promise<void>((resolve) => {
-            resolveUpload = resolve;
+          new Promise<string>((resolve) => {
+            resolveUpload = () => resolve(NATIVE_UPLOAD_ID);
             resolveStarted();
           }),
       );

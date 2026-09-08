@@ -2,7 +2,7 @@ import {
   displayNameFontSize,
   resolveDisplayName,
   truncateDisplayName,
-} from "../profile-display";
+} from "@/lib/profile-display";
 
 describe("resolveDisplayName", () => {
   it("prefers display name", () => {

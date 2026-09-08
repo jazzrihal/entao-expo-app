@@ -8,7 +8,7 @@
 import { renderHook, act, cleanup } from "@testing-library/react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { runSync } from "@/lib/sync-manager";
-import { useNetworkSync } from "../useNetworkSync";
+import { useNetworkSync } from "@/hooks/useNetworkSync";
 
 jest.mock("@/lib/sync-manager", () => ({
   runSync: jest.fn(),
