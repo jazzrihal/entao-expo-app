@@ -1,7 +1,12 @@
-import { requireOptionalNativeModule } from 'expo';
-import type { SearchSuggestion, ResolvedLocation, SearchRegion } from './LocationSearch.types';
+import { requireOptionalNativeModule } from "expo";
+import type {
+  SearchSuggestion,
+  ResolvedLocation,
+  SearchRegion,
+} from "./LocationSearch.types";
 
-const LocationSearchNativeModule = requireOptionalNativeModule('LocationSearch');
+const LocationSearchNativeModule =
+  requireOptionalNativeModule("LocationSearch");
 
 /**
  * Returns autocomplete suggestions for the given query string.
@@ -28,7 +33,9 @@ export async function resolveCompletion(
   region?: SearchRegion,
 ): Promise<ResolvedLocation> {
   if (!LocationSearchNativeModule) {
-    throw new Error('LocationSearch native module is not available. Rebuild the app.');
+    throw new Error(
+      "LocationSearch native module is not available. Rebuild the app.",
+    );
   }
   return LocationSearchNativeModule.resolveCompletion(
     suggestion.title,

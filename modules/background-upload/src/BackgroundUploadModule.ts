@@ -1,4 +1,4 @@
-import { NativeModule, requireOptionalNativeModule } from 'expo';
+import { NativeModule, requireOptionalNativeModule } from "expo";
 
 export type BackgroundUploadEvents = {
   onProgress: (event: { uploadId: string; progress: number }) => void;
@@ -16,4 +16,6 @@ declare class BackgroundUploadModule extends NativeModule<BackgroundUploadEvents
   cancelUpload(uploadId: string): Promise<void>;
 }
 
-export default requireOptionalNativeModule<BackgroundUploadModule>('BackgroundUpload');
+export default requireOptionalNativeModule<BackgroundUploadModule>(
+  "BackgroundUpload",
+);

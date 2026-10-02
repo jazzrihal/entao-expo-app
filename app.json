@@ -11,15 +11,10 @@
       "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.jazzrihal.entao",
       "usesAppleSignIn": true,
-      "associatedDomains": [
-        "applinks:entao.link"
-      ],
+      "associatedDomains": ["applinks:entao.link"],
       "infoPlist": {
         "CFBundleDisplayName": "Então",
-        "UIBackgroundModes": [
-          "processing",
-          "fetch"
-        ]
+        "UIBackgroundModes": ["processing", "fetch"]
       }
     },
     "android": {

@@ -3,23 +3,23 @@
 
 // Global mocks for native modules used by post-manager, post-db, sync-manager
 
-jest.mock('expo-sqlite', () => ({
+jest.mock("expo-sqlite", () => ({
   openDatabaseAsync: jest.fn(),
 }));
 
-jest.mock('expo-file-system/legacy', () => ({
-  documentDirectory: 'file:///mock-documents/',
+jest.mock("expo-file-system/legacy", () => ({
+  documentDirectory: "file:///mock-documents/",
   getInfoAsync: jest.fn(),
   makeDirectoryAsync: jest.fn(),
   copyAsync: jest.fn(),
   deleteAsync: jest.fn(),
 }));
 
-jest.mock('@react-native-community/netinfo', () => ({
+jest.mock("@react-native-community/netinfo", () => ({
   addEventListener: jest.fn(() => jest.fn()),
   fetch: jest.fn(() => Promise.resolve({ isConnected: true })),
 }));
 
-jest.mock('./modules/background-upload/src', () => ({
+jest.mock("./modules/background-upload/src", () => ({
   startUpload: jest.fn(),
 }));
