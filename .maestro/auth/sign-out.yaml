@@ -9,6 +9,16 @@ env:
       E2E_EMAIL: ${E2E_EMAIL}
       E2E_PASSWORD: ${E2E_PASSWORD}
 - tapOn: "Settings"
-- tapOn: "Sign out"
-- assertVisible:
-    id: "sign-in-email"
+- extendedWaitUntil:
+    visible:
+      id: "profile-account-fields"
+    timeout: 15000
+# The row's accessibility frame is the full pill, but only the left-aligned
+# label receives the press. `point` is relative to that element.
+- tapOn:
+    text: "Sign out"
+    point: "15%,50%"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 20000

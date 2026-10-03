@@ -65,13 +65,36 @@ export async function getUserProfileByUsername(username: string): Promise<{
   data: PublicUserProfile | null;
   error: string | null;
 }> {
-  const { data, error } = await supabase
-    .from("user_profiles")
-    .select(PROFILE_COLUMNS)
-    .eq("username", username)
-    .maybeSingle();
+  // Direct selects only return the signed-in user's row. Username links use
+  // the public preview RPC, which can resolve other profiles.
+  const { data, error } = await supabase.rpc("get_public_profile_preview", {
+    p_username: username,
+  });
 
-  return { data, error: rpcErrorMessage(error) };
+  if (error) {
+    return { data: null, error: rpcErrorMessage(error) };
+  }
+
+  return { data: profileFromPublicPreview(data), error: null };
+}
+
+function profileFromPublicPreview(value: unknown): PublicUserProfile | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const record = value as Record<string, unknown>;
+  if (typeof record.id !== "string" || record.id.length === 0) {
+    return null;
+  }
+
+  return {
+    id: record.id,
+    username: typeof record.username === "string" ? record.username : null,
+    display_name:
+      typeof record.display_name === "string" ? record.display_name : null,
+    date_of_birth: null,
+  };
 }
 
 export async function updateUserProfile(

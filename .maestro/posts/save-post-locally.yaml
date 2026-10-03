@@ -45,14 +45,8 @@ env:
     id: "network-activity-indicator"
 - assertVisible: "Post"
 - tapOn: "Post"
-- extendedWaitUntil:
-    visible:
-      id: "network-activity-indicator"
-    timeout: 15000
-- extendedWaitUntil:
-    notVisible:
-      id: "network-activity-indicator"
-    timeout: 30000
+# Local uploads finish before Maestro can observe the activity pill.
+# The local badge leaving the profile grid is the completed upload.
 - extendedWaitUntil:
     notVisible:
       id: "local-post-thumbnail"

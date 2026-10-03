@@ -125,10 +125,11 @@ export async function runSync(): Promise<void> {
 
         const { signedUrl, token, path } = signedData;
 
-        // Attempt native background upload; fall back to JS XHR on web or
-        // if the module is unavailable (simulator without rebuild).
+        // Prefer the native background PUT. If it never starts, or the signed
+        // PUT fails after it starts, upload through the storage client instead.
+        // Local storage can return HTTP 500 on the signed path (upsert SQL
+        // with no matching unique index) while the standard upload succeeds.
         let uploadError: string | null = null;
-        let usedNativeUpload = false;
         try {
           const uploadId = await startUpload(
             post.local_image_uri,
@@ -136,19 +137,17 @@ export async function runSync(): Promise<void> {
             token,
             "image/jpeg",
           );
-          usedNativeUpload = true;
           await waitForNativeUploadCompletion(uploadId);
         } catch (err) {
-          if (usedNativeUpload) {
-            // The native module started the upload but it failed in flight
-            // (surfaced via the async onError event).
-            uploadError =
-              err instanceof Error ? err.message : "Native upload failed";
-          } else {
-            // Native module unavailable – fall through to JS upload via the
-            // standard supabase path so the flow still works in dev/web.
-            uploadError = await jsUploadFallback(post.local_image_uri, path);
-          }
+          const nativeMessage =
+            err instanceof Error ? err.message : "Native upload failed";
+          const fallbackError = await jsUploadFallback(
+            post.local_image_uri,
+            path,
+          );
+          uploadError = fallbackError
+            ? `${nativeMessage}; ${fallbackError}`
+            : null;
         }
 
         if (uploadError) throw new Error(uploadError);
@@ -226,7 +225,7 @@ async function jsUploadFallback(
       .from(POST_IMAGES_BUCKET)
       .upload(storagePath, arrayBuffer, {
         contentType: "image/jpeg",
-        upsert: true,
+        upsert: false,
       });
 
     return error?.message ?? null;

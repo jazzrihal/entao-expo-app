@@ -218,6 +218,55 @@ describe("sync-manager", () => {
     expect(mockMarkSynced).toHaveBeenCalled();
   });
 
+  it("falls back to jsUploadFallback when the native upload fails in flight", async () => {
+    const db = {};
+    const { createSignedUploadUrl } = setupHappyPath(db);
+
+    mockAddCompleteListener.mockImplementation(() => ({ remove: jest.fn() }));
+    mockAddErrorListener.mockImplementation(
+      (cb: (e: { uploadId: string; message: string }) => void) => {
+        queueMicrotask(() =>
+          cb({
+            uploadId: NATIVE_UPLOAD_ID,
+            message: "Upload failed with HTTP 500",
+          }),
+        );
+        return { remove: jest.fn() };
+      },
+    );
+
+    const xhrMock = {
+      responseType: "",
+      onload: null as
+        ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
+      onerror: null as
+        ((this: XMLHttpRequest, ev: ProgressEvent) => void) | null,
+      open: jest.fn(),
+      send: jest.fn().mockImplementation(function (this: typeof xhrMock) {
+        if (typeof this.onload === "function") {
+          Object.defineProperty(this, "response", {
+            value: new ArrayBuffer(8),
+          });
+          (this.onload as Function).call(this, {});
+        }
+      }),
+    };
+    (globalThis as Record<string, unknown>).XMLHttpRequest = jest.fn(
+      () => xhrMock,
+    ) as unknown as typeof XMLHttpRequest;
+
+    const uploadMock = jest.fn().mockResolvedValue({ error: null });
+    mockStorageFrom.mockReturnValue({
+      createSignedUploadUrl,
+      upload: uploadMock,
+    });
+
+    await runSync();
+
+    expect(uploadMock).toHaveBeenCalled();
+    expect(mockMarkSynced).toHaveBeenCalled();
+  });
+
   // -------------------------------------------------------------------------
   // Upload failure + backoff
   // -------------------------------------------------------------------------

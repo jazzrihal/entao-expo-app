@@ -30,7 +30,8 @@ env:
 - assertVisible:
     id: "friends-post-detail"
 - tapOn:
-    label: "More"
+    text: "More"
+    label: Open more menu
 - assertVisible: "Block"
 - tapOn: "Block"
 - assertVisible: "Block this user?"

@@ -22,8 +22,8 @@ env:
     timeout: 60000
 - assertVisible:
     id: "auth-terms-disclaimer"
-- assertVisible:
-    id: "auth-terms-link"
+# Nested Text testIDs are not exposed as accessibility identifiers on iOS.
+- assertVisible: "Terms of Service"
 - tapOn:
     id: "sign-in-link-to-sign-up"
 - extendedWaitUntil:
@@ -32,8 +32,7 @@ env:
     timeout: 15000
 - assertVisible:
     id: "auth-terms-checkbox"
-- assertVisible:
-    id: "auth-terms-link"
+- assertVisible: "Terms of Service"
 - tapOn:
     id: "sign-up-email"
 - eraseText

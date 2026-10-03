@@ -35,11 +35,13 @@ env:
 - assertVisible:
     id: "user-profile"
 - tapOn:
-    label: "More"
+    text: "More"
+    label: Open more menu
 - assertVisible: "Report"
 - tapOn: "Report"
+# BottomSheet does not expose its own testID; the title inside it does.
 - assertVisible:
-    id: "report-sheet"
+    id: "report-sheet-title"
 - assertVisible:
     id: "report-reason-picker"
 - tapOn:

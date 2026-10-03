@@ -25,6 +25,7 @@ env:
     visibilityPercentage: 50
 - tapOn:
     text: "Delete account"
+    point: "15%,50%"
     label: Open delete account confirmation
 - assertVisible: "Delete account?"
 - tapOn: "Delete"
@@ -33,6 +34,7 @@ env:
     timeout: 15000
 - tapOn:
     text: "Cancel account deletion"
+    point: "15%,50%"
     label: Cancel scheduled account deletion
 - extendedWaitUntil:
     visible: "Delete account"

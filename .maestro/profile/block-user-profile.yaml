@@ -35,7 +35,8 @@ env:
 - assertVisible:
     id: "user-profile"
 - tapOn:
-    label: "More"
+    text: "More"
+    label: Open more menu
 - tapOn: "Block"
 - assertVisible: "Block this user?"
 - tapOn: "Cancel"
