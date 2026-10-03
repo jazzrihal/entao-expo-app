@@ -2,6 +2,7 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryClient,
   type UseQueryOptions,
 } from "@tanstack/react-query";
 import {
@@ -19,12 +20,14 @@ import {
   pinPost,
   unlikePost,
   unpinPost,
+  updatePost,
   uploadPostImage,
   type CreatePostInput,
   type FeedPost,
   type FriendsPost,
   type FriendsPostsGroup,
   type PostDetail,
+  type PostPrivacyScope,
   type ProfileFeedPost,
 } from "@/lib/posts";
 import type { PostFeedSource } from "@/lib/navigation";
@@ -469,6 +472,77 @@ export function useCreatePostMutation() {
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.friendsPosts() });
+    },
+  });
+}
+
+export type EditedPostFields = {
+  caption?: string | null;
+  privacyScope: PostPrivacyScope;
+  clearLocation: boolean;
+};
+
+export function rememberEditedPost(
+  queryClient: QueryClient,
+  post: PostDetailWithImage,
+  edit: EditedPostFields,
+) {
+  queryClient.setQueryData<PostDetailWithImage>(
+    queryKeys.post(post.id),
+    (current) => {
+      const next: PostDetailWithImage = {
+        ...(current ?? post),
+        caption: edit.caption?.trim() || "",
+        privacy_scope: edit.privacyScope,
+      };
+      if (!edit.clearLocation) {
+        return next;
+      }
+      // RPC types mark these columns as strings. A removed location is empty.
+      return {
+        ...next,
+        address: "",
+        city: "",
+        region: "",
+        country: "",
+        latitude: null,
+        longitude: null,
+      } as unknown as PostDetailWithImage;
+    },
+  );
+}
+
+export type UpdatePostMutationInput = EditedPostFields & {
+  postId: string;
+  post: PostDetailWithImage;
+};
+
+export function useUpdatePostMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdatePostMutationInput) => {
+      const { error } = await updatePost({
+        postId: input.postId,
+        caption: input.caption,
+        privacyScope: input.privacyScope,
+        clearLocation: input.clearLocation,
+      });
+      if (error) throw new Error(error);
+    },
+    onSuccess: async (_data, variables) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.post(variables.postId),
+      });
+      rememberEditedPost(queryClient, variables.post, variables);
+      void queryClient.invalidateQueries({ queryKey: ["feed"] });
+      void queryClient.invalidateQueries({ queryKey: ["profile-feed"] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.friendsPosts(),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.post(variables.postId),
+      });
     },
   });
 }

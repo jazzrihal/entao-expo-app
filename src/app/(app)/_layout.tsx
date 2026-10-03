@@ -71,6 +71,14 @@ export default function AppLayout() {
                   headerLargeTitle: false,
                 }}
               />
+              <Stack.Screen
+                name="edit-post"
+                options={{
+                  title: "Edit Post",
+                  presentation: "fullScreenModal",
+                  headerLargeTitle: false,
+                }}
+              />
             </Stack>
           </FeedCacheGate>
         </PostManagerProvider>

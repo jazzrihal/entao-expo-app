@@ -207,6 +207,37 @@ export async function createPost(
   return { data, error: rpcErrorMessage(error) };
 }
 
+export type UpdatePostInput = {
+  postId: string;
+  caption?: string | null;
+  privacyScope: PostPrivacyScope;
+  clearLocation: boolean;
+};
+
+export async function updatePost(
+  input: UpdatePostInput,
+): Promise<{ error: string | null }> {
+  const update: Database["public"]["Tables"]["posts"]["Update"] = {
+    caption: input.caption?.trim() || null,
+    privacy_scope: input.privacyScope,
+  };
+
+  if (input.clearLocation) {
+    update.address = null;
+    update.city = null;
+    update.region = null;
+    update.country = null;
+    update.location = null;
+  }
+
+  const { error } = await supabase
+    .from("posts")
+    .update(update)
+    .eq("id", input.postId);
+
+  return { error: rpcErrorMessage(error) };
+}
+
 export async function deletePost(
   postId: string,
   storageObjectPath: string,

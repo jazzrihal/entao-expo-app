@@ -173,6 +173,17 @@ export function PostFeedPager({
     }
   }, [activeIsLocalOnly, activePost]);
 
+  const handleEdit = useCallback(() => {
+    if (!activePost || !isOwner) {
+      return;
+    }
+
+    router.push({
+      pathname: "/(app)/edit-post",
+      params: { post: JSON.stringify(activePost) },
+    });
+  }, [activePost, isOwner, router]);
+
   const handleDelete = useCallback(() => {
     if (!activePost || !isOwner || deleteMutation.isPending) {
       return;
@@ -339,6 +350,13 @@ export function PostFeedPager({
             icon="ellipsis.circle"
             hidden={!showMore}
           >
+            <Stack.Toolbar.MenuAction
+              icon="pencil"
+              hidden={!showDelete}
+              onPress={handleEdit}
+            >
+              Edit
+            </Stack.Toolbar.MenuAction>
             <Stack.Toolbar.MenuAction
               icon="trash"
               destructive
