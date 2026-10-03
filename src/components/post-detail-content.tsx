@@ -1,5 +1,7 @@
+import { useFonts } from "expo-font";
 import {
   StyleSheet,
+  Text as RNText,
   useColorScheme,
   useWindowDimensions,
   View,
@@ -17,7 +19,11 @@ import { ZoomableImage } from "@/components/zoomable-image";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { FORCE_UPLOAD_INDICATORS } from "@/lib/debug-upload-indicators";
-import { buildLocationLine, formatCapturedAtAgo } from "@/lib/post-display";
+import {
+  buildLocationLine,
+  formatCapturedAtAgo,
+  formatCapturedAtDigital,
+} from "@/lib/post-display";
 import type { PostDetailTestIDPrefix } from "@/lib/navigation";
 import type { LocalPostStatus } from "@/lib/post-db";
 import { parsePostBadges } from "@/lib/posts";
@@ -31,6 +37,7 @@ import {
   BADGE_TEXT_COLOR,
   ELEVATED_BACKGROUND,
   META_TEXT_COLOR,
+  SECONDARY_LABEL,
   resolveColorScheme,
 } from "@/lib/theme-colors";
 import type { PostDetailWithImage } from "@/queries/posts";
@@ -55,11 +62,12 @@ type PostDetailContentProps = {
   exploreNearbyDisabled?: boolean;
 };
 
+const DIGITAL_STAMP_FONT = "DSEG7Classic-Regular";
 const CAPTION_LINE_HEIGHT = 22;
 const FEED_CAPTION_VISIBLE = 2 * CAPTION_LINE_HEIGHT;
 const FEED_HEADER_HEIGHT = 44;
-/** Date + location (wrapping) opposite pin/like. */
-const FEED_FOOTER_META_HEIGHT = 58;
+/** Location and relative time opposite pin/like. */
+const FEED_FOOTER_META_HEIGHT = 60;
 const FOOTER_HORIZONTAL_PADDING = 12;
 
 /**
@@ -88,6 +96,9 @@ export function PostDetailContent({
 }: PostDetailContentProps) {
   const { width } = useWindowDimensions();
   const theme = resolveColorScheme(useColorScheme());
+  useFonts({
+    [DIGITAL_STAMP_FONT]: require("../../assets/fonts/DSEG7Classic-Regular.ttf"),
+  });
 
   const authorName = resolveDisplayName({
     display_name: post.display_name,
@@ -104,6 +115,9 @@ export function PostDetailContent({
 
   const exploreNearbyPress =
     onExploreNearby && !exploreNearbyDisabled ? onExploreNearby : undefined;
+  const showSyncBadge = Boolean(
+    FORCE_UPLOAD_INDICATORS || (isLocalOnly && localSyncStatus),
+  );
   const footerInnerWidth = width - FOOTER_HORIZONTAL_PADDING * 2;
   // Spacer (not Row spacing) separates meta and actions so trailing icons stay
   // pinned to the right when the reserved action width is larger than reality.
@@ -146,17 +160,33 @@ export function PostDetailContent({
               backgroundColor: ELEVATED_BACKGROUND[theme],
             }}
           >
-            <Text
-              testID={`${testIDPrefix}-detail-author`}
-              numberOfLines={1}
-              textStyle={{
-                fontSize: displayNameFontSize(authorName.length, 17),
-                fontWeight: "600",
-              }}
-              onPress={onAuthorPress}
-            >
-              {authorLabel}
-            </Text>
+            <Row spacing={8} alignment="center">
+              <Text
+                testID={`${testIDPrefix}-detail-author`}
+                numberOfLines={1}
+                textStyle={{
+                  fontSize: displayNameFontSize(authorName.length, 17),
+                  fontWeight: "600",
+                }}
+                onPress={onAuthorPress}
+              >
+                {authorLabel}
+              </Text>
+              {showSyncBadge ? (
+                <RNHostView matchContents>
+                  <LocalPostSyncBadge
+                    inline
+                    tintColor={SECONDARY_LABEL[theme]}
+                    testID={`${testIDPrefix}-detail-local-badge`}
+                    syncStatus={
+                      FORCE_UPLOAD_INDICATORS
+                        ? "uploading"
+                        : (localSyncStatus ?? "queued")
+                    }
+                  />
+                </RNHostView>
+              ) : null}
+            </Row>
             {badges.length > 0 ? (
               <>
                 <Spacer flexible />
@@ -192,16 +222,13 @@ export function PostDetailContent({
                 style={{ width, height: imageHeight }}
                 width={width}
               />
-              {FORCE_UPLOAD_INDICATORS || (isLocalOnly && localSyncStatus) ? (
-                <LocalPostSyncBadge
-                  testID={`${testIDPrefix}-detail-local-badge`}
-                  syncStatus={
-                    FORCE_UPLOAD_INDICATORS
-                      ? "uploading"
-                      : (localSyncStatus ?? "queued")
-                  }
-                />
-              ) : null}
+              <RNText
+                pointerEvents="none"
+                testID={`${testIDPrefix}-detail-date`}
+                style={styles.digitalStamp}
+              >
+                {formatCapturedAtDigital(post.captured_at)}
+              </RNText>
             </View>
           </RNHostView>
 
@@ -221,22 +248,29 @@ export function PostDetailContent({
                 spacing={2}
                 alignment="start"
                 style={{ width: metaTextWidth }}
+                onPress={exploreNearbyPress}
               >
-                <Text
-                  testID={`${testIDPrefix}-detail-date`}
-                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
-                  onPress={exploreNearbyPress}
-                >
-                  {formatCapturedAtAgo(post.captured_at)}
-                </Text>
                 {locationLine ? (
-                  <Text
-                    testID={`${testIDPrefix}-detail-location`}
-                    textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
-                    onPress={exploreNearbyPress}
-                  >
-                    {locationLine}
-                  </Text>
+                  <>
+                    <Text
+                      testID={`${testIDPrefix}-detail-location`}
+                      textStyle={{
+                        fontSize: 14,
+                        color: META_TEXT_COLOR[theme],
+                      }}
+                    >
+                      {locationLine}
+                    </Text>
+                    <Text
+                      testID={`${testIDPrefix}-detail-time-ago`}
+                      textStyle={{
+                        fontSize: 14,
+                        color: META_TEXT_COLOR[theme],
+                      }}
+                    >
+                      {formatCapturedAtAgo(post.captured_at)}
+                    </Text>
+                  </>
                 ) : null}
               </Column>
               {!isLocalOnly ? (
@@ -299,5 +333,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: FOOTER_HORIZONTAL_PADDING,
     paddingTop: 8,
     paddingBottom: 8,
+  },
+  digitalStamp: {
+    position: "absolute",
+    right: 8,
+    bottom: 8,
+    color: "#FFB000",
+    fontFamily: DIGITAL_STAMP_FONT,
+    fontSize: 14,
   },
 });
