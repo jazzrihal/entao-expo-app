@@ -134,9 +134,10 @@ export default function UserProfileScreen() {
     [feedQuery.data],
   );
   const showFeedLoading = !!userId && feedQuery.isPending;
-  const showFeedError = !!feedQuery.error && !showFeedLoading;
+  const showFeedError =
+    !!feedQuery.error && !showFeedLoading && feedQuery.data == null;
   const showFeedEmpty =
-    !showFeedLoading && !feedQuery.error && posts.length === 0;
+    !showFeedLoading && feedQuery.data != null && posts.length === 0;
 
   const handleOpenPostDetail = useCallback(
     (post: ProfileFeedPostWithImage) => {

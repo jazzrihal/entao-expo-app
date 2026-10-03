@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "@/components/image";
+import { postImageSource } from "@/lib/post-image-source";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
 import { FORCE_UPLOAD_INDICATORS } from "@/lib/debug-upload-indicators";
@@ -19,6 +20,7 @@ const GRID_GAP = 1;
 export type PostGridItem = {
   id: string;
   imageUrl?: string;
+  storage_object_path?: string | null;
   isLocal?: boolean;
   syncStatus?: LocalPostStatus;
   isPinned?: boolean;
@@ -94,7 +96,7 @@ export function PostFeedGrid<T extends PostGridItem>({
         >
           <Image
             recyclingKey={item.id}
-            source={item.imageUrl ? { uri: item.imageUrl } : undefined}
+            source={postImageSource(item.imageUrl, item.storage_object_path)}
             style={{ width: itemWidth, height: tileSize }}
             contentFit="cover"
           />

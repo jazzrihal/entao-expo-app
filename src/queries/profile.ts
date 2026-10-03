@@ -25,6 +25,7 @@ export function useUserProfileQuery(
     },
     enabled: (options?.enabled ?? true) && !!userId,
     staleTime: options?.staleTime,
+    gcTime: Number.POSITIVE_INFINITY,
   });
 }
 

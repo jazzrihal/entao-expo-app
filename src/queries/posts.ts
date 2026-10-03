@@ -148,6 +148,10 @@ export function useProfileFeedQuery(
     queryFn: ({ signal }) => fetchProfileFeedWithImages(userId!, signal),
     enabled: (options?.enabled ?? true) && !!userId,
     staleTime: options?.staleTime,
+    // Session-long retention. The SQLite snapshot is only read at launch, so
+    // dropping this cache while the app stays open would leave an offline
+    // revisit with nothing to render.
+    gcTime: Number.POSITIVE_INFINITY,
   });
 }
 
@@ -155,6 +159,7 @@ export function useFriendsPostsQuery() {
   return useQuery({
     queryKey: queryKeys.friendsPosts(),
     queryFn: ({ signal }) => fetchFriendsPostsGroupedWithImages(signal),
+    gcTime: Number.POSITIVE_INFINITY,
   });
 }
 

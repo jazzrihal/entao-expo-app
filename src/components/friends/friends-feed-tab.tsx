@@ -96,9 +96,11 @@ export function FriendsFeedTab() {
   }, [groups]);
 
   const showLoading = feedQuery.isPending;
-  const showError = !!feedQuery.error && !showLoading;
-  const showEmpty =
-    !showLoading && !feedQuery.error && flattenedPosts.length === 0;
+  // Keep the last successful list on screen when a refetch fails or pauses
+  // offline. Otherwise a cold start with a snapshot would flip to the error
+  // state as soon as the network request cannot run.
+  const showError = !!feedQuery.error && !showLoading && feedQuery.data == null;
+  const showEmpty = !showLoading && !showError && flattenedPosts.length === 0;
 
   const handleOpenPostDetail = useCallback(
     (post: FriendsPostWithImage) => {

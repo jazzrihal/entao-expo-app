@@ -6,6 +6,7 @@ import {
 } from "expo-image";
 import { useCallback, useState, type ComponentType } from "react";
 import { Pressable, StyleSheet, useColorScheme } from "react-native";
+import { diskCachePolicyForSource } from "@/lib/post-image-source";
 import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 
 type EntaoImageProps = Omit<ImageProps, "onPress"> & {
@@ -48,9 +49,12 @@ function ImageComponent({
     onPress?.();
   }, [onPress]);
 
+  const cachePolicy =
+    props.cachePolicy ?? diskCachePolicyForSource(props.source);
   const image = (
     <ExpoImage
       {...props}
+      cachePolicy={cachePolicy}
       contentFit={resolvedContentFit}
       style={resizeOnTap ? StyleSheet.absoluteFill : flattenedStyle}
     />
@@ -60,6 +64,7 @@ function ImageComponent({
     return (
       <ExpoImage
         {...props}
+        cachePolicy={cachePolicy}
         contentFit={resolvedContentFit}
         style={flattenedStyle}
       />

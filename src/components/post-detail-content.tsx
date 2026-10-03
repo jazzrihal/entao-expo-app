@@ -16,6 +16,7 @@ import {
   Text,
 } from "@expo/ui";
 import { ZoomableImage } from "@/components/zoomable-image";
+import { postImageSource } from "@/lib/post-image-source";
 import { LocalPostSyncBadge } from "@/components/local-post-sync-badge";
 import { PostFeedIconButton } from "@/components/post-feed-icon-button";
 import { FORCE_UPLOAD_INDICATORS } from "@/lib/debug-upload-indicators";
@@ -218,7 +219,10 @@ export function PostDetailContent({
               <ZoomableImage
                 height={imageHeight}
                 testID={`${testIDPrefix}-detail-image`}
-                source={post.imageUrl ? { uri: post.imageUrl } : undefined}
+                source={postImageSource(
+                  post.imageUrl,
+                  post.storage_object_path,
+                )}
                 style={{ width, height: imageHeight }}
                 width={width}
               />
