@@ -29,6 +29,8 @@ import {
 } from "@expo/ui";
 import { CameraView, useCameraPermissions, type CameraType } from "expo-camera";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { CameraCaptureCurtain } from "@/components/camera-capture-curtain";
+import { CameraViewfinder } from "@/components/camera-viewfinder";
 import { Empty } from "@/components/empty";
 import { ZoomableImage } from "@/components/zoomable-image";
 import * as Location from "expo-location";
@@ -80,17 +82,14 @@ export default function NewPostScreen() {
     DEFAULT_POST_PRIVACY_SCOPE,
   );
   const [capturing, setCapturing] = useState(false);
+  const [curtainOpen, setCurtainOpen] = useState(false);
+  const [curtainUri, setCurtainUri] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
   const [captionFocused, setCaptionFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState<CameraType>("back");
   const [gpsEnabled, setGpsEnabled] = useState(true);
-  const [focusSquare, setFocusSquare] = useState({
-    visible: false,
-    x: 0,
-    y: 0,
-  });
   const [showZoomIndicator, setShowZoomIndicator] = useState(false);
 
   const zoomRef = useRef(zoom);
@@ -98,7 +97,6 @@ export default function NewPostScreen() {
   const zoomIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const didRequestCameraPermission = useRef(false);
 
   useEffect(() => {
@@ -133,9 +131,6 @@ export default function NewPostScreen() {
       if (zoomIndicatorTimeoutRef.current) {
         clearTimeout(zoomIndicatorTimeoutRef.current);
       }
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current);
-      }
     };
   }, []);
 
@@ -162,35 +157,18 @@ export default function NewPostScreen() {
     }, 1000);
   }, []);
 
-  const handleTapFocus = useCallback((x: number, y: number) => {
-    setFocusSquare({ visible: true, x, y });
-    cameraRef.current?.focusAsync(x, y).catch(() => {});
-    if (focusTimeoutRef.current) {
-      clearTimeout(focusTimeoutRef.current);
-    }
-    focusTimeoutRef.current = setTimeout(() => {
-      setFocusSquare((current) => ({ ...current, visible: false }));
-    }, 800);
-  }, []);
-
   /* eslint-disable react-hooks/refs -- RNGH handlers read refs only when gestures fire */
-  const cameraGesture = useMemo(() => {
-    const pinchGesture = Gesture.Pinch()
-      .onBegin(handlePinchBegin)
-      .onUpdate((event) => {
-        handlePinchUpdate(event.scale);
-      })
-      .onEnd(handlePinchEnd)
-      .runOnJS(true);
-
-    const tapGesture = Gesture.Tap()
-      .onEnd((event) => {
-        handleTapFocus(event.x, event.y);
-      })
-      .runOnJS(true);
-
-    return Gesture.Race(tapGesture, pinchGesture);
-  }, [handlePinchBegin, handlePinchEnd, handlePinchUpdate, handleTapFocus]);
+  const cameraGesture = useMemo(
+    () =>
+      Gesture.Pinch()
+        .onBegin(handlePinchBegin)
+        .onUpdate((event) => {
+          handlePinchUpdate(event.scale);
+        })
+        .onEnd(handlePinchEnd)
+        .runOnJS(true),
+    [handlePinchBegin, handlePinchEnd, handlePinchUpdate],
+  );
   /* eslint-enable react-hooks/refs */
 
   useEffect(() => {
@@ -259,6 +237,24 @@ export default function NewPostScreen() {
     setZoom(0);
   }
 
+  function failCapture() {
+    setCurtainOpen(false);
+    setCurtainUri(null);
+    setCapturing(false);
+    setError("Failed to capture photo. Please try again.");
+  }
+
+  function handleCurtainComplete() {
+    if (!curtainUri) {
+      failCapture();
+      return;
+    }
+
+    setImageUri(curtainUri);
+    setCurtainOpen(false);
+    setCapturing(false);
+  }
+
   async function handleShutter() {
     if (capturing || !cameraRef.current) {
       return;
@@ -266,6 +262,8 @@ export default function NewPostScreen() {
 
     setCapturing(true);
     setError(null);
+    setCurtainUri(null);
+    setCurtainOpen(true);
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
@@ -273,16 +271,14 @@ export default function NewPostScreen() {
       });
 
       if (!photo?.uri) {
-        setError("Failed to capture photo. Please try again.");
+        failCapture();
         return;
       }
 
       setCapturedAt(new Date());
-      setImageUri(photo.uri);
+      setCurtainUri(photo.uri);
     } catch {
-      setError("Failed to capture photo. Please try again.");
-    } finally {
-      setCapturing(false);
+      failCapture();
     }
   }
 
@@ -435,19 +431,12 @@ export default function NewPostScreen() {
                 style={styles.camera}
                 facing={facing}
                 zoom={zoom}
+                animateShutter={false}
+                responsiveOrientationWhenOrientationLocked={
+                  process.env.EXPO_OS === "ios"
+                }
               />
-              {focusSquare.visible ? (
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.focusSquare,
-                    {
-                      top: focusSquare.y - 30,
-                      left: focusSquare.x - 30,
-                    },
-                  ]}
-                />
-              ) : null}
+              <CameraViewfinder />
               {showZoomIndicator ? (
                 <View pointerEvents="none" style={styles.zoomIndicator}>
                   <RNText style={styles.zoomIndicatorText}>
@@ -509,16 +498,12 @@ export default function NewPostScreen() {
                   void handleShutter();
                 }}
               >
-                {capturing ? (
-                  <ActivityIndicator color={colors.text} />
-                ) : (
-                  <View
-                    style={[
-                      styles.shutterInner,
-                      { backgroundColor: colors.text },
-                    ]}
-                  />
-                )}
+                <View
+                  style={[
+                    styles.shutterInner,
+                    { backgroundColor: colors.text },
+                  ]}
+                />
               </TouchableOpacity>
               <Host matchContents>
                 <Button
@@ -547,6 +532,12 @@ export default function NewPostScreen() {
             Cancel
           </Stack.Toolbar.Button>
         </Stack.Toolbar>
+        {curtainOpen ? (
+          <CameraCaptureCurtain
+            uri={curtainUri}
+            onComplete={handleCurtainComplete}
+          />
+        ) : null}
       </>
     );
   }
@@ -734,13 +725,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-  },
-  focusSquare: {
-    position: "absolute",
-    width: 60,
-    height: 60,
-    borderWidth: 2,
-    borderColor: "#FFD60A",
   },
   zoomIndicator: {
     position: "absolute",

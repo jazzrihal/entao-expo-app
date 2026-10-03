@@ -24,8 +24,10 @@ env:
       - tapOn: "Allow"
 - tapOn:
     id: "camera-shutter-button"
-- assertVisible:
-    id: "new-post-preview"
+- extendedWaitUntil:
+    visible:
+      id: "new-post-preview"
+    timeout: 15000
 - tapOn: "Post"
 # Post fails silently and saves locally; expect navigation back to home
 - assertVisible:
