@@ -1,0 +1,64 @@
+appId: com.jazzrihal.entao
+# Airplane-mode toggling only works reliably on Android.
+# Tagged so iOS CI excludes it via --exclude-tags android.
+tags:
+  - android
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+---
+- runFlow:
+    file: ../auth/sign-in.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+- tapOn:
+    text: "Friends"
+    label: Open Friends tab while online so the feed snapshot is saved
+- extendedWaitUntil:
+    visible:
+      id: "friends-feed"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    text: "Profile"
+    label: Open Profile while online so the profile snapshot is saved
+- extendedWaitUntil:
+    visible:
+      id: "profile-post-grid"
+    timeout: 15000
+- setAirplaneMode: enabled
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible: "Friends"
+    timeout: 20000
+- tapOn:
+    text: "Friends"
+    label: Friends feed should render from the snapshot with no network
+- extendedWaitUntil:
+    visible:
+      id: "friends-feed"
+    timeout: 15000
+- assertNotVisible:
+    id: "friends-feed-error"
+- scrollUntilVisible:
+    element:
+      id: "friends-feed-section-bob-row-0"
+    direction: DOWN
+    visibilityPercentage: 90
+- tapOn:
+    text: "Profile"
+    label: Profile grid should render from the snapshot with no network
+- extendedWaitUntil:
+    visible:
+      id: "profile-post-grid"
+    timeout: 15000
+- assertNotVisible:
+    id: "profile-feed-error"
+- setAirplaneMode: disabled

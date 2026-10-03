@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from "react";
 import { Redirect, usePathname } from "expo-router";
 import { Stack } from "expo-router/stack";
+import { FeedCacheGate } from "@/components/feed-cache-gate";
 import { TermsGate } from "@/components/terms-gate";
 import { useAuth } from "@/context/auth";
 import { PostManagerProvider } from "@/context/post-manager";
@@ -52,24 +53,26 @@ export default function AppLayout() {
     <TermsGate>
       <AuthenticatedShell>
         <PostManagerProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="user/[id]"
-              options={{
-                headerBackButtonDisplayMode: "minimal",
-                headerLargeTitle: false,
-              }}
-            />
-            <Stack.Screen
-              name="post/[id]"
-              options={{
-                title: "",
-                headerBackButtonDisplayMode: "minimal",
-                headerLargeTitle: false,
-              }}
-            />
-          </Stack>
+          <FeedCacheGate userId={session.user.id}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="user/[id]"
+                options={{
+                  headerBackButtonDisplayMode: "minimal",
+                  headerLargeTitle: false,
+                }}
+              />
+              <Stack.Screen
+                name="post/[id]"
+                options={{
+                  title: "",
+                  headerBackButtonDisplayMode: "minimal",
+                  headerLargeTitle: false,
+                }}
+              />
+            </Stack>
+          </FeedCacheGate>
         </PostManagerProvider>
       </AuthenticatedShell>
     </TermsGate>

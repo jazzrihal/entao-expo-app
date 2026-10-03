@@ -1,6 +1,7 @@
-import React, { createContext, useEffect, useState } from "react";
+import React, { createContext, useEffect, useRef, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { signInWithApple } from "@/lib/auth-social";
+import { clearUserFeedSnapshots } from "@/lib/feed-snapshot";
 import { queryClient } from "@/lib/query-client";
 import {
   clearPushRegistrationCache,
@@ -32,19 +33,30 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const sessionUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      sessionUserIdRef.current = session?.user.id ?? null;
       setSession(session);
       setLoading(false);
     });
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) {
+        const userId = sessionUserIdRef.current;
         queryClient.clear();
         clearPushRegistrationCache();
+        if (event === "SIGNED_OUT") {
+          sessionUserIdRef.current = null;
+          if (userId) {
+            void clearUserFeedSnapshots(userId).catch(() => {});
+          }
+        }
+      } else {
+        sessionUserIdRef.current = session.user.id;
       }
       setSession(session);
     });

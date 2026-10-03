@@ -7,6 +7,7 @@ import { useColorScheme } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { AuthProvider } from "@/context/auth";
+import { clearAllFeedSnapshots } from "@/lib/feed-snapshot";
 import { queryClient } from "@/lib/query-client";
 import {
   markInitialPostLinkResolved,
@@ -25,6 +26,7 @@ export default function RootLayout() {
     }
     previousSupabaseTarget.current = supabaseTarget;
     queryClient.clear();
+    void clearAllFeedSnapshots().catch(() => {});
   }, [supabaseTarget]);
 
   // Capture cold-start / openURL post and profile deep links before auth

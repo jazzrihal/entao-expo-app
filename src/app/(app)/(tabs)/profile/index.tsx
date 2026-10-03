@@ -32,8 +32,8 @@ export default function Profile() {
   const { session } = useAuth();
   const userId = session?.user.id;
 
-  const profileQuery = useUserProfileQuery(userId, { staleTime: Infinity });
-  const feedQuery = useProfileFeedQuery(userId, { staleTime: Infinity });
+  const profileQuery = useUserProfileQuery(userId);
+  const feedQuery = useProfileFeedQuery(userId);
   const { localPosts, refresh: refreshLocalPosts } = useLocalPosts(userId);
 
   const displayName = profileQuery.data
@@ -70,9 +70,12 @@ export default function Profile() {
   const showFeedLoading = feedQuery.isLoading && localPosts.length === 0;
   const feedStuck = useStuckAfter(showFeedLoading, FEED_STUCK_AFTER_MS);
   const showFeedError =
-    !!feedQuery.error && !feedQuery.isLoading && mergedPosts.length === 0;
+    !!feedQuery.error &&
+    !feedQuery.isLoading &&
+    feedQuery.data == null &&
+    localPosts.length === 0;
   const showFeedEmpty =
-    !feedQuery.isLoading && !feedQuery.error && mergedPosts.length === 0;
+    !feedQuery.isLoading && !showFeedError && mergedPosts.length === 0;
 
   const handleOpenPostDetail = useCallback(
     (post: ProfileGridItem) => {

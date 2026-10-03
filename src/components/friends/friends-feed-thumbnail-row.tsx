@@ -6,6 +6,7 @@ import {
   View,
 } from "react-native";
 import { Image } from "@/components/image";
+import { postImageSource } from "@/lib/post-image-source";
 import { PinnedPostBadge } from "@/components/pinned-post-badge";
 import { BASE_BACKGROUND, resolveColorScheme } from "@/lib/theme-colors";
 import type { FriendsPostWithImage } from "@/queries/posts";
@@ -73,7 +74,7 @@ export function FriendsFeedThumbnailRow({
       >
         <Image
           recyclingKey={post.id}
-          source={post.imageUrl ? { uri: post.imageUrl } : undefined}
+          source={postImageSource(post.imageUrl, post.storage_object_path)}
           style={{ width: screenWidth, height: rowHeight }}
           contentFit="cover"
         />
