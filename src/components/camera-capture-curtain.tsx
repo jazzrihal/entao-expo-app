@@ -1,5 +1,9 @@
 /* eslint-disable no-restricted-imports -- develop fade must stay transparent; the shared Image paints a solid background */
 import { Image as ExpoImage } from "expo-image";
+import {
+  playDevelopRamp,
+  stopDevelopRamp,
+} from "../../modules/capture-haptics/src";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Modal, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {
@@ -75,6 +79,7 @@ export function CameraCaptureCurtain({
       return;
     }
 
+    playDevelopRamp(DEVELOP_MS);
     photoOpacity.value = withTiming(
       1,
       { duration: DEVELOP_MS, easing: Easing.linear },
@@ -84,6 +89,10 @@ export function CameraCaptureCurtain({
         }
       },
     );
+
+    return () => {
+      stopDevelopRamp();
+    };
   }, [developing, finishFade, photoOpacity]);
 
   useEffect(() => {

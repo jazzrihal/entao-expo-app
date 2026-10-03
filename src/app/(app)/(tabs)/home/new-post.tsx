@@ -29,6 +29,7 @@ import {
 } from "@expo/ui";
 import { CameraView, useCameraPermissions, type CameraType } from "expo-camera";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { playShutterBlip } from "../../../../../modules/capture-haptics/src";
 import { CameraCaptureCurtain } from "@/components/camera-capture-curtain";
 import { CameraViewfinder } from "@/components/camera-viewfinder";
 import { Empty } from "@/components/empty";
@@ -264,6 +265,7 @@ export default function NewPostScreen() {
     setError(null);
     setCurtainUri(null);
     setCurtainOpen(true);
+    playShutterBlip();
 
     try {
       const photo = await cameraRef.current.takePictureAsync({
