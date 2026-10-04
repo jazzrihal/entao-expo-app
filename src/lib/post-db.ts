@@ -130,6 +130,38 @@ export async function insertLocalPost(
   );
 }
 
+export async function updateLocalPostContent(
+  db: SQLite.SQLiteDatabase,
+  id: string,
+  input: {
+    caption: string | null;
+    privacyScope: string;
+    latitude: number | null;
+    longitude: number | null;
+    address: string | null;
+    city: string | null;
+    region: string | null;
+  },
+): Promise<void> {
+  await db.runAsync(
+    `UPDATE local_posts
+     SET caption = ?, privacy_scope = ?,
+         latitude = ?, longitude = ?,
+         address = ?, city = ?, region = ?,
+         updated_at = ?
+     WHERE id = ?`,
+    input.caption,
+    input.privacyScope,
+    input.latitude,
+    input.longitude,
+    input.address,
+    input.city,
+    input.region,
+    Date.now(),
+    id,
+  );
+}
+
 export async function updateLocalPostStatus(
   db: SQLite.SQLiteDatabase,
   id: string,

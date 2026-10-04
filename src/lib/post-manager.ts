@@ -6,9 +6,11 @@ import {
   deleteOutboxByLocalPostId,
   getDb,
   getLocalImageUri,
+  getLocalPostById,
   getLocalPostsByUser,
   insertLocalPost,
   insertOutboxEntry,
+  updateLocalPostContent as updateLocalPostContentRow,
   updateLocalPostStatus,
   type LocalPost,
 } from "@/lib/post-db";
@@ -168,6 +170,47 @@ export async function markSynced(
   } catch (err) {
     return {
       error: err instanceof Error ? err.message : "Failed to mark post synced",
+    };
+  }
+}
+
+export type UpdateLocalPostContentInput = {
+  caption?: string | null;
+  privacyScope: string;
+  clearLocation: boolean;
+};
+
+export async function updateLocalPostContent(
+  localPostId: string,
+  input: UpdateLocalPostContentInput,
+): Promise<{ error: string | null }> {
+  try {
+    const db = await getDb();
+    const existing = await getLocalPostById(db, localPostId);
+    if (!existing) {
+      return { error: "Post not found." };
+    }
+    if (existing.status === "uploading") {
+      return { error: "This post is uploading. Try again in a moment." };
+    }
+    if (existing.status === "synced") {
+      return { error: "This post has already been posted." };
+    }
+
+    await updateLocalPostContentRow(db, localPostId, {
+      caption: input.caption?.trim() || null,
+      privacyScope: input.privacyScope,
+      latitude: input.clearLocation ? null : existing.latitude,
+      longitude: input.clearLocation ? null : existing.longitude,
+      address: input.clearLocation ? null : existing.address,
+      city: input.clearLocation ? null : existing.city,
+      region: input.clearLocation ? null : existing.region,
+    });
+    notifyPostChangeListeners();
+    return { error: null };
+  } catch (err) {
+    return {
+      error: err instanceof Error ? err.message : "Failed to update post",
     };
   }
 }

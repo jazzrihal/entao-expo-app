@@ -1,57 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   Text as RNText,
   TouchableOpacity,
-  useColorScheme,
-  useWindowDimensions,
   View,
 } from "react-native";
-import {
-  KeyboardAwareScrollView,
-  useKeyboardHandler,
-  type KeyboardAwareScrollViewRef,
-} from "react-native-keyboard-controller";
-import { runOnJS } from "react-native-reanimated";
-import {
-  Button,
-  FieldGroup,
-  Host,
-  Icon,
-  Picker,
-  Row,
-  Spacer,
-  Text,
-  TextInput,
-  type TextInputRef,
-} from "@expo/ui";
+import { Button, Host, Icon, Text } from "@expo/ui";
 import { CameraView, useCameraPermissions, type CameraType } from "expo-camera";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { playShutterBlip } from "../../../../../modules/capture-haptics/src";
 import { CameraCaptureCurtain } from "@/components/camera-capture-curtain";
 import { CameraViewfinder } from "@/components/camera-viewfinder";
 import { Empty } from "@/components/empty";
-import { ZoomableImage } from "@/components/zoomable-image";
+import { PostComposeForm } from "@/components/post-compose-form";
 import * as Location from "expo-location";
 import { Stack, useRouter, useTheme } from "expo-router";
 import { useAuth } from "@/context/auth";
 import { resolvePostLocationParts } from "@/lib/location-label";
-import {
-  buildLocationLine,
-  formatCapturedAt,
-  type PostLocationParts,
-} from "@/lib/post-display";
+import { buildLocationLine, type PostLocationParts } from "@/lib/post-display";
 import { DEFAULT_POST_PRIVACY_SCOPE, type PostPrivacyScope } from "@/lib/posts";
 import { resolveDisplayName } from "@/lib/profile-display";
 import { saveLocalPost, queuePostForUpload } from "@/lib/post-manager";
 import { runSync } from "@/lib/sync-manager";
 import { useCreatePostMutation } from "@/queries/posts";
-import { META_TEXT_COLOR, resolveColorScheme } from "@/lib/theme-colors";
 import { useUserProfileQuery } from "@/queries/profile";
-
-const CAPTION_MAX_LENGTH = 500;
 
 function formatZoomLabel(zoom: number): string {
   return `${(1 + zoom * 9).toFixed(1)}x`;
@@ -60,12 +33,8 @@ function formatZoomLabel(zoom: number): string {
 export default function NewPostScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const { width, height } = useWindowDimensions();
   const { colors, dark } = useTheme();
-  const theme = resolveColorScheme(useColorScheme());
   const cameraRef = useRef<CameraView>(null);
-  const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
-  const captionRef = useRef<TextInputRef>(null);
   const shutterRingColor = dark
     ? "rgba(255, 255, 255, 0.3)"
     : "rgba(0, 0, 0, 0.12)";
@@ -86,7 +55,6 @@ export default function NewPostScreen() {
   const [curtainOpen, setCurtainOpen] = useState(false);
   const [curtainUri, setCurtainUri] = useState<string | null>(null);
   const [savedLocally, setSavedLocally] = useState(false);
-  const [captionFocused, setCaptionFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useState(0);
   const [facing, setFacing] = useState<CameraType>("back");
@@ -365,25 +333,6 @@ export default function NewPostScreen() {
       createPostMutation.error?.message ??
       null);
 
-  const scrollToCaption = useCallback(() => {
-    scrollRef.current?.scrollToEnd({ animated: true });
-  }, []);
-
-  const blurCaption = useCallback(() => {
-    captionRef.current?.blur();
-  }, []);
-  useKeyboardHandler(
-    {
-      onEnd: (e) => {
-        "worklet";
-        if (e.height > 0) {
-          runOnJS(scrollToCaption)();
-        }
-      },
-    },
-    [scrollToCaption],
-  );
-
   function handleDeleteLocation() {
     setLatitude(undefined);
     setLongitude(undefined);
@@ -546,132 +495,22 @@ export default function NewPostScreen() {
 
   return (
     <>
-      <KeyboardAwareScrollView
-        ref={scrollRef}
-        style={{ flex: 1 }}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ flexGrow: 1 }}
-        onScrollBeginDrag={blurCaption}
-      >
-        <ZoomableImage
-          testID="new-post-preview"
-          source={{ uri: imageUri }}
-          width={width}
-          height={Math.round(height / 3)}
-          style={{ width, height: Math.round(height / 3) }}
-        />
-
-        <Host style={{ flex: 1 }}>
-          <FieldGroup>
-            <FieldGroup.Section>
-              <Row spacing={8}>
-                <Icon name="calendar.badge.clock" size={16} />
-                <Text testID="new-post-captured-at">
-                  {capturedAt ? formatCapturedAt(capturedAt) : ""}
-                </Text>
-              </Row>
-              <Row spacing={8}>
-                <Icon
-                  name={
-                    resolvingLocation
-                      ? "location"
-                      : locationLine
-                        ? "location.fill"
-                        : "location.slash"
-                  }
-                  size={16}
-                />
-                <Text
-                  testID="new-post-location"
-                  textStyle={
-                    locationLine
-                      ? undefined
-                      : { fontSize: 14, color: META_TEXT_COLOR[theme] }
-                  }
-                >
-                  {resolvingLocation
-                    ? "Getting user location…"
-                    : (locationLine ?? "Location disabled for this post")}
-                </Text>
-                {locationLine ? (
-                  <>
-                    <Spacer flexible />
-                    <Button variant="text" onPress={handleDeleteLocation}>
-                      <Icon
-                        name="trash"
-                        size={14}
-                        accessibilityLabel="Remove location"
-                      />
-                    </Button>
-                  </>
-                ) : null}
-              </Row>
-              <Row spacing={8}>
-                <Icon name="mappin.and.ellipse" size={16} />
-                <Text
-                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
-                >
-                  {resolvingLocation
-                    ? "Getting user location…"
-                    : latitude != null && longitude != null
-                      ? `${Math.abs(latitude).toFixed(5)}° ${latitude >= 0 ? "N" : "S"},  ${Math.abs(longitude).toFixed(5)}° ${longitude >= 0 ? "E" : "W"}`
-                      : "Location disabled for this post"}
-                </Text>
-              </Row>
-            </FieldGroup.Section>
-
-            <FieldGroup.Section title="Caption">
-              <TextInput
-                ref={captionRef}
-                testID="new-post-caption"
-                onChangeText={setCaption}
-                onFocus={() => setCaptionFocused(true)}
-                onBlur={() => setCaptionFocused(false)}
-                placeholder="Write a caption…"
-                maxLength={CAPTION_MAX_LENGTH}
-                multiline
-              />
-              <FieldGroup.SectionFooter>
-                <Text
-                  textStyle={{ fontSize: 14, color: META_TEXT_COLOR[theme] }}
-                >
-                  {`${caption.length} / ${CAPTION_MAX_LENGTH}`}
-                </Text>
-              </FieldGroup.SectionFooter>
-            </FieldGroup.Section>
-
-            <FieldGroup.Section title="Visibility">
-              <Picker
-                testID="new-post-privacy-picker"
-                selectedValue={privacyScope}
-                onValueChange={(value) =>
-                  setPrivacyScope(value as PostPrivacyScope)
-                }
-                appearance="menu"
-              >
-                <Picker.Item label="Friends" value="friends_only" />
-                <Picker.Item label="Public" value="public" />
-                <Picker.Item label="Private" value="private" />
-              </Picker>
-            </FieldGroup.Section>
-
-            {submitError ? (
-              <FieldGroup.Section>
-                <Text testID="new-post-error" textStyle={{ color: "#DC2626" }}>
-                  {submitError}
-                </Text>
-              </FieldGroup.Section>
-            ) : null}
-          </FieldGroup>
-        </Host>
-      </KeyboardAwareScrollView>
-      {captionFocused ? (
-        <Pressable
-          style={StyleSheet.absoluteFill}
-          onPress={blurCaption}
-          accessible={false}
-        />
-      ) : null}
+      <PostComposeForm
+        captionInputKey="new-post"
+        initialCaption=""
+        imageUri={imageUri}
+        capturedAt={capturedAt}
+        resolvingLocation={resolvingLocation}
+        locationLine={locationLine}
+        latitude={latitude}
+        longitude={longitude}
+        onRemoveLocation={handleDeleteLocation}
+        caption={caption}
+        onCaptionChange={setCaption}
+        privacyScope={privacyScope}
+        onPrivacyScopeChange={setPrivacyScope}
+        error={submitError}
+      />
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.Button
           accessibilityLabel="Cancel"

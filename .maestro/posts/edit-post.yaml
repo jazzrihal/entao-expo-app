@@ -1,0 +1,53 @@
+appId: com.jazzrihal.entao
+env:
+  E2E_EMAIL: ${E2E_EMAIL || "alice@example.com"}
+  E2E_PASSWORD: ${E2E_PASSWORD || "entao-local-dev"}
+  E2E_POST_CAPTION: ${E2E_POST_CAPTION || "Golden hour from Maestro"}
+  E2E_EDITED_CAPTION: ${E2E_EDITED_CAPTION || "Golden hour from Maestro edited"}
+---
+- runFlow:
+    file: create-post.yaml
+    env:
+      E2E_EMAIL: ${E2E_EMAIL}
+      E2E_PASSWORD: ${E2E_PASSWORD}
+      E2E_POST_CAPTION: ${E2E_POST_CAPTION}
+- tapOn:
+    text: "Profile"
+    label: Open Profile tab
+- extendedWaitUntil:
+    visible:
+      id: "profile-post-grid"
+    timeout: 20000
+# Newest post is first. Skip pinned cells, which use a different testID.
+- tapOn:
+    id: "profile-feed-post-.*"
+    index: 0
+    label: Open the post just created
+- assertVisible:
+    id: "profile-post-detail-caption"
+- tapOn: "More"
+- tapOn: "Edit"
+- extendedWaitUntil:
+    visible:
+      id: "edit-post-preview"
+    timeout: 15000
+- swipe:
+    start: "50%,70%"
+    end: "50%,30%"
+- runFlow:
+    when:
+      notVisible: "Delete post"
+    commands:
+      - swipe:
+          start: "50%,70%"
+          end: "50%,30%"
+- assertVisible: "Delete post"
+- tapOn:
+    id: "edit-post-caption"
+- inputText: " edited"
+- tapOn: "Update"
+- extendedWaitUntil:
+    visible: ${E2E_EDITED_CAPTION}
+    timeout: 20000
+- assertVisible:
+    id: "profile-post-detail-caption"

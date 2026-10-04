@@ -40,11 +40,28 @@ export const PostFeedPage = memo(function PostFeedPage({
   const likeMutation = useToggleLikeMutation(isLocalOnly ? null : post.id);
   const pinMutation = useTogglePinMutation(isLocalOnly ? null : post.id);
 
-  const { data: cachedPost } = usePostQuery(isLocalOnly ? null : post.id, {
+  const { data: cachedPost } = usePostQuery(post.id, {
     // Fetch on open so a focus-refetch that clobbered the friends-list cache
-    // cannot leave this screen showing a stale unpinned control.
+    // cannot leave this screen showing a stale unpinned control. Local posts
+    // subscribe with fetching disabled so an edit can write this cache key.
     placeholderData: post,
+    enabled: !isLocalOnly,
   });
+
+  const displayPost = useMemo(() => {
+    if (!cachedPost) return post;
+    return {
+      ...post,
+      caption: cachedPost.caption,
+      privacy_scope: cachedPost.privacy_scope,
+      address: cachedPost.address,
+      city: cachedPost.city,
+      region: cachedPost.region,
+      country: cachedPost.country,
+      latitude: cachedPost.latitude,
+      longitude: cachedPost.longitude,
+    };
+  }, [cachedPost, post]);
 
   const postEngagement = useMemo(() => {
     const fromPost = getPostViewerEngagement(post);
@@ -122,11 +139,11 @@ export const PostFeedPage = memo(function PostFeedPage({
 
   const canExploreNearby = useMemo(
     () =>
-      Number.isFinite(post.latitude) &&
-      Number.isFinite(post.longitude) &&
-      typeof post.captured_at === "string" &&
-      post.captured_at.length > 0,
-    [post.captured_at, post.latitude, post.longitude],
+      Number.isFinite(displayPost.latitude) &&
+      Number.isFinite(displayPost.longitude) &&
+      typeof displayPost.captured_at === "string" &&
+      displayPost.captured_at.length > 0,
+    [displayPost.captured_at, displayPost.latitude, displayPost.longitude],
   );
 
   const handleExploreNearby = useCallback(() => {
@@ -134,16 +151,16 @@ export const PostFeedPage = memo(function PostFeedPage({
       return;
     }
     momentPicker$.applied.set({
-      occurredAt: post.captured_at,
-      latitude: post.latitude,
-      longitude: post.longitude,
-      address: post.address ?? "",
-      city: post.city ?? "",
-      region: post.region ?? "",
-      country: post.country ?? "",
+      occurredAt: displayPost.captured_at,
+      latitude: displayPost.latitude,
+      longitude: displayPost.longitude,
+      address: displayPost.address ?? "",
+      city: displayPost.city ?? "",
+      region: displayPost.region ?? "",
+      country: displayPost.country ?? "",
     });
     router.dismissTo("/(app)/(tabs)/home");
-  }, [canExploreNearby, post, router]);
+  }, [canExploreNearby, displayPost, router]);
 
   return (
     // Fixed cell height so FlatList snap matches layout. `@expo/ui` Host height
@@ -151,7 +168,7 @@ export const PostFeedPage = memo(function PostFeedPage({
     // post peek) and offset snaps that clipped the author.
     <View style={[styles.page, { height: pageHeight }]}>
       <PostDetailContent
-        post={post}
+        post={displayPost}
         testIDPrefix={testIDPrefix}
         pageHeight={pageHeight}
         bottomInset={bottomInset}

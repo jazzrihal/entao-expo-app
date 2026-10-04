@@ -14,6 +14,7 @@
  *   - SELECT * FROM local_posts WHERE user_id = ? AND status != 'synced' ORDER BY created_at DESC
  *   - SELECT local_image_uri FROM local_posts WHERE id = ?
  *   - SELECT o.* FROM upload_outbox o JOIN local_posts p ON … WHERE … AND p.status IN (…)
+ *   - UPDATE local_posts SET caption=?, privacy_scope=?, latitude=?, … WHERE id=?
  *   - UPDATE local_posts SET status=?, remote_post_id=COALESCE(?,…), … WHERE id=?
  *   - UPDATE upload_outbox SET attempt_count=?, next_attempt_at=?, last_error=? WHERE id=?
  *   - DELETE FROM upload_outbox WHERE local_post_id = ?
@@ -26,6 +27,7 @@ import {
   insertLocalPost,
   getLocalPostsByUser,
   getLocalPostById,
+  updateLocalPostContent,
   updateLocalPostStatus,
   deleteLocalPostRow,
   insertOutboxEntry,
@@ -142,7 +144,38 @@ function buildInMemoryDb() {
       return rows;
     }
 
-    // UPDATE local_posts SET ...
+    // UPDATE local_posts SET caption, privacy, location...
+    if (
+      /^UPDATE local_posts/i.test(trimmed) &&
+      /privacy_scope/i.test(trimmed)
+    ) {
+      const [
+        caption,
+        privacyScope,
+        latitude,
+        longitude,
+        address,
+        city,
+        region,
+        updatedAt,
+        id,
+      ] = params;
+      tables.local_posts.forEach((r) => {
+        if (r.id === id) {
+          r.caption = caption;
+          r.privacy_scope = privacyScope;
+          r.latitude = latitude;
+          r.longitude = longitude;
+          r.address = address;
+          r.city = city;
+          r.region = region;
+          r.updated_at = updatedAt;
+        }
+      });
+      return [];
+    }
+
+    // UPDATE local_posts SET status...
     if (/^UPDATE local_posts/i.test(trimmed)) {
       // status, remote_post_id (COALESCE), storage_object_path (COALESCE), error_message, updated_at WHERE id
       const [status, remotePostId, storagePath, errorMsg, updatedAt, id] =
@@ -363,6 +396,70 @@ describe("post-db", () => {
     it("returns null for a missing post", async () => {
       const uri = await getLocalImageUri(db as never, "no-such-id");
       expect(uri).toBeNull();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // updateLocalPostContent
+  // -------------------------------------------------------------------------
+  describe("updateLocalPostContent", () => {
+    beforeEach(async () => {
+      await insertLocalPost(
+        db as never,
+        makePost({
+          caption: "Original",
+          privacy_scope: "friends_only",
+          latitude: 37.7,
+          longitude: -122.4,
+          address: "1 Market",
+          city: "San Francisco",
+          region: "CA",
+          status: "local",
+        }),
+      );
+    });
+
+    it("updates caption and privacy and keeps the location", async () => {
+      const before = await getLocalPostById(db as never, "post-1");
+      await updateLocalPostContent(db as never, "post-1", {
+        caption: "Updated caption",
+        privacyScope: "private",
+        latitude: 37.7,
+        longitude: -122.4,
+        address: "1 Market",
+        city: "San Francisco",
+        region: "CA",
+      });
+      const post = await getLocalPostById(db as never, "post-1");
+      expect(post!.caption).toBe("Updated caption");
+      expect(post!.privacy_scope).toBe("private");
+      expect(post!.latitude).toBe(37.7);
+      expect(post!.longitude).toBe(-122.4);
+      expect(post!.address).toBe("1 Market");
+      expect(post!.status).toBe("local");
+      expect(post!.local_image_uri).toBe(before!.local_image_uri);
+      expect(post!.captured_at).toBe(before!.captured_at);
+      expect(post!.updated_at).toBeGreaterThanOrEqual(before!.updated_at);
+    });
+
+    it("clears location fields", async () => {
+      await updateLocalPostContent(db as never, "post-1", {
+        caption: null,
+        privacyScope: "public",
+        latitude: null,
+        longitude: null,
+        address: null,
+        city: null,
+        region: null,
+      });
+      const post = await getLocalPostById(db as never, "post-1");
+      expect(post!.caption).toBeNull();
+      expect(post!.privacy_scope).toBe("public");
+      expect(post!.latitude).toBeNull();
+      expect(post!.longitude).toBeNull();
+      expect(post!.address).toBeNull();
+      expect(post!.city).toBeNull();
+      expect(post!.region).toBeNull();
     });
   });
 
